@@ -7,8 +7,8 @@ This repository contains code, data, and other material for audio-based algorith
 ## Overview
 
 - `firmware/`: firmware to run on the audio shield, which processes the microphone signals and streams the result to the Crazyflie PCB. 
-- `hardware/`: *KiCad* PCB design files. 
-- `data/`: audio recordings. 
+- `hardware/`: *KiCad* PCB design files for audio shield.
+- `data/`: audio recordings, recorded with the audio shield, measurement microphones, etc.
 
 ## Contributors 
 
