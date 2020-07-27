@@ -1,0 +1,11 @@
+** Drc report for C:\Users\Isaac\Documents\internship_lcav\audio_shield 3\audio_shield.kicad_pcb **
+** Created on  **
+
+** Found 0 DRC errors **
+
+** Found 1 unconnected pads **
+ErrType(2): Unconnected items
+    @(200.008 mm, 121.429 mm): Track 0.250 mm [Net-(MK8-Pad6)] on B.Cu, length: 0.752 mm
+    @(198.800 mm, 117.700 mm): Pad 1 of R17 on B.Cu and others
+
+** End of Report **

@@ -1,0 +1,2662 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>/Users/hoffet/Dropbox/Documents Adrien/Jobs Data/LCAV/audio_shield 4/audio_shield.sch</source>
+    <date>2020 July 21, Tuesday 15:25:05</date>
+    <tool>Eeschema (5.1.6-0-10_14)</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>audio_shield.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="2" name="/stm32f446re/" tstamps="/5EF054A6/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>stm32f446re.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="3" name="/holding_headers/" tstamps="/5F2BCCE0/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>holding_headers.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="4" name="/sheet5F0910D5/" tstamps="/5F0910E8/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="5" name="/sheet5F0910D6/" tstamps="/5F0910F0/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="6" name="/sheet5F0910D7/" tstamps="/5F0910F8/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="7" name="/sheet5F096C0C/" tstamps="/5F096C14/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="8" name="/sheet5F09509A/" tstamps="/5F0950A2/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="9" name="/sheet5F0936FD/" tstamps="/5F093705/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="10" name="/sheet5F046037/" tstamps="/5F04603F/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="J4">
+      <value>mic_connector</value>
+      <footprint>audio_shield:6288_series_8_pos</footprint>
+      <datasheet>https://global.kyocera.com/prdct/electro/product/pdf/6288.pdf</datasheet>
+      <fields>
+        <field name="Price">1.02</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">478-5454-1-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="mic_connector" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFE47A5</tstamp>
+    </comp>
+    <comp ref="J5">
+      <value>mic_connector</value>
+      <footprint>audio_shield:6288_series_8_pos</footprint>
+      <datasheet>https://global.kyocera.com/prdct/electro/product/pdf/6288.pdf</datasheet>
+      <fields>
+        <field name="Price">1.02</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">478-5454-1-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="mic_connector" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFE68D3</tstamp>
+    </comp>
+    <comp ref="J6">
+      <value>mic_connector</value>
+      <footprint>audio_shield:6288_series_8_pos</footprint>
+      <datasheet>https://global.kyocera.com/prdct/electro/product/pdf/6288.pdf</datasheet>
+      <fields>
+        <field name="Price">1.02</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">478-5454-1-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="mic_connector" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFE8861</tstamp>
+    </comp>
+    <comp ref="J7">
+      <value>mic_connector</value>
+      <footprint>audio_shield:6288_series_8_pos</footprint>
+      <datasheet>https://global.kyocera.com/prdct/electro/product/pdf/6288.pdf</datasheet>
+      <fields>
+        <field name="Price">1.02</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">478-5454-1-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="mic_connector" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F0393EB</tstamp>
+    </comp>
+    <comp ref="J8">
+      <value>mic_connector</value>
+      <footprint>audio_shield:6288_series_8_pos</footprint>
+      <datasheet>https://global.kyocera.com/prdct/electro/product/pdf/6288.pdf</datasheet>
+      <fields>
+        <field name="Price">1.02</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">478-5454-1-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="mic_connector" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F0393F4</tstamp>
+    </comp>
+    <comp ref="J9">
+      <value>SWD_TC2030</value>
+      <footprint>Connector:Tag-Connect_TC2030-IDC-FP_2x03_P1.27mm_Vertical</footprint>
+      <datasheet>https://www.digikey.ch/htmldatasheets/production/2094258/0/0/1/tc2030-ctx-datasheet.html</datasheet>
+      <fields>
+        <field name="Price">51.01</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">TC2030-CTX-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="SWD_TC2030" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFDB2F4</tstamp>
+    </comp>
+    <comp ref="J3">
+      <value>mic_connector</value>
+      <footprint>audio_shield:6288_series_8_pos</footprint>
+      <datasheet>https://global.kyocera.com/prdct/electro/product/pdf/6288.pdf</datasheet>
+      <fields>
+        <field name="Price">1.02</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">478-5454-1-ND </field>
+      </fields>
+      <libsource lib="audio_shield" part="mic_connector" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF5321D</tstamp>
+    </comp>
+    <comp ref="JP1">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F114D8B</tstamp>
+    </comp>
+    <comp ref="JP3">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F19F571</tstamp>
+    </comp>
+    <comp ref="JP2">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F1B201F</tstamp>
+    </comp>
+    <comp ref="JP5">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F288C83</tstamp>
+    </comp>
+    <comp ref="JP6">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F288C7D</tstamp>
+    </comp>
+    <comp ref="JP4">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F288C77</tstamp>
+    </comp>
+    <comp ref="J2">
+      <value>CONN_10_RIGHT</value>
+      <footprint>audio_shield:BF090-10-X-B2</footprint>
+      <datasheet>http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285</datasheet>
+      <fields>
+        <field name="Price">1.46</field>
+        <field name="Supplier">Farnell</field>
+        <field name="Supplier ref.">2751429 </field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EE8979D</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>CONN_10_LEFT</value>
+      <footprint>audio_shield:BF090-10-X-B2</footprint>
+      <datasheet>http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285</datasheet>
+      <fields>
+        <field name="Price">1.46</field>
+        <field name="Supplier">Farnell</field>
+        <field name="Supplier ref.">2751429 </field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EE88981</tstamp>
+    </comp>
+    <comp ref="I2S3_CK1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F0F583E</tstamp>
+    </comp>
+    <comp ref="I2S1_SD1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F155001</tstamp>
+    </comp>
+    <comp ref="I2S1_CK1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F155007</tstamp>
+    </comp>
+    <comp ref="I2S1_WS1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F15500D</tstamp>
+    </comp>
+    <comp ref="RX1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F16A53B</tstamp>
+    </comp>
+    <comp ref="TX1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F16A541</tstamp>
+    </comp>
+    <comp ref="SDA1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F16A547</tstamp>
+    </comp>
+    <comp ref="SDL1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F17CC56</tstamp>
+    </comp>
+    <comp ref="GND1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F1D1148</tstamp>
+    </comp>
+    <comp ref="3V0_1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F1D114E</tstamp>
+    </comp>
+    <comp ref="I2S3_SD1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F0E4486</tstamp>
+    </comp>
+    <comp ref="SPI2_MISO1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F27A2F0</tstamp>
+    </comp>
+    <comp ref="SPI2_CK1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F27A2F6</tstamp>
+    </comp>
+    <comp ref="SPI2_MOSI1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F27A2FF</tstamp>
+    </comp>
+    <comp ref="PC3">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2D740A</tstamp>
+    </comp>
+    <comp ref="PA2">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2D7410</tstamp>
+    </comp>
+    <comp ref="I2S3_WS1">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F0FDA51</tstamp>
+    </comp>
+    <comp ref="GND2">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F306697</tstamp>
+    </comp>
+    <comp ref="GND3">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F311CD9</tstamp>
+    </comp>
+    <comp ref="GND4">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F358F30</tstamp>
+    </comp>
+    <comp ref="3V0_3">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F391EC6</tstamp>
+    </comp>
+    <comp ref="3V0_4">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F3A8184</tstamp>
+    </comp>
+    <comp ref="3V0_2">
+      <value>TestPoint</value>
+      <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F37B87C</tstamp>
+    </comp>
+    <comp ref="MK5">
+      <value>Microphone</value>
+      <datasheet>https://www.digikey.ch/products/en?keywords=KAS-700-0137%20</datasheet>
+      <libsource lib="Device" part="Microphone" description="Microphone"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F205647</tstamp>
+    </comp>
+    <comp ref="MK9">
+      <value>Microphone</value>
+      <datasheet>https://www.digikey.ch/products/en?keywords=KAS-700-0137%20</datasheet>
+      <libsource lib="Device" part="Microphone" description="Microphone"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F273CFE</tstamp>
+    </comp>
+    <comp ref="MK10">
+      <value>Microphone</value>
+      <datasheet>https://www.digikey.ch/products/en?keywords=KAS-700-0137%20</datasheet>
+      <libsource lib="Device" part="Microphone" description="Microphone"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F280136</tstamp>
+    </comp>
+    <comp ref="MK11">
+      <value>Microphone</value>
+      <datasheet>https://www.digikey.ch/products/en?keywords=KAS-700-0137%20</datasheet>
+      <libsource lib="Device" part="Microphone" description="Microphone"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F28C56E</tstamp>
+    </comp>
+    <comp ref="J44">
+      <value>Conn_01x01_Female</value>
+      <datasheet>https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959</datasheet>
+      <libsource lib="Connector" part="Conn_01x01_Female" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F299AFD</tstamp>
+    </comp>
+    <comp ref="J45">
+      <value>Conn_01x01_Female</value>
+      <datasheet>https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959</datasheet>
+      <libsource lib="Connector" part="Conn_01x01_Female" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F29A4B1</tstamp>
+    </comp>
+    <comp ref="J46">
+      <value>Conn_01x01_Female</value>
+      <datasheet>https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959</datasheet>
+      <libsource lib="Connector" part="Conn_01x01_Female" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F29A98E</tstamp>
+    </comp>
+    <comp ref="J47">
+      <value>Conn_01x01_Female</value>
+      <datasheet>https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959</datasheet>
+      <libsource lib="Connector" part="Conn_01x01_Female" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F29AF7C</tstamp>
+    </comp>
+    <comp ref="R1">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF30F53</tstamp>
+    </comp>
+    <comp ref="C2">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF385B8</tstamp>
+    </comp>
+    <comp ref="L1">
+      <value>2.2uH/15mA</value>
+      <footprint>Inductor_SMD:L_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/inductance-cms-2uh-10-prefix-prefix-15-suffix-suffix-ma-kemet-l0603c2r2ksmst/p/30143947?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.3708</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-43-947</field>
+      </fields>
+      <libsource lib="Device" part="L" description="Inductor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF3876A</tstamp>
+    </comp>
+    <comp ref="C6">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF424AE</tstamp>
+    </comp>
+    <comp ref="C5">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF41FC2</tstamp>
+    </comp>
+    <comp ref="C4">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF41CB9</tstamp>
+    </comp>
+    <comp ref="C3">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF417A3</tstamp>
+    </comp>
+    <comp ref="C1">
+      <value>4.7u</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.3896</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-31-676</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF0DF8A</tstamp>
+    </comp>
+    <comp ref="U1">
+      <value>STM32F446RETx</value>
+      <footprint>Package_QFP:LQFP-64_10x10mm_P0.5mm</footprint>
+      <datasheet>http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00141306.pdf</datasheet>
+      <fields>
+        <field name="Price">8.63</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-70-759</field>
+      </fields>
+      <libsource lib="MCU_ST_STM32F4" part="STM32F446RETx" description="ARM Cortex-M4 MCU, 512KB flash, 128KB RAM, 180MHz, 1.8-3.6V, 50 GPIO, LQFP-64"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF2EE57</tstamp>
+    </comp>
+    <comp ref="C8">
+      <value>1u</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0629</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-44-765</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF27DB4</tstamp>
+    </comp>
+    <comp ref="C7">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF2E5AE</tstamp>
+    </comp>
+    <comp ref="C9">
+      <value>4.7u</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.3896</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-31-676</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
+      <tstamp>5EF31DDB</tstamp>
+    </comp>
+    <comp ref="J10">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2BD51E</tstamp>
+    </comp>
+    <comp ref="J11">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2BE4DB</tstamp>
+    </comp>
+    <comp ref="J12">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2BE80D</tstamp>
+    </comp>
+    <comp ref="J13">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2BE9F1</tstamp>
+    </comp>
+    <comp ref="J18">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C10CC</tstamp>
+    </comp>
+    <comp ref="J19">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C10D5</tstamp>
+    </comp>
+    <comp ref="J20">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C10DE</tstamp>
+    </comp>
+    <comp ref="J21">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C10E7</tstamp>
+    </comp>
+    <comp ref="J14">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F02</tstamp>
+    </comp>
+    <comp ref="J15">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F0B</tstamp>
+    </comp>
+    <comp ref="J16">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F14</tstamp>
+    </comp>
+    <comp ref="J17">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F1D</tstamp>
+    </comp>
+    <comp ref="J22">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F26</tstamp>
+    </comp>
+    <comp ref="J23">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F2F</tstamp>
+    </comp>
+    <comp ref="J24">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F38</tstamp>
+    </comp>
+    <comp ref="J25">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2C3F41</tstamp>
+    </comp>
+    <comp ref="J26">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CCFD4</tstamp>
+    </comp>
+    <comp ref="J27">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CCFDD</tstamp>
+    </comp>
+    <comp ref="J28">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CCFE6</tstamp>
+    </comp>
+    <comp ref="J29">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CCFEF</tstamp>
+    </comp>
+    <comp ref="J34">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CCFF8</tstamp>
+    </comp>
+    <comp ref="J35">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD001</tstamp>
+    </comp>
+    <comp ref="J36">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD00A</tstamp>
+    </comp>
+    <comp ref="J37">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD013</tstamp>
+    </comp>
+    <comp ref="J30">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD01C</tstamp>
+    </comp>
+    <comp ref="J31">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD025</tstamp>
+    </comp>
+    <comp ref="J32">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD02E</tstamp>
+    </comp>
+    <comp ref="J38">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD037</tstamp>
+    </comp>
+    <comp ref="J39">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD040</tstamp>
+    </comp>
+    <comp ref="J40">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CD049</tstamp>
+    </comp>
+    <comp ref="J33">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CDD7E</tstamp>
+    </comp>
+    <comp ref="J41">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F2CDD87</tstamp>
+    </comp>
+    <comp ref="J42">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F0D30D1</tstamp>
+    </comp>
+    <comp ref="J43">
+      <value>Conn_01x02_Male</value>
+      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical_SMD_Pin1Left</footprint>
+      <datasheet>https://www.digikey.com/product-detail/en/harwin-inc/M50-3630242R/952-3933-1-ND/9374745</datasheet>
+      <fields>
+        <field name="Price">0.21000</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">952-3606-ND </field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/holding_headers/" tstamps="/5F2BCCE0/"/>
+      <tstamp>5F0D31D3</tstamp>
+    </comp>
+    <comp ref="MK6">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F0910D5/" tstamps="/5F0910E8/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R12">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0910D5/" tstamps="/5F0910E8/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C21">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0910D5/" tstamps="/5F0910E8/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C20">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0910D5/" tstamps="/5F0910E8/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R13">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0910D5/" tstamps="/5F0910E8/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP7">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F0910D5/" tstamps="/5F0910E8/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+    <comp ref="MK7">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F0910D6/" tstamps="/5F0910F0/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R14">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0910D6/" tstamps="/5F0910F0/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C23">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0910D6/" tstamps="/5F0910F0/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C22">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0910D6/" tstamps="/5F0910F0/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R15">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0910D6/" tstamps="/5F0910F0/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP8">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F0910D6/" tstamps="/5F0910F0/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+    <comp ref="MK8">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F0910D7/" tstamps="/5F0910F8/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R16">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0910D7/" tstamps="/5F0910F8/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C25">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0910D7/" tstamps="/5F0910F8/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C24">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0910D7/" tstamps="/5F0910F8/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R17">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0910D7/" tstamps="/5F0910F8/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP9">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F0910D7/" tstamps="/5F0910F8/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+    <comp ref="MK4">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R8">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C17">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C16">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R9">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP10">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+    <comp ref="MK3">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R6">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C15">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C14">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R7">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP11">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+    <comp ref="MK2">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R4">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C13">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C12">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R5">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP12">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+    <comp ref="MK1">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="R2">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F0947D1</tstamp>
+    </comp>
+    <comp ref="C11">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C10">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R3">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Price"> 0.0265</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">301-49-821</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="JP13">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F1DEE78</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector" part="Conn_01x01_Female">
+      <description>Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x01_Female</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Conn_01x02_Male">
+      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x02_Male</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="TestPoint">
+      <description>test point</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Pin*</fp>
+        <fp>Test*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">TP</field>
+        <field name="Value">TestPoint</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x10">
+      <description>Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x10</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Jumper">
+      <description>Jumper, normally closed</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SolderJumper*</fp>
+        <fp>Jumper*</fp>
+        <fp>TestPoint*2Pads*</fp>
+        <fp>TestPoint*Bridge*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">Jumper</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="L">
+      <description>Inductor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Choke_*</fp>
+        <fp>*Coil*</fp>
+        <fp>Inductor_*</fp>
+        <fp>L_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">L</field>
+        <field name="Value">L</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Microphone">
+      <description>Microphone</description>
+      <docs>~</docs>
+      <fields>
+        <field name="Reference">MK</field>
+        <field name="Value">Microphone</field>
+      </fields>
+      <pins>
+        <pin num="1" name="-" type="passive"/>
+        <pin num="2" name="+" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R">
+      <description>Resistor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="MCU_ST_STM32F4" part="STM32F446RCTx">
+      <aliases>
+        <alias>STM32F446RETx</alias>
+      </aliases>
+      <description>ARM Cortex-M4 MCU, 256KB flash, 128KB RAM, 180MHz, 1.8-3.6V, 50 GPIO, LQFP-64</description>
+      <docs>http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00141306.pdf</docs>
+      <footprints>
+        <fp>LQFP*10x10mm*P0.5mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">STM32F446RCTx</field>
+        <field name="Footprint">Package_QFP:LQFP-64_10x10mm_P0.5mm</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VBAT" type="power_in"/>
+        <pin num="2" name="PC13" type="BiDi"/>
+        <pin num="3" name="PC14" type="BiDi"/>
+        <pin num="4" name="PC15" type="BiDi"/>
+        <pin num="5" name="PH0" type="input"/>
+        <pin num="6" name="PH1" type="input"/>
+        <pin num="7" name="NRST" type="input"/>
+        <pin num="8" name="PC0" type="BiDi"/>
+        <pin num="9" name="PC1" type="BiDi"/>
+        <pin num="10" name="PC2" type="BiDi"/>
+        <pin num="11" name="PC3" type="BiDi"/>
+        <pin num="12" name="VSSA" type="power_in"/>
+        <pin num="13" name="VDDA" type="power_in"/>
+        <pin num="14" name="PA0" type="BiDi"/>
+        <pin num="15" name="PA1" type="BiDi"/>
+        <pin num="16" name="PA2" type="BiDi"/>
+        <pin num="17" name="PA3" type="BiDi"/>
+        <pin num="18" name="VSS" type="power_in"/>
+        <pin num="19" name="VDD" type="power_in"/>
+        <pin num="20" name="PA4" type="BiDi"/>
+        <pin num="21" name="PA5" type="BiDi"/>
+        <pin num="22" name="PA6" type="BiDi"/>
+        <pin num="23" name="PA7" type="BiDi"/>
+        <pin num="24" name="PC4" type="BiDi"/>
+        <pin num="25" name="PC5" type="BiDi"/>
+        <pin num="26" name="PB0" type="BiDi"/>
+        <pin num="27" name="PB1" type="BiDi"/>
+        <pin num="28" name="PB2" type="BiDi"/>
+        <pin num="29" name="PB10" type="BiDi"/>
+        <pin num="30" name="VCAP_1" type="power_in"/>
+        <pin num="31" name="VSS" type="power_in"/>
+        <pin num="32" name="VDD" type="power_in"/>
+        <pin num="33" name="PB12" type="BiDi"/>
+        <pin num="34" name="PB13" type="BiDi"/>
+        <pin num="35" name="PB14" type="BiDi"/>
+        <pin num="36" name="PB15" type="BiDi"/>
+        <pin num="37" name="PC6" type="BiDi"/>
+        <pin num="38" name="PC7" type="BiDi"/>
+        <pin num="39" name="PC8" type="BiDi"/>
+        <pin num="40" name="PC9" type="BiDi"/>
+        <pin num="41" name="PA8" type="BiDi"/>
+        <pin num="42" name="PA9" type="BiDi"/>
+        <pin num="43" name="PA10" type="BiDi"/>
+        <pin num="44" name="PA11" type="BiDi"/>
+        <pin num="45" name="PA12" type="BiDi"/>
+        <pin num="46" name="PA13" type="BiDi"/>
+        <pin num="47" name="VSS" type="power_in"/>
+        <pin num="48" name="VDD" type="power_in"/>
+        <pin num="49" name="PA14" type="BiDi"/>
+        <pin num="50" name="PA15" type="BiDi"/>
+        <pin num="51" name="PC10" type="BiDi"/>
+        <pin num="52" name="PC11" type="BiDi"/>
+        <pin num="53" name="PC12" type="BiDi"/>
+        <pin num="54" name="PD2" type="BiDi"/>
+        <pin num="55" name="PB3" type="BiDi"/>
+        <pin num="56" name="PB4" type="BiDi"/>
+        <pin num="57" name="PB5" type="BiDi"/>
+        <pin num="58" name="PB6" type="BiDi"/>
+        <pin num="59" name="PB7" type="BiDi"/>
+        <pin num="60" name="BOOT0" type="input"/>
+        <pin num="61" name="PB8" type="BiDi"/>
+        <pin num="62" name="PB9" type="BiDi"/>
+        <pin num="63" name="VSS" type="power_in"/>
+        <pin num="64" name="VDD" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="SPH0645LM4H-B" part="SPH0645LM4H-B">
+      <fields>
+        <field name="Reference">MK</field>
+        <field name="Value">SPH0645LM4H-B</field>
+        <field name="Footprint">MIC_SPH0645LM4H-B</field>
+        <field name="Datasheet">SPH0645LM4H-B</field>
+        <field name="Field4">SIP-7 Bourns</field>
+        <field name="Field5">Mic Mems Digital I2s Omni -26db</field>
+        <field name="Field6">Knowles</field>
+        <field name="Field7">None</field>
+        <field name="Field8">Unavailable</field>
+      </fields>
+      <pins>
+        <pin num="1" name="WS" type="input"/>
+        <pin num="2" name="SELECT" type="input"/>
+        <pin num="3" name="GND" type="power_in"/>
+        <pin num="4" name="BCLK" type="input"/>
+        <pin num="5" name="VDD" type="power_in"/>
+        <pin num="6" name="DATA_OUT" type="output"/>
+      </pins>
+    </libpart>
+    <libpart lib="audio_shield" part="SWD_TC2030">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">SWD_TC2030</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VCC" type="input"/>
+        <pin num="2" name="SWDIO" type="BiDi"/>
+        <pin num="3" name="nRESET" type="input"/>
+        <pin num="4" name="SWCLK" type="input"/>
+        <pin num="5" name="GND" type="input"/>
+        <pin num="6" name="SWO" type="output"/>
+      </pins>
+    </libpart>
+    <libpart lib="audio_shield" part="mic_connector">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">mic_connector</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="input"/>
+        <pin num="2" name="VCC" type="input"/>
+        <pin num="3" name="Data" type="output"/>
+        <pin num="4" name="Bit_Clock" type="input"/>
+        <pin num="5" name="Select" type="input"/>
+        <pin num="6" name="Word_Strobe" type="input"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector">
+      <uri>/Library/Application Support/kicad/library/Connector.lib</uri>
+    </library>
+    <library logical="Connector_Generic">
+      <uri>/Library/Application Support/kicad/library/Connector_Generic.lib</uri>
+    </library>
+    <library logical="Device">
+      <uri>/Library/Application Support/kicad/library/Device.lib</uri>
+    </library>
+    <library logical="MCU_ST_STM32F4">
+      <uri>/Library/Application Support/kicad/library/MCU_ST_STM32F4.lib</uri>
+    </library>
+    <library logical="SPH0645LM4H-B">
+      <uri>/Users/hoffet/Dropbox/Documents Adrien/Jobs Data/LCAV/audio_shield 4/SPH0645LM4H-B.lib</uri>
+    </library>
+    <library logical="audio_shield">
+      <uri>/Users/hoffet/Dropbox/Documents Adrien/Jobs Data/LCAV/audio_shield 4/audio_shield.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="+3V0">
+      <node ref="C23" pin="2"/>
+      <node ref="MK4" pin="5"/>
+      <node ref="C17" pin="2"/>
+      <node ref="C16" pin="2"/>
+      <node ref="J4" pin="2"/>
+      <node ref="C6" pin="1"/>
+      <node ref="C5" pin="1"/>
+      <node ref="C4" pin="1"/>
+      <node ref="J5" pin="2"/>
+      <node ref="C3" pin="1"/>
+      <node ref="J5" pin="5"/>
+      <node ref="J6" pin="2"/>
+      <node ref="C14" pin="2"/>
+      <node ref="C15" pin="2"/>
+      <node ref="R6" pin="1"/>
+      <node ref="MK3" pin="5"/>
+      <node ref="MK3" pin="2"/>
+      <node ref="J7" pin="2"/>
+      <node ref="J7" pin="5"/>
+      <node ref="J8" pin="2"/>
+      <node ref="3V0_2" pin="1"/>
+      <node ref="3V0_4" pin="1"/>
+      <node ref="3V0_3" pin="1"/>
+      <node ref="U1" pin="1"/>
+      <node ref="U1" pin="19"/>
+      <node ref="U1" pin="32"/>
+      <node ref="U1" pin="48"/>
+      <node ref="U1" pin="64"/>
+      <node ref="J9" pin="1"/>
+      <node ref="C7" pin="1"/>
+      <node ref="C9" pin="1"/>
+      <node ref="MK2" pin="5"/>
+      <node ref="C13" pin="2"/>
+      <node ref="J3" pin="2"/>
+      <node ref="3V0_1" pin="1"/>
+      <node ref="J3" pin="5"/>
+      <node ref="J1" pin="1"/>
+      <node ref="C10" pin="2"/>
+      <node ref="C11" pin="2"/>
+      <node ref="R2" pin="1"/>
+      <node ref="MK1" pin="5"/>
+      <node ref="MK1" pin="2"/>
+      <node ref="MK6" pin="5"/>
+      <node ref="C21" pin="2"/>
+      <node ref="C20" pin="2"/>
+      <node ref="C12" pin="2"/>
+      <node ref="MK7" pin="2"/>
+      <node ref="C24" pin="2"/>
+      <node ref="MK7" pin="5"/>
+      <node ref="R14" pin="1"/>
+      <node ref="L1" pin="2"/>
+      <node ref="C22" pin="2"/>
+      <node ref="C25" pin="2"/>
+      <node ref="MK8" pin="5"/>
+    </net>
+    <net code="2" name="/SWCLK">
+      <node ref="J9" pin="4"/>
+      <node ref="U1" pin="49"/>
+    </net>
+    <net code="3" name="/SWDIO">
+      <node ref="J9" pin="2"/>
+      <node ref="U1" pin="46"/>
+    </net>
+    <net code="4" name="/nRESET">
+      <node ref="J9" pin="3"/>
+      <node ref="U1" pin="7"/>
+    </net>
+    <net code="5" name="/RX1">
+      <node ref="RX1" pin="1"/>
+      <node ref="J1" pin="2"/>
+      <node ref="U1" pin="14"/>
+    </net>
+    <net code="6" name="/TX1">
+      <node ref="J1" pin="3"/>
+      <node ref="U1" pin="15"/>
+      <node ref="TX1" pin="1"/>
+    </net>
+    <net code="7" name="/SDA">
+      <node ref="J1" pin="4"/>
+      <node ref="U1" pin="59"/>
+      <node ref="SDA1" pin="1"/>
+    </net>
+    <net code="8" name="/SCL">
+      <node ref="U1" pin="58"/>
+      <node ref="J1" pin="5"/>
+      <node ref="SDL1" pin="1"/>
+    </net>
+    <net code="9" name="Net-(J7-Pad4)">
+      <node ref="J8" pin="4"/>
+      <node ref="J7" pin="4"/>
+      <node ref="JP2" pin="2"/>
+    </net>
+    <net code="10" name="Net-(J7-Pad6)">
+      <node ref="J8" pin="6"/>
+      <node ref="J7" pin="6"/>
+      <node ref="JP3" pin="2"/>
+    </net>
+    <net code="11" name="Net-(J9-Pad6)">
+      <node ref="J9" pin="6"/>
+    </net>
+    <net code="12" name="/I2S1_SD">
+      <node ref="I2S1_SD1" pin="1"/>
+      <node ref="JP12" pin="2"/>
+      <node ref="J3" pin="3"/>
+      <node ref="JP13" pin="2"/>
+      <node ref="U1" pin="23"/>
+      <node ref="J4" pin="3"/>
+      <node ref="JP7" pin="2"/>
+    </net>
+    <net code="13" name="/I2S1_CK">
+      <node ref="J4" pin="4"/>
+      <node ref="U1" pin="55"/>
+      <node ref="MK2" pin="4"/>
+      <node ref="J3" pin="4"/>
+      <node ref="MK1" pin="4"/>
+      <node ref="I2S1_CK1" pin="1"/>
+      <node ref="MK6" pin="4"/>
+    </net>
+    <net code="14" name="/I2S1_WS">
+      <node ref="J4" pin="6"/>
+      <node ref="U1" pin="20"/>
+      <node ref="MK2" pin="1"/>
+      <node ref="MK1" pin="1"/>
+      <node ref="MK6" pin="1"/>
+      <node ref="J3" pin="6"/>
+      <node ref="I2S1_WS1" pin="1"/>
+    </net>
+    <net code="15" name="/I2S3_SD">
+      <node ref="JP10" pin="2"/>
+      <node ref="JP9" pin="2"/>
+      <node ref="J5" pin="3"/>
+      <node ref="J6" pin="3"/>
+      <node ref="JP8" pin="2"/>
+      <node ref="U1" pin="26"/>
+      <node ref="JP11" pin="2"/>
+      <node ref="I2S3_SD1" pin="1"/>
+    </net>
+    <net code="16" name="/I2S3_CK">
+      <node ref="MK4" pin="4"/>
+      <node ref="MK8" pin="4"/>
+      <node ref="I2S3_CK1" pin="1"/>
+      <node ref="J5" pin="4"/>
+      <node ref="MK7" pin="4"/>
+      <node ref="J6" pin="4"/>
+      <node ref="U1" pin="51"/>
+      <node ref="MK3" pin="4"/>
+    </net>
+    <net code="17" name="/I2S3_WS">
+      <node ref="I2S3_WS1" pin="1"/>
+      <node ref="U1" pin="50"/>
+      <node ref="MK7" pin="1"/>
+      <node ref="MK4" pin="1"/>
+      <node ref="MK3" pin="1"/>
+      <node ref="J6" pin="6"/>
+      <node ref="J5" pin="6"/>
+      <node ref="MK8" pin="1"/>
+    </net>
+    <net code="18" name="Net-(J7-Pad3)">
+      <node ref="JP1" pin="2"/>
+      <node ref="J7" pin="3"/>
+      <node ref="J8" pin="3"/>
+    </net>
+    <net code="19" name="GND">
+      <node ref="R1" pin="2"/>
+      <node ref="C2" pin="2"/>
+      <node ref="J4" pin="1"/>
+      <node ref="J4" pin="5"/>
+      <node ref="J5" pin="1"/>
+      <node ref="MK4" pin="2"/>
+      <node ref="MK4" pin="3"/>
+      <node ref="R8" pin="1"/>
+      <node ref="R8" pin="2"/>
+      <node ref="J6" pin="1"/>
+      <node ref="J6" pin="5"/>
+      <node ref="C14" pin="1"/>
+      <node ref="C15" pin="1"/>
+      <node ref="R6" pin="2"/>
+      <node ref="C6" pin="2"/>
+      <node ref="C5" pin="2"/>
+      <node ref="C4" pin="2"/>
+      <node ref="C3" pin="2"/>
+      <node ref="C1" pin="2"/>
+      <node ref="MK3" pin="3"/>
+      <node ref="GND4" pin="1"/>
+      <node ref="GND3" pin="1"/>
+      <node ref="GND2" pin="1"/>
+      <node ref="J7" pin="1"/>
+      <node ref="J8" pin="1"/>
+      <node ref="J8" pin="5"/>
+      <node ref="J9" pin="5"/>
+      <node ref="MK2" pin="2"/>
+      <node ref="MK2" pin="3"/>
+      <node ref="R4" pin="1"/>
+      <node ref="R4" pin="2"/>
+      <node ref="C13" pin="1"/>
+      <node ref="J3" pin="1"/>
+      <node ref="C12" pin="1"/>
+      <node ref="C17" pin="1"/>
+      <node ref="U1" pin="18"/>
+      <node ref="U1" pin="31"/>
+      <node ref="U1" pin="47"/>
+      <node ref="U1" pin="63"/>
+      <node ref="U1" pin="12"/>
+      <node ref="C8" pin="2"/>
+      <node ref="C16" pin="1"/>
+      <node ref="C7" pin="2"/>
+      <node ref="C9" pin="2"/>
+      <node ref="GND1" pin="1"/>
+      <node ref="J1" pin="10"/>
+      <node ref="C24" pin="1"/>
+      <node ref="C25" pin="1"/>
+      <node ref="R16" pin="1"/>
+      <node ref="MK8" pin="3"/>
+      <node ref="MK8" pin="2"/>
+      <node ref="C10" pin="1"/>
+      <node ref="R16" pin="2"/>
+      <node ref="C11" pin="1"/>
+      <node ref="R2" pin="2"/>
+      <node ref="MK1" pin="3"/>
+      <node ref="MK6" pin="2"/>
+      <node ref="MK6" pin="3"/>
+      <node ref="R12" pin="1"/>
+      <node ref="R12" pin="2"/>
+      <node ref="C21" pin="1"/>
+      <node ref="C20" pin="1"/>
+      <node ref="MK7" pin="3"/>
+      <node ref="R14" pin="2"/>
+      <node ref="C23" pin="1"/>
+      <node ref="C22" pin="1"/>
+    </net>
+    <net code="20" name="/I2S2_WS-SPI2_NSS">
+      <node ref="U1" pin="33"/>
+      <node ref="JP3" pin="1"/>
+      <node ref="JP4" pin="1"/>
+    </net>
+    <net code="21" name="/I2S2_CK_SPI2_CK">
+      <node ref="JP5" pin="1"/>
+      <node ref="JP2" pin="1"/>
+      <node ref="U1" pin="29"/>
+    </net>
+    <net code="22" name="/I2S2_SD-SPI2_MOSI">
+      <node ref="JP6" pin="1"/>
+      <node ref="U1" pin="9"/>
+      <node ref="JP1" pin="1"/>
+    </net>
+    <net code="23" name="/SPI2_MISO">
+      <node ref="J2" pin="4"/>
+      <node ref="U1" pin="10"/>
+      <node ref="SPI2_MISO1" pin="1"/>
+    </net>
+    <net code="24" name="Net-(J2-Pad1)">
+      <node ref="J2" pin="1"/>
+    </net>
+    <net code="25" name="Net-(J2-Pad10)">
+      <node ref="J2" pin="10"/>
+    </net>
+    <net code="26" name="Net-(J2-Pad2)">
+      <node ref="J2" pin="2"/>
+    </net>
+    <net code="27" name="Net-(J2-Pad6)">
+      <node ref="J2" pin="6"/>
+    </net>
+    <net code="28" name="Net-(J2-Pad7)">
+      <node ref="J2" pin="7"/>
+    </net>
+    <net code="29" name="Net-(J2-Pad8)">
+      <node ref="J2" pin="8"/>
+    </net>
+    <net code="30" name="Net-(J2-Pad9)">
+      <node ref="J2" pin="9"/>
+    </net>
+    <net code="31" name="Net-(J1-Pad6)">
+      <node ref="J1" pin="6"/>
+    </net>
+    <net code="32" name="Net-(J1-Pad7)">
+      <node ref="J1" pin="7"/>
+    </net>
+    <net code="33" name="Net-(J1-Pad8)">
+      <node ref="J1" pin="8"/>
+    </net>
+    <net code="34" name="/SPI2_NSS">
+      <node ref="J1" pin="9"/>
+      <node ref="JP4" pin="2"/>
+    </net>
+    <net code="35" name="/SPI2_CK">
+      <node ref="J2" pin="3"/>
+      <node ref="JP5" pin="2"/>
+      <node ref="SPI2_CK1" pin="1"/>
+    </net>
+    <net code="36" name="/SPI2_MOSI">
+      <node ref="JP6" pin="2"/>
+      <node ref="SPI2_MOSI1" pin="1"/>
+      <node ref="J2" pin="5"/>
+    </net>
+    <net code="37" name="/PC3">
+      <node ref="PC3" pin="1"/>
+      <node ref="U1" pin="11"/>
+    </net>
+    <net code="38" name="/PA2">
+      <node ref="U1" pin="16"/>
+      <node ref="PA2" pin="1"/>
+    </net>
+    <net code="39" name="Net-(MK5-Pad1)">
+      <node ref="MK5" pin="1"/>
+    </net>
+    <net code="40" name="Net-(MK5-Pad2)">
+      <node ref="MK5" pin="2"/>
+    </net>
+    <net code="41" name="Net-(MK9-Pad1)">
+      <node ref="MK9" pin="1"/>
+    </net>
+    <net code="42" name="Net-(MK9-Pad2)">
+      <node ref="MK9" pin="2"/>
+    </net>
+    <net code="43" name="Net-(MK10-Pad1)">
+      <node ref="MK10" pin="1"/>
+    </net>
+    <net code="44" name="Net-(MK10-Pad2)">
+      <node ref="MK10" pin="2"/>
+    </net>
+    <net code="45" name="Net-(MK11-Pad1)">
+      <node ref="MK11" pin="1"/>
+    </net>
+    <net code="46" name="Net-(MK11-Pad2)">
+      <node ref="MK11" pin="2"/>
+    </net>
+    <net code="47" name="Net-(J44-Pad1)">
+      <node ref="J44" pin="1"/>
+    </net>
+    <net code="48" name="Net-(J45-Pad1)">
+      <node ref="J45" pin="1"/>
+    </net>
+    <net code="49" name="Net-(J46-Pad1)">
+      <node ref="J46" pin="1"/>
+    </net>
+    <net code="50" name="Net-(J47-Pad1)">
+      <node ref="J47" pin="1"/>
+    </net>
+    <net code="51" name="Net-(C1-Pad1)">
+      <node ref="C1" pin="1"/>
+      <node ref="U1" pin="30"/>
+    </net>
+    <net code="52" name="Net-(R1-Pad1)">
+      <node ref="R1" pin="1"/>
+      <node ref="U1" pin="60"/>
+    </net>
+    <net code="53" name="Net-(U1-Pad43)">
+      <node ref="U1" pin="43"/>
+    </net>
+    <net code="54" name="Net-(U1-Pad44)">
+      <node ref="U1" pin="44"/>
+    </net>
+    <net code="55" name="Net-(U1-Pad45)">
+      <node ref="U1" pin="45"/>
+    </net>
+    <net code="56" name="Net-(U1-Pad17)">
+      <node ref="U1" pin="17"/>
+    </net>
+    <net code="57" name="Net-(U1-Pad21)">
+      <node ref="U1" pin="21"/>
+    </net>
+    <net code="58" name="Net-(U1-Pad22)">
+      <node ref="U1" pin="22"/>
+    </net>
+    <net code="59" name="Net-(U1-Pad41)">
+      <node ref="U1" pin="41"/>
+    </net>
+    <net code="60" name="Net-(U1-Pad42)">
+      <node ref="U1" pin="42"/>
+    </net>
+    <net code="61" name="Net-(U1-Pad27)">
+      <node ref="U1" pin="27"/>
+    </net>
+    <net code="62" name="Net-(U1-Pad34)">
+      <node ref="U1" pin="34"/>
+    </net>
+    <net code="63" name="Net-(U1-Pad35)">
+      <node ref="U1" pin="35"/>
+    </net>
+    <net code="64" name="Net-(U1-Pad36)">
+      <node ref="U1" pin="36"/>
+    </net>
+    <net code="65" name="Net-(U1-Pad28)">
+      <node ref="U1" pin="28"/>
+    </net>
+    <net code="66" name="Net-(U1-Pad56)">
+      <node ref="U1" pin="56"/>
+    </net>
+    <net code="67" name="Net-(U1-Pad57)">
+      <node ref="U1" pin="57"/>
+    </net>
+    <net code="68" name="Net-(U1-Pad61)">
+      <node ref="U1" pin="61"/>
+    </net>
+    <net code="69" name="Net-(U1-Pad62)">
+      <node ref="U1" pin="62"/>
+    </net>
+    <net code="70" name="Net-(U1-Pad8)">
+      <node ref="U1" pin="8"/>
+    </net>
+    <net code="71" name="Net-(U1-Pad52)">
+      <node ref="U1" pin="52"/>
+    </net>
+    <net code="72" name="Net-(U1-Pad53)">
+      <node ref="U1" pin="53"/>
+    </net>
+    <net code="73" name="Net-(U1-Pad2)">
+      <node ref="U1" pin="2"/>
+    </net>
+    <net code="74" name="Net-(U1-Pad3)">
+      <node ref="U1" pin="3"/>
+    </net>
+    <net code="75" name="Net-(U1-Pad4)">
+      <node ref="U1" pin="4"/>
+    </net>
+    <net code="76" name="Net-(U1-Pad24)">
+      <node ref="U1" pin="24"/>
+    </net>
+    <net code="77" name="Net-(U1-Pad25)">
+      <node ref="U1" pin="25"/>
+    </net>
+    <net code="78" name="Net-(U1-Pad37)">
+      <node ref="U1" pin="37"/>
+    </net>
+    <net code="79" name="Net-(U1-Pad38)">
+      <node ref="U1" pin="38"/>
+    </net>
+    <net code="80" name="Net-(U1-Pad39)">
+      <node ref="U1" pin="39"/>
+    </net>
+    <net code="81" name="Net-(U1-Pad40)">
+      <node ref="U1" pin="40"/>
+    </net>
+    <net code="82" name="Net-(U1-Pad54)">
+      <node ref="U1" pin="54"/>
+    </net>
+    <net code="83" name="Net-(U1-Pad5)">
+      <node ref="U1" pin="5"/>
+    </net>
+    <net code="84" name="Net-(U1-Pad6)">
+      <node ref="U1" pin="6"/>
+    </net>
+    <net code="85" name="Net-(C2-Pad1)">
+      <node ref="C2" pin="1"/>
+      <node ref="L1" pin="1"/>
+      <node ref="U1" pin="13"/>
+      <node ref="C8" pin="1"/>
+    </net>
+    <net code="86" name="Net-(JP13-Pad1)">
+      <node ref="R3" pin="2"/>
+      <node ref="JP13" pin="1"/>
+    </net>
+    <net code="87" name="Net-(MK1-Pad6)">
+      <node ref="R3" pin="1"/>
+      <node ref="MK1" pin="6"/>
+    </net>
+    <net code="88" name="Net-(JP7-Pad1)">
+      <node ref="JP7" pin="1"/>
+      <node ref="R13" pin="2"/>
+    </net>
+    <net code="89" name="Net-(MK6-Pad6)">
+      <node ref="MK6" pin="6"/>
+      <node ref="R13" pin="1"/>
+    </net>
+    <net code="90" name="Net-(JP8-Pad1)">
+      <node ref="JP8" pin="1"/>
+      <node ref="R15" pin="2"/>
+    </net>
+    <net code="91" name="Net-(MK7-Pad6)">
+      <node ref="R15" pin="1"/>
+      <node ref="MK7" pin="6"/>
+    </net>
+    <net code="92" name="Net-(JP9-Pad1)">
+      <node ref="R17" pin="2"/>
+      <node ref="JP9" pin="1"/>
+    </net>
+    <net code="93" name="Net-(MK8-Pad6)">
+      <node ref="MK8" pin="6"/>
+      <node ref="R17" pin="1"/>
+    </net>
+    <net code="94" name="Net-(JP12-Pad1)">
+      <node ref="R5" pin="2"/>
+      <node ref="JP12" pin="1"/>
+    </net>
+    <net code="95" name="Net-(MK2-Pad6)">
+      <node ref="R5" pin="1"/>
+      <node ref="MK2" pin="6"/>
+    </net>
+    <net code="96" name="Net-(JP11-Pad1)">
+      <node ref="R7" pin="2"/>
+      <node ref="JP11" pin="1"/>
+    </net>
+    <net code="97" name="Net-(MK3-Pad6)">
+      <node ref="MK3" pin="6"/>
+      <node ref="R7" pin="1"/>
+    </net>
+    <net code="98" name="Net-(JP10-Pad1)">
+      <node ref="JP10" pin="1"/>
+      <node ref="R9" pin="2"/>
+    </net>
+    <net code="99" name="Net-(MK4-Pad6)">
+      <node ref="R9" pin="1"/>
+      <node ref="MK4" pin="6"/>
+    </net>
+    <net code="100" name="Net-(J30-Pad2)">
+      <node ref="J30" pin="2"/>
+    </net>
+    <net code="101" name="Net-(J31-Pad1)">
+      <node ref="J31" pin="1"/>
+    </net>
+    <net code="102" name="Net-(J43-Pad2)">
+      <node ref="J43" pin="2"/>
+    </net>
+    <net code="103" name="Net-(J43-Pad1)">
+      <node ref="J43" pin="1"/>
+    </net>
+    <net code="104" name="Net-(J42-Pad2)">
+      <node ref="J42" pin="2"/>
+    </net>
+    <net code="105" name="Net-(J42-Pad1)">
+      <node ref="J42" pin="1"/>
+    </net>
+    <net code="106" name="Net-(J41-Pad2)">
+      <node ref="J41" pin="2"/>
+    </net>
+    <net code="107" name="Net-(J41-Pad1)">
+      <node ref="J41" pin="1"/>
+    </net>
+    <net code="108" name="Net-(J33-Pad2)">
+      <node ref="J33" pin="2"/>
+    </net>
+    <net code="109" name="Net-(J33-Pad1)">
+      <node ref="J33" pin="1"/>
+    </net>
+    <net code="110" name="Net-(J40-Pad2)">
+      <node ref="J40" pin="2"/>
+    </net>
+    <net code="111" name="Net-(J40-Pad1)">
+      <node ref="J40" pin="1"/>
+    </net>
+    <net code="112" name="Net-(J39-Pad2)">
+      <node ref="J39" pin="2"/>
+    </net>
+    <net code="113" name="Net-(J39-Pad1)">
+      <node ref="J39" pin="1"/>
+    </net>
+    <net code="114" name="Net-(J38-Pad2)">
+      <node ref="J38" pin="2"/>
+    </net>
+    <net code="115" name="Net-(J38-Pad1)">
+      <node ref="J38" pin="1"/>
+    </net>
+    <net code="116" name="Net-(J32-Pad2)">
+      <node ref="J32" pin="2"/>
+    </net>
+    <net code="117" name="Net-(J32-Pad1)">
+      <node ref="J32" pin="1"/>
+    </net>
+    <net code="118" name="Net-(J30-Pad1)">
+      <node ref="J30" pin="1"/>
+    </net>
+    <net code="119" name="Net-(J37-Pad2)">
+      <node ref="J37" pin="2"/>
+    </net>
+    <net code="120" name="Net-(J37-Pad1)">
+      <node ref="J37" pin="1"/>
+    </net>
+    <net code="121" name="Net-(J36-Pad2)">
+      <node ref="J36" pin="2"/>
+    </net>
+    <net code="122" name="Net-(J36-Pad1)">
+      <node ref="J36" pin="1"/>
+    </net>
+    <net code="123" name="Net-(J35-Pad2)">
+      <node ref="J35" pin="2"/>
+    </net>
+    <net code="124" name="Net-(J35-Pad1)">
+      <node ref="J35" pin="1"/>
+    </net>
+    <net code="125" name="Net-(J34-Pad2)">
+      <node ref="J34" pin="2"/>
+    </net>
+    <net code="126" name="Net-(J34-Pad1)">
+      <node ref="J34" pin="1"/>
+    </net>
+    <net code="127" name="Net-(J29-Pad2)">
+      <node ref="J29" pin="2"/>
+    </net>
+    <net code="128" name="Net-(J29-Pad1)">
+      <node ref="J29" pin="1"/>
+    </net>
+    <net code="129" name="Net-(J28-Pad2)">
+      <node ref="J28" pin="2"/>
+    </net>
+    <net code="130" name="Net-(J28-Pad1)">
+      <node ref="J28" pin="1"/>
+    </net>
+    <net code="131" name="Net-(J27-Pad2)">
+      <node ref="J27" pin="2"/>
+    </net>
+    <net code="132" name="Net-(J27-Pad1)">
+      <node ref="J27" pin="1"/>
+    </net>
+    <net code="133" name="Net-(J26-Pad2)">
+      <node ref="J26" pin="2"/>
+    </net>
+    <net code="134" name="Net-(J26-Pad1)">
+      <node ref="J26" pin="1"/>
+    </net>
+    <net code="135" name="Net-(J25-Pad2)">
+      <node ref="J25" pin="2"/>
+    </net>
+    <net code="136" name="Net-(J25-Pad1)">
+      <node ref="J25" pin="1"/>
+    </net>
+    <net code="137" name="Net-(J24-Pad2)">
+      <node ref="J24" pin="2"/>
+    </net>
+    <net code="138" name="Net-(J24-Pad1)">
+      <node ref="J24" pin="1"/>
+    </net>
+    <net code="139" name="Net-(J23-Pad2)">
+      <node ref="J23" pin="2"/>
+    </net>
+    <net code="140" name="Net-(J23-Pad1)">
+      <node ref="J23" pin="1"/>
+    </net>
+    <net code="141" name="Net-(J22-Pad2)">
+      <node ref="J22" pin="2"/>
+    </net>
+    <net code="142" name="Net-(J22-Pad1)">
+      <node ref="J22" pin="1"/>
+    </net>
+    <net code="143" name="Net-(J17-Pad2)">
+      <node ref="J17" pin="2"/>
+    </net>
+    <net code="144" name="Net-(J17-Pad1)">
+      <node ref="J17" pin="1"/>
+    </net>
+    <net code="145" name="Net-(J16-Pad2)">
+      <node ref="J16" pin="2"/>
+    </net>
+    <net code="146" name="Net-(J16-Pad1)">
+      <node ref="J16" pin="1"/>
+    </net>
+    <net code="147" name="Net-(J15-Pad2)">
+      <node ref="J15" pin="2"/>
+    </net>
+    <net code="148" name="Net-(J15-Pad1)">
+      <node ref="J15" pin="1"/>
+    </net>
+    <net code="149" name="Net-(J14-Pad2)">
+      <node ref="J14" pin="2"/>
+    </net>
+    <net code="150" name="Net-(J14-Pad1)">
+      <node ref="J14" pin="1"/>
+    </net>
+    <net code="151" name="Net-(J21-Pad2)">
+      <node ref="J21" pin="2"/>
+    </net>
+    <net code="152" name="Net-(J21-Pad1)">
+      <node ref="J21" pin="1"/>
+    </net>
+    <net code="153" name="Net-(J20-Pad2)">
+      <node ref="J20" pin="2"/>
+    </net>
+    <net code="154" name="Net-(J20-Pad1)">
+      <node ref="J20" pin="1"/>
+    </net>
+    <net code="155" name="Net-(J19-Pad2)">
+      <node ref="J19" pin="2"/>
+    </net>
+    <net code="156" name="Net-(J19-Pad1)">
+      <node ref="J19" pin="1"/>
+    </net>
+    <net code="157" name="Net-(J18-Pad2)">
+      <node ref="J18" pin="2"/>
+    </net>
+    <net code="158" name="Net-(J18-Pad1)">
+      <node ref="J18" pin="1"/>
+    </net>
+    <net code="159" name="Net-(J13-Pad2)">
+      <node ref="J13" pin="2"/>
+    </net>
+    <net code="160" name="Net-(J13-Pad1)">
+      <node ref="J13" pin="1"/>
+    </net>
+    <net code="161" name="Net-(J12-Pad2)">
+      <node ref="J12" pin="2"/>
+    </net>
+    <net code="162" name="Net-(J12-Pad1)">
+      <node ref="J12" pin="1"/>
+    </net>
+    <net code="163" name="Net-(J11-Pad2)">
+      <node ref="J11" pin="2"/>
+    </net>
+    <net code="164" name="Net-(J11-Pad1)">
+      <node ref="J11" pin="1"/>
+    </net>
+    <net code="165" name="Net-(J10-Pad2)">
+      <node ref="J10" pin="2"/>
+    </net>
+    <net code="166" name="Net-(J10-Pad1)">
+      <node ref="J10" pin="1"/>
+    </net>
+    <net code="167" name="Net-(J31-Pad2)">
+      <node ref="J31" pin="2"/>
+    </net>
+  </nets>
+</export>

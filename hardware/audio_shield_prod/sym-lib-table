@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name audio_shield)(type Legacy)(uri ${KIPRJMOD}/audio_shield.lib)(options "")(descr ""))
+  (lib (name SPH0645LM4H-B)(type Legacy)(uri ${KIPRJMOD}/SPH0645LM4H-B.lib)(options "")(descr ""))
+)
