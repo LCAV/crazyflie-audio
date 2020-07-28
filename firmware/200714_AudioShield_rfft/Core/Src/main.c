@@ -240,7 +240,6 @@ int main(void) {
 		arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
 
 		STOPCHRONO;
-
 		time_fft = time_us;
 
 		// Matrix initialisation
@@ -255,8 +254,36 @@ int main(void) {
 
 		uint16_t f = 0;
 
+
+		float vect_Rf_real_inv[nMic*nMic];
+		float vect_Rf_imag_inv[nMic*nMic];
+		arm_matrix_instance_f32 mat_Rf_real_inv;
+		arm_matrix_instance_f32 mat_Rf_imag_inv;
+
+		float vect_Rf_real[nMic*nMic];
+		float vect_Rf_imag[nMic*nMic];
+		arm_matrix_instance_f32 mat_Rf_real;
+		arm_matrix_instance_f32 mat_Rf_imag;
+
+		float vect_interm_1[nMic*nMic];
+		float vect_interm_2[nMic*nMic];
+		arm_matrix_instance_f32 mat_interm_1;
+		arm_matrix_instance_f32 mat_interm_2;
+
+		float vect_interm_3[nMic*nMic];
+		float vect_interm_4[nMic*nMic];
+		arm_matrix_instance_f32 mat_interm_3;
+		arm_matrix_instance_f32 mat_interm_4;
+
 		// Frequency bin processing
-		for (f = 0; f < FFTSIZE; f += 2) {
+		for (f = 0; f < FFTSIZE-2; f += 2) {
+
+			/*
+			 * Xf = [mic1_f_real, mic1_f_imag,
+			 * 		 mic2_f_real, mic2_f_imag,
+			 * 		 mic3_f_real, mic3_f_imag,
+			 * 		 mic4_f_real, mic4_f_imag ]
+			 */
 			vect_Xf[0] = left_2_f[f];
 			vect_Xf[1] = left_2_f[f + 1];
 			vect_Xf[2] = left_3_f[f];
@@ -266,19 +293,80 @@ int main(void) {
 			vect_Xf[6] = right_3_f[f];
 			vect_Xf[7] = right_3_f[f + 1];
 
+			/*
+			 * Xfh = Xfconj
+			 */
 			arm_cmplx_conj_f32(vect_Xf, vect_Xfh, nMic);
+
 
 			srcRows = nMic;
 			srcColumns = nMic * 2;
 			arm_mat_init_f32(&matR[f], srcRows, srcColumns, vect_R[f]);
 
+			/*
+			 * R = Xf*Xfconj
+			 */
 			status = arm_mat_cmplx_mult_f32(&matXf, &matXfh, &matR[f]);
 
-			arm_mat_inverse_f32(&matR[f], &matRinv[f]);
+			/*
+			 * Rf_real = real(R)
+			 * Rf_imag = imag(R)
+			 */
+			for(uint8_t i = 0; i < nMic - 1; i ++){
+				vect_Rf_real[i] = matR[f].pData[2*i];
+				vect_Rf_imag[i] = matR[f].pData[2*i+1];
+			}
+
+			arm_mat_init_f32(&mat_Rf_real, nMic, nMic, vect_Rf_real);
+			arm_mat_init_f32(&mat_Rf_imag, nMic, nMic, vect_Rf_imag);
+			arm_mat_init_f32(&mat_Rf_real_inv, nMic, nMic, vect_Rf_real_inv);
+			arm_mat_init_f32(&mat_Rf_imag_inv, nMic, nMic, vect_Rf_imag_inv);
+			arm_mat_init_f32(&mat_interm_1, nMic, nMic, vect_interm_1);
+			arm_mat_init_f32(&mat_interm_2, nMic, nMic, vect_interm_2);
+			//Compute A^-1 and B^-1
+			arm_mat_inverse_f32(&mat_Rf_real, &mat_Rf_real_inv);
+			arm_mat_inverse_f32(&mat_Rf_imag, &mat_Rf_imag_inv);
+
+			/*
+			 * Rinv = R^-1 = (A + B*A^-1*B)^-1 - i*(B + A*B^-1*A)^-1
+			 */
+
+			// interm_1 = B*A^-1
+			arm_mat_mult_f32(&mat_Rf_imag, &mat_Rf_real_inv, &mat_interm_1);
+
+			// interm_2 = interm_1*B = B*A^-1*B
+			arm_mat_mult_f32(&mat_interm_1, &mat_Rf_imag, &mat_interm_2);
+
+			// interm_1 = A+interm_2 = A + B*A^-1*B
+			arm_mat_add_f32(&mat_Rf_real, &mat_interm_2, &mat_interm_1);
+
+			// interm_2 = interm_1^-1 =(A + B*A^-1*B)^-1
+			// this is the real part of the result
+			arm_mat_inverse_f32(&mat_interm_1, &mat_interm_2);
+
+			// interm_3 = A*B^-1
+			arm_mat_mult_f32(&mat_Rf_real, &mat_Rf_imag_inv, &mat_interm_3);
+
+			// interm_4 = interm_3*A = A*B^-1*A
+			arm_mat_mult_f32(&mat_interm_1, &mat_Rf_real, &mat_interm_4);
+
+			// interm_3 = B+interm_4 = B + A*B^-1*A
+			arm_mat_add_f32(&mat_Rf_imag, &mat_interm_2, &mat_interm_3);
+
+			// interm_4 = interm_3^-1 =(B + A*B^-1*A)^-1
+			// this is the imag part of the result
+			arm_mat_inverse_f32(&mat_interm_3, &mat_interm_4);
+
+			//arm_mat_inverse_f32(&matR[f], &matRinv[f]);
+
+			for(uint8_t i = 0; i < nMic - 1; i ++){
+				matRinv[f].pData[2*i] 	= vect_interm_2[i];
+				matRinv[f].pData[2*i+1] = vect_interm_4[i];
+			}
+			STOPCHRONO;
+			time_bin_process = time_us;
 		}
 
-		STOPCHRONO;
-		time_bin_process = time_us;
 
 #if 0
 		/* Calculating the magnitude at each bin */

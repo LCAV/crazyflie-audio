@@ -17,9 +17,11 @@ C_SRCS += \
 ../Core/Src/cmsis_fft/arm_common_tables.c \
 ../Core/Src/cmsis_fft/arm_const_structs.c \
 ../Core/Src/cmsis_fft/arm_fft_bin_data.c \
+../Core/Src/cmsis_fft/arm_mat_add_f32.c \
 ../Core/Src/cmsis_fft/arm_mat_cmplx_mult_f32.c \
 ../Core/Src/cmsis_fft/arm_mat_init_f32.c \
 ../Core/Src/cmsis_fft/arm_mat_inverse_f32.c \
+../Core/Src/cmsis_fft/arm_mat_mult_f32.c \
 ../Core/Src/cmsis_fft/arm_max_f32.c \
 ../Core/Src/cmsis_fft/arm_rfft_f32.c \
 ../Core/Src/cmsis_fft/arm_rfft_fast_f32.c \
@@ -44,9 +46,11 @@ OBJS += \
 ./Core/Src/cmsis_fft/arm_common_tables.o \
 ./Core/Src/cmsis_fft/arm_const_structs.o \
 ./Core/Src/cmsis_fft/arm_fft_bin_data.o \
+./Core/Src/cmsis_fft/arm_mat_add_f32.o \
 ./Core/Src/cmsis_fft/arm_mat_cmplx_mult_f32.o \
 ./Core/Src/cmsis_fft/arm_mat_init_f32.o \
 ./Core/Src/cmsis_fft/arm_mat_inverse_f32.o \
+./Core/Src/cmsis_fft/arm_mat_mult_f32.o \
 ./Core/Src/cmsis_fft/arm_max_f32.o \
 ./Core/Src/cmsis_fft/arm_rfft_f32.o \
 ./Core/Src/cmsis_fft/arm_rfft_fast_f32.o \
@@ -67,9 +71,11 @@ C_DEPS += \
 ./Core/Src/cmsis_fft/arm_common_tables.d \
 ./Core/Src/cmsis_fft/arm_const_structs.d \
 ./Core/Src/cmsis_fft/arm_fft_bin_data.d \
+./Core/Src/cmsis_fft/arm_mat_add_f32.d \
 ./Core/Src/cmsis_fft/arm_mat_cmplx_mult_f32.d \
 ./Core/Src/cmsis_fft/arm_mat_init_f32.d \
 ./Core/Src/cmsis_fft/arm_mat_inverse_f32.d \
+./Core/Src/cmsis_fft/arm_mat_mult_f32.d \
 ./Core/Src/cmsis_fft/arm_max_f32.d \
 ./Core/Src/cmsis_fft/arm_rfft_f32.d \
 ./Core/Src/cmsis_fft/arm_rfft_fast_f32.d \
@@ -106,12 +112,16 @@ Core/Src/cmsis_fft/arm_const_structs.o: ../Core/Src/cmsis_fft/arm_const_structs.
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_const_structs.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 Core/Src/cmsis_fft/arm_fft_bin_data.o: ../Core/Src/cmsis_fft/arm_fft_bin_data.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_fft_bin_data.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
+Core/Src/cmsis_fft/arm_mat_add_f32.o: ../Core/Src/cmsis_fft/arm_mat_add_f32.c
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_mat_add_f32.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 Core/Src/cmsis_fft/arm_mat_cmplx_mult_f32.o: ../Core/Src/cmsis_fft/arm_mat_cmplx_mult_f32.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_mat_cmplx_mult_f32.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 Core/Src/cmsis_fft/arm_mat_init_f32.o: ../Core/Src/cmsis_fft/arm_mat_init_f32.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_mat_init_f32.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 Core/Src/cmsis_fft/arm_mat_inverse_f32.o: ../Core/Src/cmsis_fft/arm_mat_inverse_f32.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_mat_inverse_f32.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
+Core/Src/cmsis_fft/arm_mat_mult_f32.o: ../Core/Src/cmsis_fft/arm_mat_mult_f32.c
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_mat_mult_f32.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 Core/Src/cmsis_fft/arm_max_f32.o: ../Core/Src/cmsis_fft/arm_max_f32.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DARM_MATH_CM4 -D__FPU_PRESENT -D__FPU_USED -DUSE_HAL_DRIVER -DSTM32F446xx -DDEBUG -c -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Core/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/cmsis_fft/arm_max_f32.d" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 Core/Src/cmsis_fft/arm_rfft_f32.o: ../Core/Src/cmsis_fft/arm_rfft_f32.c
