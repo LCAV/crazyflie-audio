@@ -86,6 +86,7 @@ arm_matrix_instance_f32 matRinv[FFTSIZE];
 float vect_Xf[nMic * 2];
 float vect_Xfh[nMic * 2];
 float vect_R[FFTSIZE][nMic * nMic * 2];
+float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 
 
 // TESTING FD
@@ -254,12 +255,12 @@ int main(void) {
 
 		// Matrix initialisation
 
-		srcRows = nMic * 2;
+		srcRows = nMic;
 		srcColumns = 1;
 		arm_mat_init_f32(&matXf, srcRows, srcColumns, vect_Xf);
 
 		srcRows = 1;
-		srcColumns = nMic * 2;
+		srcColumns = nMic;
 		arm_mat_init_f32(&matXfh, srcRows, srcColumns, vect_Xfh);
 
 		uint16_t f = 0;
@@ -280,6 +281,7 @@ int main(void) {
 		arm_matrix_instance_f32 mat_interm_1;
 		arm_matrix_instance_f32 mat_interm_2;
 
+		float vect_interm_3[nMic*nMic];
 		float vect_interm_4[nMic*nMic];
 		arm_matrix_instance_f32 mat_interm_3;
 		arm_matrix_instance_f32 mat_interm_4;
@@ -309,15 +311,12 @@ int main(void) {
 
 
 			srcRows = nMic;
-			srcColumns = nMic * 2;
+			srcColumns = nMic;
 			arm_mat_init_f32(&matR[f], srcRows, srcColumns, vect_R[f]);
 
-			/*
-			 * R = Xf*Xfconj
-			 */
 
-			/*
-			 *  test example for matrix multiplication
+			// TESTING FD
+			/* square example
 
 			float vectresult[8];
 
@@ -325,8 +324,8 @@ int main(void) {
 			//float vectXh[4] = {1, 1, 1, -1};
 			//works ok: 2 0 0 -2 0 2 2 0
 
-			float vectX[4] = {1, 0, -1, 0};
-			float vectXh[4] = {1, 0, 1, 0};
+			//float vectX[4] = {1, 0, -1, 0};
+			//float vectXh[4] = {1, 0, 1, 0};
 			//works ok: 1 0 1 0 -1 0 -1 0
 
 			srcRows = 2;
@@ -341,6 +340,7 @@ int main(void) {
 			status = arm_mat_cmplx_mult_f32(&matX, &matXh, &result);
 			*/
 
+			/* rectangular example
 			float vectresult[12];
 			float vectX[6] = {1, -1, 1, 1, 1, -1};
 			float vectXh[4] = {1, 1, 1, -1};
@@ -356,7 +356,12 @@ int main(void) {
 			srcColumns = 2;
 			arm_mat_init_f32(&result, srcRows, srcColumns, vectresult);
 			status = arm_mat_cmplx_mult_f32(&matX, &matXh, &result);
+			*/
+			// TESTING FD
 
+			/*
+			 * R = Xf*Xfconj
+			 */
 			status = arm_mat_cmplx_mult_f32(&matXf, &matXfh, &matR[f]);
 
 
@@ -375,6 +380,8 @@ int main(void) {
 			arm_mat_init_f32(&mat_Rf_imag_inv, nMic, nMic, vect_Rf_imag_inv);
 			arm_mat_init_f32(&mat_interm_1, nMic, nMic, vect_interm_1);
 			arm_mat_init_f32(&mat_interm_2, nMic, nMic, vect_interm_2);
+			arm_mat_init_f32(&mat_interm_3, nMic, nMic, vect_interm_3);
+			arm_mat_init_f32(&mat_interm_4, nMic, nMic, vect_interm_4);
 			//Compute A^-1 and B^-1
 			arm_mat_inverse_f32(&mat_Rf_real, &mat_Rf_real_inv);
 			arm_mat_inverse_f32(&mat_Rf_imag, &mat_Rf_imag_inv);
@@ -382,6 +389,10 @@ int main(void) {
 			/*
 			 * Rinv = R^-1 = (A + B*A^-1*B)^-1 - i*(B + A*B^-1*A)^-1
 			 */
+
+			srcRows = nMic;
+			srcColumns = nMic;
+			arm_mat_init_f32(&matRinv[f], srcRows, srcColumns, vect_Rinv[f]);
 
 			// interm_1 = B*A^-1
 			arm_mat_mult_f32(&mat_Rf_imag, &mat_Rf_real_inv, &mat_interm_1);
@@ -412,6 +423,12 @@ int main(void) {
 			//arm_mat_inverse_f32(&matR[f], &matRinv[f]);
 
 			for(uint8_t i = 0; i < nMic - 1; i ++){
+
+				// TODO(FD) choose between either method
+
+				vect_Rinv[f][2*i] = vect_interm_2[i];
+				vect_Rinv[f][2*i+1] = -vect_interm_4[i];
+
 				matRinv[f].pData[2*i] 	= vect_interm_2[i];
 				matRinv[f].pData[2*i+1] = -vect_interm_4[i];
 			}
