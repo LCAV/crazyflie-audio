@@ -25,24 +25,24 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-200714_AudioShield_rfft.elf \
+audio_shield_firmware.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-200714_AudioShield_rfft.list \
+audio_shield_firmware.list \
 
 OBJCOPY_BIN += \
-200714_AudioShield_rfft.bin \
+audio_shield_firmware.bin \
 
 
 # All Target
-all: 200714_AudioShield_rfft.elf secondary-outputs
+all: audio_shield_firmware.elf secondary-outputs
 
 # Tool invocations
-200714_AudioShield_rfft.elf: $(OBJS) $(USER_OBJS) /Users/hoffet/Documents/LCAV_Repo/dsp_hw_platform/WorkspaceCubeIDE_dsp_whplatform/200714_AudioShield_rfft/STM32F446RETX_FLASH.ld
-	arm-none-eabi-gcc -o "200714_AudioShield_rfft.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/hoffet/Documents/LCAV_Repo/dsp_hw_platform/WorkspaceCubeIDE_dsp_whplatform/200714_AudioShield_rfft/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="200714_AudioShield_rfft.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+audio_shield_firmware.elf: $(OBJS) $(USER_OBJS) /Users/hoffet/Documents/LCAV_Repo/crazyflie-audio/firmware/audio_shield_firmware/STM32F446RETX_FLASH.ld
+	arm-none-eabi-gcc -o "audio_shield_firmware.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/hoffet/Documents/LCAV_Repo/crazyflie-audio/firmware/audio_shield_firmware/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="audio_shield_firmware.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -51,13 +51,13 @@ default.size.stdout: $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-200714_AudioShield_rfft.list: $(EXECUTABLES)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "200714_AudioShield_rfft.list"
+audio_shield_firmware.list: $(EXECUTABLES)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "audio_shield_firmware.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-200714_AudioShield_rfft.bin: $(EXECUTABLES)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "200714_AudioShield_rfft.bin"
+audio_shield_firmware.bin: $(EXECUTABLES)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "audio_shield_firmware.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
