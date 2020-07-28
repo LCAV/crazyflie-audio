@@ -90,7 +90,10 @@ float vect_R[FFTSIZE][nMic * nMic * 2];
 uint8_t srcRows;
 uint8_t srcColumns;
 
-arm_rfft_fast_instance_f32 S;
+arm_rfft_fast_instance_f32 S1;
+arm_rfft_fast_instance_f32 S2;
+arm_rfft_fast_instance_f32 S3;
+arm_rfft_fast_instance_f32 S4;
 
 arm_status status;
 
@@ -230,14 +233,14 @@ int main(void) {
 		STOPCHRONO;
 		/* Process the data through the CFFT/CIFFT module */
 
-		arm_rfft_fast_init_f32(&S, FFTSIZE);
-		arm_rfft_fast_f32(&S, left_2, left_2_f, ifftFlag);
-		arm_rfft_fast_init_f32(&S, FFTSIZE);
-		arm_rfft_fast_f32(&S, left_3, left_3_f, ifftFlag);
-		arm_rfft_fast_init_f32(&S, FFTSIZE);
-		arm_rfft_fast_f32(&S, right_2, right_2_f, ifftFlag);
-		arm_rfft_fast_init_f32(&S, FFTSIZE);
-		arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S1, FFTSIZE);
+		arm_rfft_fast_f32(&S1, left_2, left_2_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S2, FFTSIZE);
+		arm_rfft_fast_f32(&S2, left_3, left_3_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S3, FFTSIZE);
+		arm_rfft_fast_f32(&S3, right_2, right_2_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S4, FFTSIZE);
+		arm_rfft_fast_f32(&S4, right_3, right_3_f, ifftFlag);
 
 		STOPCHRONO;
 		time_fft = time_us;
@@ -351,7 +354,7 @@ int main(void) {
 			arm_mat_mult_f32(&mat_interm_1, &mat_Rf_real, &mat_interm_4);
 
 			// interm_3 = B+interm_4 = B + A*B^-1*A
-			arm_mat_add_f32(&mat_Rf_imag, &mat_interm_2, &mat_interm_3);
+			arm_mat_add_f32(&mat_Rf_imag, &mat_interm_4, &mat_interm_3);
 
 			// interm_4 = interm_3^-1 =(B + A*B^-1*A)^-1
 			// this is the imag part of the result
@@ -361,7 +364,7 @@ int main(void) {
 
 			for(uint8_t i = 0; i < nMic - 1; i ++){
 				matRinv[f].pData[2*i] 	= vect_interm_2[i];
-				matRinv[f].pData[2*i+1] = vect_interm_4[i];
+				matRinv[f].pData[2*i+1] = -vect_interm_4[i];
 			}
 			STOPCHRONO;
 			time_bin_process = time_us;
