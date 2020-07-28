@@ -87,6 +87,13 @@ float vect_Xf[nMic * 2];
 float vect_Xfh[nMic * 2];
 float vect_R[FFTSIZE][nMic * nMic * 2];
 
+
+// TESTING FD
+arm_matrix_instance_f32 matX;
+arm_matrix_instance_f32 matXh;
+arm_matrix_instance_f32 result;
+// TESTING FD
+
 uint8_t srcRows;
 uint8_t srcColumns;
 
@@ -273,7 +280,6 @@ int main(void) {
 		arm_matrix_instance_f32 mat_interm_1;
 		arm_matrix_instance_f32 mat_interm_2;
 
-		float vect_interm_3[nMic*nMic];
 		float vect_interm_4[nMic*nMic];
 		arm_matrix_instance_f32 mat_interm_3;
 		arm_matrix_instance_f32 mat_interm_4;
@@ -309,7 +315,50 @@ int main(void) {
 			/*
 			 * R = Xf*Xfconj
 			 */
+
+			/*
+			 *  test example for matrix multiplication
+
+			float vectresult[8];
+
+			//float vectX[4] = {1, -1, 1, 1};
+			//float vectXh[4] = {1, 1, 1, -1};
+			//works ok: 2 0 0 -2 0 2 2 0
+
+			float vectX[4] = {1, 0, -1, 0};
+			float vectXh[4] = {1, 0, 1, 0};
+			//works ok: 1 0 1 0 -1 0 -1 0
+
+			srcRows = 2;
+			srcColumns = 1;
+			arm_mat_init_f32(&matX, srcRows, srcColumns, vectX);
+			srcRows = 1;
+			srcColumns = 2;
+			arm_mat_init_f32(&matXh, srcRows, srcColumns, vectXh);
+			srcRows = 2;
+			srcColumns = 2;
+			arm_mat_init_f32(&result, srcRows, srcColumns, vectresult);
+			status = arm_mat_cmplx_mult_f32(&matX, &matXh, &result);
+			*/
+
+			float vectresult[12];
+			float vectX[6] = {1, -1, 1, 1, 1, -1};
+			float vectXh[4] = {1, 1, 1, -1};
+			//works ok: 2 0 0 -2 0 2 2 0 2 0 0 -2
+
+			srcRows = 3;
+			srcColumns = 1;
+			arm_mat_init_f32(&matX, srcRows, srcColumns, vectX);
+			srcRows = 1;
+			srcColumns = 2;
+			arm_mat_init_f32(&matXh, srcRows, srcColumns, vectXh);
+			srcRows = 3;
+			srcColumns = 2;
+			arm_mat_init_f32(&result, srcRows, srcColumns, vectresult);
+			status = arm_mat_cmplx_mult_f32(&matX, &matXh, &result);
+
 			status = arm_mat_cmplx_mult_f32(&matXf, &matXfh, &matR[f]);
+
 
 			/*
 			 * Rf_real = real(R)
