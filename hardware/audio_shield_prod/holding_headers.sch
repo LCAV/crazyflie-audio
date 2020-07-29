@@ -489,4 +489,6 @@ F 6 "0.21000" H 4950 1950 50  0001 C CNN "Price"
 	1    4950 1950
 	1    0    0    -1  
 $EndComp
+Text Notes 2150 4850 0    50   ~ 0
+Wrong Footprint: https://www.digikey.ch/product-detail/fr/harwin-inc/M50-3630342/952-3607-ND/7044022 this one has been ordered as the correct one is not easy to source
 $EndSCHEMATC
