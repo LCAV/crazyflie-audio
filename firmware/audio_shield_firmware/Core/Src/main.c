@@ -364,14 +364,20 @@ int main(void) {
 			 */
 			status = arm_mat_cmplx_mult_f32(&matXf, &matXfh, &matR[f]);
 
+#define LAMBDA 0.01
 
 			/*
 			 * Rf_real = real(R)
 			 * Rf_imag = imag(R)
 			 */
-			for(uint8_t i = 0; i < nMic - 1; i ++){
-				vect_Rf_real[i] = matR[f].pData[2*i];
-				vect_Rf_imag[i] = matR[f].pData[2*i+1];
+			for(uint8_t i = 0; i < nMic*nMic; i ++){
+				vect_Rf_real[i] = vect_R[f][2*i];
+				vect_Rf_imag[i] = vect_R[f][2*i+1];
+			}
+
+			for(uint8_t i = 0; i < nMic; i++){
+				vect_Rf_real[i*nMic+i] += LAMBDA;
+				vect_Rf_imag[i*nMic+i] += LAMBDA;
 			}
 
 			arm_mat_init_f32(&mat_Rf_real, nMic, nMic, vect_Rf_real);
@@ -385,6 +391,21 @@ int main(void) {
 			//Compute A^-1 and B^-1
 			arm_mat_inverse_f32(&mat_Rf_real, &mat_Rf_real_inv);
 			arm_mat_inverse_f32(&mat_Rf_imag, &mat_Rf_imag_inv);
+
+			/*
+			 * Revive data
+			 * Rf_real = real(R)
+			 * Rf_imag = imag(R)
+			 */
+			for(uint8_t i = 0; i < nMic*nMic; i ++){
+				vect_Rf_real[i] = vect_R[f][2*i];
+				vect_Rf_imag[i] = vect_R[f][2*i+1];
+			}
+
+			for(uint8_t i = 0; i < nMic; i++){
+				vect_Rf_real[i*nMic+i] += LAMBDA;
+				vect_Rf_imag[i*nMic+i] += LAMBDA;
+			}
 
 			/*
 			 * Rinv = R^-1 = (A + B*A^-1*B)^-1 - i*(B + A*B^-1*A)^-1
@@ -411,7 +432,7 @@ int main(void) {
 			arm_mat_mult_f32(&mat_Rf_real, &mat_Rf_imag_inv, &mat_interm_3);
 
 			// interm_4 = interm_3*A = A*B^-1*A
-			arm_mat_mult_f32(&mat_interm_1, &mat_Rf_real, &mat_interm_4);
+			arm_mat_mult_f32(&mat_interm_3, &mat_Rf_real, &mat_interm_4);
 
 			// interm_3 = B+interm_4 = B + A*B^-1*A
 			arm_mat_add_f32(&mat_Rf_imag, &mat_interm_4, &mat_interm_3);
@@ -422,15 +443,15 @@ int main(void) {
 
 			//arm_mat_inverse_f32(&matR[f], &matRinv[f]);
 
-			for(uint8_t i = 0; i < nMic - 1; i ++){
+			for(uint8_t i = 0; i < nMic*nMic; i ++){
 
 				// TODO(FD) choose between either method
 
 				vect_Rinv[f][2*i] = vect_interm_2[i];
 				vect_Rinv[f][2*i+1] = -vect_interm_4[i];
 
-				matRinv[f].pData[2*i] 	= vect_interm_2[i];
-				matRinv[f].pData[2*i+1] = -vect_interm_4[i];
+				//matRinv[f].pData[2*i] 	= vect_interm_2[i];
+				//matRinv[f].pData[2*i+1] = -vect_interm_4[i];
 			}
 			STOPCHRONO;
 			time_bin_process = time_us;
