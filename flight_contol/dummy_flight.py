@@ -1,3 +1,9 @@
+"""
+dummy_flight.py: Make drone hover at fixed height, and land on Keyboardinterrupt.
+
+Requires the Optical Flow deck for zranger data. 
+"""
+
 import logging
 import time
 
@@ -16,12 +22,6 @@ logging.basicConfig(level=logging.ERROR)
 z_ranger_logs = np.empty(1)
 z_filtered_logs = np.empty(1)
 vz_logs = np.empty(1)
-
-class Mission:
-    def __init__(self):
-        self.phase = 'search'
-        self.coord = np.zeros(2)
-        self.orientation = 'up'
 
 def initialization(scf):
     cf = scf.cf
@@ -66,10 +66,11 @@ def log_func(scf):
             print(data['stabilizer.thrust'])
 
 
-
 def take_off(commander):
     height = 0.6
+    print("trying to take off to", height)
     commander.takeoff(height, 0.5)
+    print("sleeping for 3 seconds")
     time.sleep(3.0)
 
 if __name__ == '__main__':
@@ -80,9 +81,8 @@ if __name__ == '__main__':
     with SyncCrazyflie(id, cf=Crazyflie(rw_cache='./cache')) as scf:
         commander = initialization(scf)
         take_off(commander)
-        mission = Mission()
         try:
-            Thread(target=log_func, args=[scf,mission]).start()
+            Thread(target=log_func, args=[scf]).start()
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
