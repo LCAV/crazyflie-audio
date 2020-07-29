@@ -90,18 +90,15 @@ float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 
 
 // TESTING FD
-arm_matrix_instance_f32 matX;
-arm_matrix_instance_f32 matXh;
-arm_matrix_instance_f32 result;
-// TESTING FD
+//arm_matrix_instance_f32 matX;
+//arm_matrix_instance_f32 matXh;
+//arm_matrix_instance_f32 result;
 
+// TESTING FD
 uint8_t srcRows;
 uint8_t srcColumns;
 
-arm_rfft_fast_instance_f32 S1;
-arm_rfft_fast_instance_f32 S2;
-arm_rfft_fast_instance_f32 S3;
-arm_rfft_fast_instance_f32 S4;
+arm_rfft_fast_instance_f32 S;
 
 arm_status status;
 
@@ -241,14 +238,14 @@ int main(void) {
 		STOPCHRONO;
 		/* Process the data through the CFFT/CIFFT module */
 
-		arm_rfft_fast_init_f32(&S1, FFTSIZE);
-		arm_rfft_fast_f32(&S1, left_2, left_2_f, ifftFlag);
-		arm_rfft_fast_init_f32(&S2, FFTSIZE);
-		arm_rfft_fast_f32(&S2, left_3, left_3_f, ifftFlag);
-		arm_rfft_fast_init_f32(&S3, FFTSIZE);
-		arm_rfft_fast_f32(&S3, right_2, right_2_f, ifftFlag);
-		arm_rfft_fast_init_f32(&S4, FFTSIZE);
-		arm_rfft_fast_f32(&S4, right_3, right_3_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S, FFTSIZE);
+		arm_rfft_fast_f32(&S, left_2, left_2_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S, FFTSIZE);
+		arm_rfft_fast_f32(&S, left_3, left_3_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S, FFTSIZE);
+		arm_rfft_fast_f32(&S, right_2, right_2_f, ifftFlag);
+		arm_rfft_fast_init_f32(&S, FFTSIZE);
+		arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
 
 		STOPCHRONO;
 		time_fft = time_us;
@@ -281,13 +278,8 @@ int main(void) {
 		arm_matrix_instance_f32 mat_interm_1;
 		arm_matrix_instance_f32 mat_interm_2;
 
-		float vect_interm_3[nMic*nMic];
-		float vect_interm_4[nMic*nMic];
-		arm_matrix_instance_f32 mat_interm_3;
-		arm_matrix_instance_f32 mat_interm_4;
-
 		// Frequency bin processing
-		for (f = 0; f < FFTSIZE-2; f += 2) {
+		for (f = 0; f < FFTSIZE; f += 2) {
 
 			/*
 			 * Xf = [mic1_f_real, mic1_f_imag,
@@ -386,8 +378,6 @@ int main(void) {
 			arm_mat_init_f32(&mat_Rf_imag_inv, nMic, nMic, vect_Rf_imag_inv);
 			arm_mat_init_f32(&mat_interm_1, nMic, nMic, vect_interm_1);
 			arm_mat_init_f32(&mat_interm_2, nMic, nMic, vect_interm_2);
-			arm_mat_init_f32(&mat_interm_3, nMic, nMic, vect_interm_3);
-			arm_mat_init_f32(&mat_interm_4, nMic, nMic, vect_interm_4);
 			//Compute A^-1 and B^-1
 			arm_mat_inverse_f32(&mat_Rf_real, &mat_Rf_real_inv);
 			arm_mat_inverse_f32(&mat_Rf_imag, &mat_Rf_imag_inv);
@@ -428,31 +418,29 @@ int main(void) {
 			// this is the real part of the result
 			arm_mat_inverse_f32(&mat_interm_1, &mat_interm_2);
 
+			for(uint8_t i = 0; i < nMic*nMic; i ++){
+				vect_Rinv[f][2*i] = vect_interm_2[i];
+			}
+
 			// interm_3 = A*B^-1
-			arm_mat_mult_f32(&mat_Rf_real, &mat_Rf_imag_inv, &mat_interm_3);
+			arm_mat_mult_f32(&mat_Rf_real, &mat_Rf_imag_inv, &mat_interm_1);
 
 			// interm_4 = interm_3*A = A*B^-1*A
-			arm_mat_mult_f32(&mat_interm_3, &mat_Rf_real, &mat_interm_4);
+			arm_mat_mult_f32(&mat_interm_1, &mat_Rf_real, &mat_interm_2);
 
 			// interm_3 = B+interm_4 = B + A*B^-1*A
-			arm_mat_add_f32(&mat_Rf_imag, &mat_interm_4, &mat_interm_3);
+			arm_mat_add_f32(&mat_Rf_imag, &mat_interm_2, &mat_interm_1);
 
 			// interm_4 = interm_3^-1 =(B + A*B^-1*A)^-1
 			// this is the imag part of the result
-			arm_mat_inverse_f32(&mat_interm_3, &mat_interm_4);
+			arm_mat_inverse_f32(&mat_interm_1, &mat_interm_2);
 
 			//arm_mat_inverse_f32(&matR[f], &matRinv[f]);
 
 			for(uint8_t i = 0; i < nMic*nMic; i ++){
-
-				// TODO(FD) choose between either method
-
-				vect_Rinv[f][2*i] = vect_interm_2[i];
-				vect_Rinv[f][2*i+1] = -vect_interm_4[i];
-
-				//matRinv[f].pData[2*i] 	= vect_interm_2[i];
-				//matRinv[f].pData[2*i+1] = -vect_interm_4[i];
+				vect_Rinv[f][2*i+1] = -vect_interm_2[i];
 			}
+
 			STOPCHRONO;
 			time_bin_process = time_us;
 		}
