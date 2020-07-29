@@ -1717,4 +1717,17 @@ F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/328095
 	1    5900 9700
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector:AVR-JTAG-10 J?
+U 1 1 5F223B53
+P -1450 1450
+F 0 "J?" H -1879 1496 50  0000 R CNN
+F 1 "STLINK-V3MINI Placeholder" H -1879 1405 50  0000 R CNN
+F 2 "" V -1600 1600 50  0001 C CNN
+F 3 "https://www.digikey.ch/product-detail/fr/STLINK-V3MINI/497-19530-ND/10266291/?itemSeq=333705927 ~" H -2725 900 50  0001 C CNN
+	1    -1450 1450
+	1    0    0    -1  
+$EndComp
+Text Notes 10650 1200 0    50   ~ 0
+Wrong footprint, impossible to source  “BF090-10-A-2-N-C“ used “BF090-10-A-1-N-C” with tweeking instead
 $EndSCHEMATC
