@@ -23,7 +23,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "math.h"
+#include "arm_const_structs.h"
 #include "fft_bin_data.h"
+
 
 /* USER CODE END Includes */
 
@@ -208,17 +211,17 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
-	HAL_GPIO_WritePin(VCC_1_GPIO_Port, VCC_1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(VCC_2_GPIO_Port, VCC_2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(VCC_3_GPIO_Port, VCC_3_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(VCC_4_GPIO_Port, VCC_4_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(VCC_1_GPIO_Port, VCC_1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(VCC_2_GPIO_Port, VCC_2_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(VCC_3_GPIO_Port, VCC_3_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(VCC_4_GPIO_Port, VCC_4_Pin, GPIO_PIN_SET);
 
-	HAL_GPIO_WritePin(GND_1_GPIO_Port, GND_1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GND_2_GPIO_Port, GND_2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GND_3_GPIO_Port, GND_3_Pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(GND_1_GPIO_Port, GND_1_Pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(GND_2_GPIO_Port, GND_2_Pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(GND_3_GPIO_Port, GND_3_Pin, GPIO_PIN_RESET);
 
 	// Start DMAs
-	HAL_I2S_Receive_DMA(&hi2s2, (uint16_t*) dma_2, FULL_BUFFER_SIZE);
+	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_2, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
   /* USER CODE END 2 */
