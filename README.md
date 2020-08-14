@@ -14,7 +14,7 @@ This repository contains code, data, and other material for audio-based algorith
 
 In alphabetical order:
 
-- Isaac Dinis Bernardino
+- Isaac Bernardino Dinis 
 - Frederike Dümbgen
 - Adrien Hoffet
 
