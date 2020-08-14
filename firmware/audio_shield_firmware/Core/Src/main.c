@@ -33,7 +33,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-#define USE_TEST_SIGNALS 1
+#define USE_TEST_SIGNALS 0
 
 // Timing tool using TIM2 in counter mode with uS timebase.
 #define STOPCHRONO ({\
@@ -115,6 +115,7 @@ I2C_HandleTypeDef hi2c1;
 
 I2S_HandleTypeDef hi2s1;
 I2S_HandleTypeDef hi2s3;
+DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi3_rx;
 
 SPI_HandleTypeDef hspi2;
@@ -124,6 +125,10 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
+
+uint32_t tst;
+uint32_t tst2;
+uint32_t tst3;
 
 /* USER CODE END PV */
 
@@ -148,17 +153,21 @@ void Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 #if !USE_TEST_SIGNALS
-	if (hi2s->Instance == hi2s2.Instance) {
+	if (hi2s->Instance == hi2s1.Instance) {
 		Process(dma_2, left_2, right_2, HALF_BUFFER_SIZE);
 	} else {
 		Process(dma_3, left_3, right_3, HALF_BUFFER_SIZE);
 	}
 #endif
+
+	tst = HAL_GetTick();
+	tst3 = tst-tst2;
+	tst2 = tst;
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #if !USE_TEST_SIGNALS
-	if (hi2s->Instance == hi2s2.Instance) {
+	if (hi2s->Instance == hi2s1.Instance) {
 		Process(&dma_2[HALF_BUFFER_SIZE], left_2, right_2, HALF_BUFFER_SIZE);
 	} else {
 		Process(&dma_3[HALF_BUFFER_SIZE], left_3, right_3, HALF_BUFFER_SIZE);
@@ -241,6 +250,8 @@ int main(void)
 			right_3[i] = mic3[i];
 		}
 #endif
+
+#if 0
 
 		//HAL_Delay(100);
 		processing = 1;
@@ -472,6 +483,10 @@ int main(void)
 	 HAL_Delay(125);
 #endif
 
+#endif
+	 //tst = HAL_GetTick();
+	 HAL_Delay(250);
+
 	}
 
   /* USER CODE END 3 */
@@ -585,11 +600,11 @@ static void MX_I2S1_Init(void)
 
   /* USER CODE END I2S1_Init 1 */
   hi2s1.Instance = SPI1;
-  hi2s1.Init.Mode = I2S_MODE_MASTER_TX;
+  hi2s1.Init.Mode = I2S_MODE_MASTER_RX;
   hi2s1.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s1.Init.DataFormat = I2S_DATAFORMAT_16B;
+  hi2s1.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
   hi2s1.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s1.Init.AudioFreq = I2S_AUDIOFREQ_8K;
+  hi2s1.Init.AudioFreq = I2S_AUDIOFREQ_32K;
   hi2s1.Init.CPOL = I2S_CPOL_LOW;
   hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
   hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
@@ -761,11 +776,15 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }
 
