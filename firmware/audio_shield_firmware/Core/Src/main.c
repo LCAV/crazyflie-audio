@@ -25,15 +25,21 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "arm_const_structs.h"
-#include "fft_bin_data.h"
-
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-#define USE_TEST_SIGNALS 0
+//#define USE_TEST_SIGNALS
+#ifdef USE_TEST_SIGNALS
+
+#include "fft_bin_data.h"
+
+#endif
+
+
+
 
 // Timing tool using TIM2 in counter mode with uS timebase.
 #define STOPCHRONO ({\
@@ -48,28 +54,30 @@ volatile int32_t time_us;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define N_ACTUAL_SAMPLES 32
+#define N_ACTUAL_SAMPLES (1024)//32
 
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
 
 #define MAXINT 65535
 
-int16_t dma_2[FULL_BUFFER_SIZE];
+int16_t dma_1[FULL_BUFFER_SIZE];
 int16_t dma_3[FULL_BUFFER_SIZE];
 
-float left_2[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
-float right_2[N_ACTUAL_SAMPLES];
+float left_1[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
+float right_1[N_ACTUAL_SAMPLES];
 float left_3[N_ACTUAL_SAMPLES];
 float right_3[N_ACTUAL_SAMPLES];
 
-float left_2_f[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
-float right_2_f[N_ACTUAL_SAMPLES];
+float left_1_f[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
+float right_1_f[N_ACTUAL_SAMPLES];
 float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
 
-#define FFTSIZE 32
+#define FFTSIZE N_ACTUAL_SAMPLES
 #define nMic 4
+#define FFTSIZE_SENT 32
+#define ARRAY_SIZE nMic*FFTSIZE_SENT*4*2
 
 uint32_t ifftFlag = 0;
 uint32_t doBitReverse = 1;
@@ -78,6 +86,8 @@ uint32_t time_fft;
 volatile uint32_t time_bin_process;
 
 uint8_t processing = 0;
+
+#ifdef MATRIX_INVERSE_CALCULATION
 
 arm_matrix_instance_f32 matXf;
 arm_matrix_instance_f32 matXfh;
@@ -89,13 +99,19 @@ float vect_Xfh[nMic * 2];
 float vect_R[FFTSIZE][nMic * nMic * 2];
 float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 
-
 // TESTING FD
 //arm_matrix_instance_f32 matX;
 //arm_matrix_instance_f32 matXh;
 //arm_matrix_instance_f32 result;
 
-// TESTING FD
+#else
+
+float mat_Xf[FFTSIZE][nMic * 2];
+uint8_t mat_Xf_bytes[FFTSIZE_SENT][nMic*2][4];
+uint8_t array_Xf_bytes[ARRAY_SIZE];
+
+#endif
+
 uint8_t srcRows;
 uint8_t srcColumns;
 
@@ -112,6 +128,7 @@ arm_status status;
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_tx;
 
 I2S_HandleTypeDef hi2s1;
 I2S_HandleTypeDef hi2s3;
@@ -125,10 +142,6 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
-
-uint32_t tst;
-uint32_t tst2;
-uint32_t tst3;
 
 /* USER CODE END PV */
 
@@ -145,6 +158,10 @@ static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 void Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
+void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4],uint8_t byte_array[ARRAY_SIZE]);
+void float_to_byte_array(float input, uint8_t output[]);
+void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic*2],uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4]);
+void send_corr_matrix();
 
 /* USER CODE END PFP */
 
@@ -152,23 +169,19 @@ void Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
 /* USER CODE BEGIN 0 */
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-#if !USE_TEST_SIGNALS
+#ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
-		Process(dma_2, left_2, right_2, HALF_BUFFER_SIZE);
+		Process(dma_1, left_1, right_1, HALF_BUFFER_SIZE);
 	} else {
 		Process(dma_3, left_3, right_3, HALF_BUFFER_SIZE);
 	}
 #endif
-
-	tst = HAL_GetTick();
-	tst3 = tst-tst2;
-	tst2 = tst;
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
-#if !USE_TEST_SIGNALS
+#ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
-		Process(&dma_2[HALF_BUFFER_SIZE], left_2, right_2, HALF_BUFFER_SIZE);
+		Process(&dma_1[HALF_BUFFER_SIZE], left_1, right_1, HALF_BUFFER_SIZE);
 	} else {
 		Process(&dma_3[HALF_BUFFER_SIZE], left_3, right_3, HALF_BUFFER_SIZE);
 	}
@@ -220,17 +233,8 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
-//	HAL_GPIO_WritePin(VCC_1_GPIO_Port, VCC_1_Pin, GPIO_PIN_SET);
-//	HAL_GPIO_WritePin(VCC_2_GPIO_Port, VCC_2_Pin, GPIO_PIN_SET);
-//	HAL_GPIO_WritePin(VCC_3_GPIO_Port, VCC_3_Pin, GPIO_PIN_SET);
-//	HAL_GPIO_WritePin(VCC_4_GPIO_Port, VCC_4_Pin, GPIO_PIN_SET);
-
-//	HAL_GPIO_WritePin(GND_1_GPIO_Port, GND_1_Pin, GPIO_PIN_RESET);
-//	HAL_GPIO_WritePin(GND_2_GPIO_Port, GND_2_Pin, GPIO_PIN_RESET);
-//	HAL_GPIO_WritePin(GND_3_GPIO_Port, GND_3_Pin, GPIO_PIN_RESET);
-
 	// Start DMAs
-	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_2, FULL_BUFFER_SIZE);
+	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
   /* USER CODE END 2 */
@@ -242,16 +246,15 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-#if USE_TEST_SIGNALS
+#ifdef USE_TEST_SIGNALS
 		for (uint16_t i = 0; i < N_ACTUAL_SAMPLES; i++) {
-			left_2[i] = mic0[i];
+			left_1[i] = mic0[i];
 			left_3[i] = mic1[i];
-			right_2[i] = mic2[i];
+			right_1[i] = mic2[i];
 			right_3[i] = mic3[i];
 		}
 #endif
 
-#if 0
 
 		//HAL_Delay(100);
 		processing = 1;
@@ -259,22 +262,54 @@ int main(void)
 		/* Process the data through the CFFT/CIFFT module */
 
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
-		arm_rfft_fast_f32(&S, left_2, left_2_f, ifftFlag);
+		arm_rfft_fast_f32(&S, left_1, left_1_f, ifftFlag);
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
 		arm_rfft_fast_f32(&S, left_3, left_3_f, ifftFlag);
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
-		arm_rfft_fast_f32(&S, right_2, right_2_f, ifftFlag);
+		arm_rfft_fast_f32(&S, right_1, right_1_f, ifftFlag);
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
 		arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
-
+		processing = 0;
 		STOPCHRONO;
 		time_fft = time_us;
 
-		// Matrix initialisation
+#ifndef MATRIX_INVERSE_CALCULATION
 
+		// Matrix initialisation
+		//srcRows = nMic;
+		//srcColumns = 1;
+		//arm_mat_init_f32(&matXf, srcRows, srcColumns, vect_Xf);
+
+		// Frequency bin processing
+		uint16_t g = 0;
+		for (int f = 0; f < FFTSIZE; f += 2) {
+
+			/*
+			 * Xf = [mic1_f_real, mic1_f_imag,
+			 * 		 mic2_f_real, mic2_f_imag,
+			 * 		 mic3_f_real, mic3_f_imag,
+			 * 		 mic4_f_real, mic4_f_imag ]
+			 */
+			mat_Xf[g][0] = left_1_f[f];
+			mat_Xf[g][1] = left_3_f[f];
+			mat_Xf[g][2] = right_1_f[f];
+			mat_Xf[g][3] = right_3_f[f];
+			mat_Xf[g][4] = left_1_f[f + 1];
+			mat_Xf[g][5] = left_3_f[f + 1];
+			mat_Xf[g][6] = right_1_f[f + 1];
+			mat_Xf[g][7] = right_3_f[f + 1];
+			g++;
+		}
+
+		send_corr_matrix(mat_Xf);
+
+#else
+
+		// Matrix initialisation
 		srcRows = nMic;
 		srcColumns = 1;
 		arm_mat_init_f32(&matXf, srcRows, srcColumns, vect_Xf);
+
 
 		srcRows = 1;
 		srcColumns = nMic;
@@ -301,18 +336,19 @@ int main(void)
 		// Frequency bin processing
 		for (f = 0; f < FFTSIZE; f += 2) {
 
+
 			/*
 			 * Xf = [mic1_f_real, mic1_f_imag,
 			 * 		 mic2_f_real, mic2_f_imag,
 			 * 		 mic3_f_real, mic3_f_imag,
 			 * 		 mic4_f_real, mic4_f_imag ]
 			 */
-			vect_Xf[0] = left_2_f[f];
-			vect_Xf[1] = left_2_f[f + 1];
+			vect_Xf[0] = left_1_f[f];
+			vect_Xf[1] = left_1_f[f + 1];
 			vect_Xf[2] = left_3_f[f];
 			vect_Xf[3] = left_3_f[f + 1];
-			vect_Xf[4] = right_2_f[f];
-			vect_Xf[5] = right_2_f[f + 1];
+			vect_Xf[4] = right_1_f[f];
+			vect_Xf[5] = right_1_f[f + 1];
 			vect_Xf[6] = right_3_f[f];
 			vect_Xf[7] = right_3_f[f + 1];
 
@@ -398,6 +434,7 @@ int main(void)
 			arm_mat_init_f32(&mat_Rf_imag_inv, nMic, nMic, vect_Rf_imag_inv);
 			arm_mat_init_f32(&mat_interm_1, nMic, nMic, vect_interm_1);
 			arm_mat_init_f32(&mat_interm_2, nMic, nMic, vect_interm_2);
+
 			//Compute A^-1 and B^-1
 			arm_mat_inverse_f32(&mat_Rf_real, &mat_Rf_real_inv);
 			arm_mat_inverse_f32(&mat_Rf_imag, &mat_Rf_imag_inv);
@@ -465,10 +502,9 @@ int main(void)
 			time_bin_process = time_us;
 		}
 
-
-#if 0
+#ifdef FFT_FIND_PEAK
 		/* Calculating the magnitude at each bin */
-		arm_cmplx_mag_f32(left_2, testOutput, FFTSIZE);
+		arm_cmplx_mag_f32(left_1, testOutput, FFTSIZE);
 
 		/* Calculates maxValue and returns corresponding BIN value */
 		testOutput[0] = 0;
@@ -478,15 +514,8 @@ int main(void)
 
 #endif
 
-#if 0
-	 STOPCHRONO;
-	 HAL_Delay(125);
 #endif
-
-#endif
-	 //tst = HAL_GetTick();
-	 HAL_Delay(250);
-
+		HAL_Delay(250);
 	}
 
   /* USER CODE END 3 */
@@ -568,7 +597,7 @@ static void MX_I2C1_Init(void)
   hi2c1.Instance = I2C1;
   hi2c1.Init.ClockSpeed = 100000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.OwnAddress1 = 94;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
@@ -782,6 +811,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -844,11 +876,11 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 #if 0
 	STOPCHRONO;
 	/* Process the data through the CFFT/CIFFT module */
-	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_2, ifftFlag, doBitReverse);
+	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_1, ifftFlag, doBitReverse);
 
 	/* Process the data through the Complex Magnitude Module for
 	 calculating the magnitude at each bin */
-	arm_cmplx_mag_f32(left_2, testOutput, FFTSIZE);
+	arm_cmplx_mag_f32(left_1, testOutput, FFTSIZE);
 
 	STOPCHRONO;
 	time_arm_cmplx_mag_f32 = time_us;
@@ -866,6 +898,39 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
  }
  }
  */
+void send_corr_matrix(){
+	float_matrix_to_byte_matrix(mat_Xf,mat_Xf_bytes);
+	corr_matrix_to_corr_array(mat_Xf_bytes,array_Xf_bytes);
+	HAL_I2C_Slave_Transmit_DMA(&hi2c1, array_Xf_bytes, ARRAY_SIZE);
+}
+
+void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4],uint8_t byte_array[ARRAY_SIZE]){
+	uint16_t index = 0;
+	for (int i = 0; i<FFTSIZE_SENT; i++){
+		for (int j = 0; j< nMic*2;j++){
+			for (int k = 0; k<4;k++){
+				byte_array[index]=byte_matrix[i][j][k];
+				index++;
+			}
+		}
+	}
+}
+
+void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic*2],uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4]){
+	for (int i = 0; i<FFTSIZE_SENT; i++){
+		for (int j = 0; j< nMic*2;j++){
+			float_to_byte_array(float_matrix[i][j],byte_matrix[i][j]);
+		}
+	}
+}
+
+void float_to_byte_array(float input, uint8_t output[]){
+	uint32_t temp = *((uint32_t*) &input);
+	for (int i = 0;i<4;i++){
+		output[i] = temp&0xFF;
+		temp >>= 8;
+	}
+}
 
 /* USER CODE END 4 */
 

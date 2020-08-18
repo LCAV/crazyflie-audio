@@ -58,4 +58,6 @@ dkms.conf
 makefile
 *.list
 
-.settings/
+*.settings/
+*.cproject
+*.mxproject
