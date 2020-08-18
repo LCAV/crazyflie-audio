@@ -281,6 +281,7 @@ int main(void)
 		//arm_mat_init_f32(&matXf, srcRows, srcColumns, vect_Xf);
 
 		// Frequency bin processing
+		uint16_t g = 0;
 		for (int f = 0; f < FFTSIZE; f += 2) {
 
 			/*
@@ -289,15 +290,15 @@ int main(void)
 			 * 		 mic3_f_real, mic3_f_imag,
 			 * 		 mic4_f_real, mic4_f_imag ]
 			 */
-			mat_Xf[f][0] = left_1_f[f];
-			mat_Xf[f][1] = left_1_f[f + 1];
-			mat_Xf[f][2] = left_3_f[f];
-			mat_Xf[f][3] = left_3_f[f + 1];
-			mat_Xf[f][4] = right_1_f[f];
-			mat_Xf[f][5] = right_1_f[f + 1];
-			mat_Xf[f][6] = right_3_f[f];
-			mat_Xf[f][7] = right_3_f[f + 1];
-
+			mat_Xf[g][0] = left_1_f[f];
+			mat_Xf[g][1] = left_3_f[f];
+			mat_Xf[g][2] = right_1_f[f];
+			mat_Xf[g][3] = right_3_f[f];
+			mat_Xf[g][4] = left_1_f[f + 1];
+			mat_Xf[g][5] = left_3_f[f + 1];
+			mat_Xf[g][6] = right_1_f[f + 1];
+			mat_Xf[g][7] = right_3_f[f + 1];
+			g++;
 		}
 
 		send_corr_matrix(mat_Xf);
