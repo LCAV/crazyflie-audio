@@ -45,7 +45,7 @@ class Audio_CRTP(object):
         # We send the first package in channel 1 to identify the start of new audio data.
         if packet.channel == 1:
             if (self.index != 0) and (self.index != N_FULL_PACKETS + 1):
-                print("packets loss: received only {self.index}/{N_FULL_PACKETS+1}")
+                print(f"packets loss: received only {self.index}/{N_FULL_PACKETS+1}")
             self.index = 0  # reset index
             self.start = True
             self.start_time = time.time()
