@@ -60,13 +60,7 @@ class Audio_CRTP(object):
                     0:N_BYTES_LAST_PACKET
                 ]  # last bytes
 
-                # write array to dummy bin file to convert uint8 to float32
-                self.array.tofile("bin")
-                self.corr_matrix = np.fromfile("bin", np.float32)
-
-                # TODO: cleaner version, check that it gives the same result.
-                test_corr_matrix = np.frombuffer(self.array, dtype=np.float32)
-                np.testing.assert_allclose(test_corr_matrix, self.corr_matrix)
+                self.corr_matrix = np.frombuffer(self.array, dtype=np.float32) # conversion of uint8 data to float32
 
                 print(
                     f"Elapsed time for receiving audio data = {time.time() - self.start_time}s"
