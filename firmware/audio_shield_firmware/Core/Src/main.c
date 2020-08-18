@@ -104,7 +104,7 @@ float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 
 #else
 
-float vect_Xf[nMic * 2];
+float mat_Xf[FFTSIZE][nMic * 2];
 
 #endif
 
@@ -281,14 +281,14 @@ int main(void)
 			 * 		 mic3_f_real, mic3_f_imag,
 			 * 		 mic4_f_real, mic4_f_imag ]
 			 */
-			vect_Xf[0] = left_1_f[f];
-			vect_Xf[1] = left_1_f[f + 1];
-			vect_Xf[2] = left_3_f[f];
-			vect_Xf[3] = left_3_f[f + 1];
-			vect_Xf[4] = right_1_f[f];
-			vect_Xf[5] = right_1_f[f + 1];
-			vect_Xf[6] = right_3_f[f];
-			vect_Xf[7] = right_3_f[f + 1];
+			mat_Xf[f][0] = left_1_f[f];
+			mat_Xf[f][1] = left_1_f[f + 1];
+			mat_Xf[f][2] = left_3_f[f];
+			mat_Xf[f][3] = left_3_f[f + 1];
+			mat_Xf[f][4] = right_1_f[f];
+			mat_Xf[f][5] = right_1_f[f + 1];
+			mat_Xf[f][6] = right_3_f[f];
+			mat_Xf[f][7] = right_3_f[f + 1];
 
 		}
 
