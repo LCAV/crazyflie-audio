@@ -54,7 +54,7 @@ volatile int32_t time_us;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define N_ACTUAL_SAMPLES (2048)//32
+#define N_ACTUAL_SAMPLES (1024)//32
 
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
