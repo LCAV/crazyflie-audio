@@ -85,7 +85,7 @@ volatile uint32_t time_bin_process;
 
 uint8_t processing = 0;
 
-#ifdef USE_TEST_SIGNALS
+#ifdef MATRIX_INVERSE_CALCULATION
 
 arm_matrix_instance_f32 matXf;
 arm_matrix_instance_f32 matXfh;
@@ -102,11 +102,14 @@ float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 //arm_matrix_instance_f32 matXh;
 //arm_matrix_instance_f32 result;
 
-// TESTING FD
-uint8_t srcRows;
-uint8_t srcColumns;
+#else
+
+float vect_Xf[nMic * 2];
 
 #endif
+
+uint8_t srcRows;
+uint8_t srcColumns;
 
 arm_rfft_fast_instance_f32 S;
 
@@ -242,7 +245,6 @@ int main(void) {
 		}
 #endif
 
-#ifdef MATRIX_INVERSE_CALCULATION
 
 		//HAL_Delay(100);
 		processing = 1;
@@ -261,11 +263,42 @@ int main(void) {
 		STOPCHRONO;
 		time_fft = time_us;
 
-		// Matrix initialisation
+#ifndef MATRIX_INVERSE_CALCULATION
 
+		// Matrix initialisation
+		//srcRows = nMic;
+		//srcColumns = 1;
+		//arm_mat_init_f32(&matXf, srcRows, srcColumns, vect_Xf);
+
+		// Frequency bin processing
+		for (int f = 0; f < FFTSIZE; f += 2) {
+
+			/*
+			 * Xf = [mic1_f_real, mic1_f_imag,
+			 * 		 mic2_f_real, mic2_f_imag,
+			 * 		 mic3_f_real, mic3_f_imag,
+			 * 		 mic4_f_real, mic4_f_imag ]
+			 */
+			vect_Xf[0] = left_1_f[f];
+			vect_Xf[1] = left_1_f[f + 1];
+			vect_Xf[2] = left_3_f[f];
+			vect_Xf[3] = left_3_f[f + 1];
+			vect_Xf[4] = right_1_f[f];
+			vect_Xf[5] = right_1_f[f + 1];
+			vect_Xf[6] = right_3_f[f];
+			vect_Xf[7] = right_3_f[f + 1];
+
+		}
+
+		processing = 0;
+
+#else
+
+		// Matrix initialisation
 		srcRows = nMic;
 		srcColumns = 1;
 		arm_mat_init_f32(&matXf, srcRows, srcColumns, vect_Xf);
+
 
 		srcRows = 1;
 		srcColumns = nMic;
@@ -291,6 +324,7 @@ int main(void) {
 
 		// Frequency bin processing
 		for (f = 0; f < FFTSIZE; f += 2) {
+
 
 			/*
 			 * Xf = [mic1_f_real, mic1_f_imag,
