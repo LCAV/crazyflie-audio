@@ -76,6 +76,8 @@ float right_3_f[N_ACTUAL_SAMPLES];
 
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define nMic 4
+#define FFTSIZE_SENT 32
+#define ARRAY_SIZE nMic*FFTSIZE_SENT*4*2
 
 uint32_t ifftFlag = 0;
 uint32_t doBitReverse = 1;
@@ -105,6 +107,8 @@ float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 #else
 
 float mat_Xf[FFTSIZE][nMic * 2];
+uint8_t mat_Xf_bytes[FFTSIZE_SENT][nMic*2][4];
+uint8_t array_Xf_bytes[ARRAY_SIZE];
 
 #endif
 
@@ -154,6 +158,10 @@ static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 void Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
+void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4],uint8_t byte_array[ARRAY_SIZE]);
+void float_to_byte_array(float input, uint8_t output[]);
+void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic*2],uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4]);
+void send_corr_matrix();
 
 /* USER CODE END PFP */
 
@@ -261,7 +269,7 @@ int main(void)
 		arm_rfft_fast_f32(&S, right_1, right_1_f, ifftFlag);
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
 		arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
-
+		processing = 0;
 		STOPCHRONO;
 		time_fft = time_us;
 
@@ -292,7 +300,7 @@ int main(void)
 
 		}
 
-		processing = 0;
+		send_corr_matrix(mat_Xf);
 
 #else
 
@@ -889,6 +897,39 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
  }
  }
  */
+void send_corr_matrix(){
+	float_matrix_to_byte_matrix(mat_Xf,mat_Xf_bytes);
+	corr_matrix_to_corr_array(mat_Xf_bytes,array_Xf_bytes);
+	HAL_I2C_Slave_Transmit_DMA(&hi2c1, array_Xf_bytes, ARRAY_SIZE);
+}
+
+void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4],uint8_t byte_array[ARRAY_SIZE]){
+	uint16_t index = 0;
+	for (int i = 0; i<FFTSIZE_SENT; i++){
+		for (int j = 0; j< nMic*2;j++){
+			for (int k = 0; k<4;k++){
+				byte_array[index]=byte_matrix[i][j][k];
+				index++;
+			}
+		}
+	}
+}
+
+void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic*2],uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4]){
+	for (int i = 0; i<FFTSIZE_SENT; i++){
+		for (int j = 0; j< nMic*2;j++){
+			float_to_byte_array(float_matrix[i][j],byte_matrix[i][j]);
+		}
+	}
+}
+
+void float_to_byte_array(float input, uint8_t output[]){
+	uint32_t temp = *((uint32_t*) &input);
+	for (int i = 0;i<4;i++){
+		output[i] = temp&0xFF;
+		temp >>= 8;
+	}
+}
 
 /* USER CODE END 4 */
 
