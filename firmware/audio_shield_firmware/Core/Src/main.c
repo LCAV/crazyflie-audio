@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "arm_const_structs.h"
+#include "tapering_window.h"
 
 /* USER CODE END Includes */
 
@@ -261,6 +262,7 @@ int main(void)
 		STOPCHRONO;
 		/* Process the data through the CFFT/CIFFT module */
 
+		// FFT executed in the main loop to spare time in the interrupt routine
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
 		arm_rfft_fast_f32(&S, left_1, left_1_f, ifftFlag);
 		arm_rfft_fast_init_f32(&S, FFTSIZE);
@@ -866,10 +868,12 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
+	// Do not interrupt FFT processing in the middle
 	if (processing == 0) {
 		for (uint16_t i = 0; i < size; i += 2) {
-			*pOut1++ = (float) *pIn++ / MAXINT;
-			*pOut2++ = (float) *pIn++ / MAXINT;
+			// Copy memory into buffer and apply tukey window
+			*pOut1++ = (float) *pIn++ * tukey_window[i] / MAXINT;
+			*pOut2++ = (float) *pIn++ * tukey_window[i] / MAXINT;
 		}
 	}
 
