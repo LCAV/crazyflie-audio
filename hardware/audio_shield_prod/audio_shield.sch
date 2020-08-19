@@ -1729,10 +1729,10 @@ F 3 "https://www.digikey.ch/product-detail/fr/STLINK-V3MINI/497-19530-ND/1026629
 	1    0    0    -1  
 $EndComp
 $Comp
-L audio_shield:DS28E05P U?
+L audio_shield:DS28E05P U2
 U 1 1 5F3EF92F
 P 1600 6750
-F 0 "U?" H 1600 6915 50  0000 C CNN
+F 0 "U2" H 1600 6915 50  0000 C CNN
 F 1 "DS28E05P" H 1600 6824 50  0000 C CNN
 F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 1600 6800 50  0001 C CNN
 F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 1600 6800 50  0001 C CNN
@@ -1745,10 +1745,10 @@ $EndComp
 Text Notes 1150 6500 0    50   ~ 0
 EEPROM for deck identification
 $Comp
-L power:GND #PWR?
+L power:GND #PWR0129
 U 1 1 5F4170B9
 P 1200 6850
-F 0 "#PWR?" H 1200 6600 50  0001 C CNN
+F 0 "#PWR0129" H 1200 6600 50  0001 C CNN
 F 1 "GND" H 1205 6677 50  0000 C CNN
 F 2 "" H 1200 6850 50  0001 C CNN
 F 3 "" H 1200 6850 50  0001 C CNN
