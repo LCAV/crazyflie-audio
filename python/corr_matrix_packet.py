@@ -22,6 +22,13 @@ N_FLOATS = FFTSIZE * N_MICS * 2  # *2 for complex numbers
 N_BYTES = N_FLOATS * FLOAT_PRECISION
 N_FULL_PACKETS, N_BYTES_LAST_PACKET = divmod(N_BYTES, CRTP_PAYLOAD)
 
+def set_thrust(cf,thrust):
+    thrust_str = '%d' % thrust
+    cf.param.set_value('motorPowerSet.m4', thrust_str)
+    cf.param.set_value('motorPowerSet.m1', thrust_str)
+    cf.param.set_value('motorPowerSet.m2', thrust_str)
+    cf.param.set_value('motorPowerSet.m3', thrust_str)
+    cf.param.set_value('motorPowerSet.enable', '1')
 
 class Audio_CRTP(object):
     """
@@ -76,6 +83,7 @@ if __name__ == "__main__":
     cflib.crtp.init_drivers(enable_debug_driver=False)
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
+        set_thrust(cf, 43000)
         audio_CRTP = Audio_CRTP(cf)
         while True:
             time.sleep(1)
