@@ -1765,4 +1765,6 @@ Text Label 950  6950 0    50   ~ 0
 EEPROM
 Wire Wire Line
 	950  6950 1300 6950
+Text Notes 700  3200 0    50   ~ 0
+I2C adress 47\n
 $EndSCHEMATC
