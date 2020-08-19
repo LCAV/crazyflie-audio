@@ -4,3 +4,7 @@ __pycache__
 data/simulated/*
 
 *.pyc
+
+*.sch-bak
+
+*.kicad_pcb-bak

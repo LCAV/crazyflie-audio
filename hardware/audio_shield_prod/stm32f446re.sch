@@ -24,6 +24,7 @@ F 3 "https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-1
 F 4 "Distrelec" H 4450 2250 50  0001 C CNN "Supplier"
 F 5 "300-56-687" H 4450 2250 50  0001 C CNN "Supplier ref."
 F 6 "0.0084" H 4450 2250 50  0001 C CNN "Price"
+F 7 "Thick film resistor 0.1W 1%" H 4450 2250 50  0001 C CNN "Description"
 	1    4450 2250
 	1    0    0    -1  
 $EndComp
@@ -285,6 +286,7 @@ F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/da
 F 4 "Distrelec" H 5600 3250 50  0001 C CNN "Supplier"
 F 5 "301-70-759" H 5600 3250 50  0001 C CNN "Supplier ref."
 F 6 "8.63" H 5600 3250 50  0001 C CNN "Price"
+F 7 "Microcontrôleur 32bit 512KB LQFP-64" H 5600 3250 50  0001 C CNN "Description"
 	1    5600 3250
 	1    0    0    -1  
 $EndComp
