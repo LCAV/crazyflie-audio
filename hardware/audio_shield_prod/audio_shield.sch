@@ -655,6 +655,7 @@ F 0 "JP1" H 3350 5464 50  0000 C CNN
 F 1 "Jumper" H 3350 5373 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm" H 3350 5200 50  0001 C CNN
 F 3 "~" H 3350 5200 50  0001 C CNN
+F 4 "np" H 3350 5200 50  0001 C CNN "Supplier"
 	1    3350 5200
 	1    0    0    -1  
 $EndComp
@@ -717,6 +718,7 @@ F 0 "JP3" H 3350 6164 50  0000 C CNN
 F 1 "Jumper" H 3350 6073 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm" H 3350 5900 50  0001 C CNN
 F 3 "~" H 3350 5900 50  0001 C CNN
+F 4 "np" H 3350 5900 50  0001 C CNN "Supplier"
 	1    3350 5900
 	1    0    0    -1  
 $EndComp
@@ -747,6 +749,7 @@ F 0 "JP2" H 3350 5814 50  0000 C CNN
 F 1 "Jumper" H 3350 5723 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm" H 3350 5550 50  0001 C CNN
 F 3 "~" H 3350 5550 50  0001 C CNN
+F 4 "np" H 3350 5550 50  0001 C CNN "Supplier"
 	1    3350 5550
 	1    0    0    -1  
 $EndComp
@@ -1085,6 +1088,7 @@ F 0 "JP5" H 9850 2614 50  0000 C CNN
 F 1 "Jumper" H 9850 2523 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm" H 9850 2350 50  0001 C CNN
 F 3 "~" H 9850 2350 50  0001 C CNN
+F 4 "np" H 9850 2350 50  0001 C CNN "Supplier"
 	1    9850 2350
 	1    0    0    -1  
 $EndComp
@@ -1096,6 +1100,7 @@ F 0 "JP6" H 9850 2350 50  0000 C CNN
 F 1 "Jumper" H 9850 2450 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm" H 9850 2550 50  0001 C CNN
 F 3 "~" H 9850 2550 50  0001 C CNN
+F 4 "np" H 9850 2550 50  0001 C CNN "Supplier"
 	1    9850 2550
 	1    0    0    -1  
 $EndComp
@@ -1107,6 +1112,7 @@ F 0 "JP4" H 9850 2114 50  0000 C CNN
 F 1 "Jumper" H 9850 2023 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm" H 9850 1850 50  0001 C CNN
 F 3 "~" H 9850 1850 50  0001 C CNN
+F 4 "np" H 9850 1850 50  0001 C CNN "Supplier"
 	1    9850 1850
 	1    0    0    -1  
 $EndComp
@@ -1116,7 +1122,7 @@ U 1 1 5EE8979D
 P 10350 2550
 F 0 "J2" H 10430 2542 50  0000 L CNN
 F 1 "CONN_10_RIGHT" H 10430 2451 50  0000 L CNN
-F 2 "audio_shield:BF090-10-X-B2" H 10350 2550 50  0001 C CNN
+F 2 "audio_shield:BF090-10-X-B1" H 10350 2550 50  0001 C CNN
 F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 2550 50  0001 C CNN
 F 4 "Farnell" H 10350 2550 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 2550 50  0001 C CNN "Supplier ref."
@@ -1130,7 +1136,7 @@ U 1 1 5EE88981
 P 10350 1450
 F 0 "J1" H 10430 1442 50  0000 L CNN
 F 1 "CONN_10_LEFT" H 10430 1351 50  0000 L CNN
-F 2 "audio_shield:BF090-10-X-B2" H 10350 1450 50  0001 C CNN
+F 2 "audio_shield:BF090-10-X-B1" H 10350 1450 50  0001 C CNN
 F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 1450 50  0001 C CNN
 F 4 "Farnell" H 10350 1450 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 1450 50  0001 C CNN "Supplier ref."
@@ -1205,6 +1211,7 @@ F 0 "I2S3_CK1" H 10108 3518 50  0000 L CNN
 F 1 "TestPoint" H 10108 3427 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 3400 50  0001 C CNN
 F 3 "~" H 10250 3400 50  0001 C CNN
+F 4 "np" H 10050 3400 50  0001 C CNN "Supplier"
 	1    10050 3400
 	1    0    0    -1  
 $EndComp
@@ -1234,6 +1241,7 @@ F 0 "I2S1_SD1" H 9608 4068 50  0000 L CNN
 F 1 "TestPoint" H 9608 3977 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9750 3950 50  0001 C CNN
 F 3 "~" H 9750 3950 50  0001 C CNN
+F 4 "np" H 9550 3950 50  0001 C CNN "Supplier"
 	1    9550 3950
 	1    0    0    -1  
 $EndComp
@@ -1245,6 +1253,7 @@ F 0 "I2S1_CK1" H 10108 4068 50  0000 L CNN
 F 1 "TestPoint" H 10108 3977 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 3950 50  0001 C CNN
 F 3 "~" H 10250 3950 50  0001 C CNN
+F 4 "np" H 10050 3950 50  0001 C CNN "Supplier"
 	1    10050 3950
 	1    0    0    -1  
 $EndComp
@@ -1256,6 +1265,7 @@ F 0 "I2S1_WS1" H 10608 4068 50  0000 L CNN
 F 1 "TestPoint" H 10608 3977 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 3950 50  0001 C CNN
 F 3 "~" H 10750 3950 50  0001 C CNN
+F 4 "np" H 10550 3950 50  0001 C CNN "Supplier"
 	1    10550 3950
 	1    0    0    -1  
 $EndComp
@@ -1287,6 +1297,7 @@ F 0 "RX1" H 9308 4568 50  0000 L CNN
 F 1 "TestPoint" H 9308 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9450 4450 50  0001 C CNN
 F 3 "~" H 9450 4450 50  0001 C CNN
+F 4 "np" H 9250 4450 50  0001 C CNN "Supplier"
 	1    9250 4450
 	1    0    0    -1  
 $EndComp
@@ -1298,6 +1309,7 @@ F 0 "TX1" H 9808 4568 50  0000 L CNN
 F 1 "TestPoint" H 9808 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9950 4450 50  0001 C CNN
 F 3 "~" H 9950 4450 50  0001 C CNN
+F 4 "np" H 9750 4450 50  0001 C CNN "Supplier"
 	1    9750 4450
 	1    0    0    -1  
 $EndComp
@@ -1309,6 +1321,7 @@ F 0 "SDA1" H 10308 4568 50  0000 L CNN
 F 1 "TestPoint" H 10308 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10450 4450 50  0001 C CNN
 F 3 "~" H 10450 4450 50  0001 C CNN
+F 4 "np" H 10250 4450 50  0001 C CNN "Supplier"
 	1    10250 4450
 	1    0    0    -1  
 $EndComp
@@ -1326,6 +1339,7 @@ F 0 "SDL1" H 10758 4568 50  0000 L CNN
 F 1 "TestPoint" H 10758 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10900 4450 50  0001 C CNN
 F 3 "~" H 10900 4450 50  0001 C CNN
+F 4 "np" H 10700 4450 50  0001 C CNN "Supplier"
 	1    10700 4450
 	1    0    0    -1  
 $EndComp
@@ -1371,6 +1385,7 @@ F 0 "GND1" H 9658 5268 50  0000 L CNN
 F 1 "TestPoint" H 9658 5177 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9800 5150 50  0001 C CNN
 F 3 "~" H 9800 5150 50  0001 C CNN
+F 4 "np" H 9600 5150 50  0001 C CNN "Supplier"
 	1    9600 5150
 	1    0    0    -1  
 $EndComp
@@ -1382,6 +1397,7 @@ F 0 "3V0_1" H 10108 5718 50  0000 L CNN
 F 1 "TestPoint" H 10108 5627 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 5600 50  0001 C CNN
 F 3 "~" H 10250 5600 50  0001 C CNN
+F 4 "np" H 10050 5600 50  0001 C CNN "Supplier"
 	1    10050 5600
 	1    0    0    -1  
 $EndComp
@@ -1395,6 +1411,7 @@ F 0 "I2S3_SD1" H 9608 3518 50  0000 L CNN
 F 1 "TestPoint" H 9608 3427 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9750 3400 50  0001 C CNN
 F 3 "~" H 9750 3400 50  0001 C CNN
+F 4 "np" H 9550 3400 50  0001 C CNN "Supplier"
 	1    9550 3400
 	1    0    0    -1  
 $EndComp
@@ -1427,6 +1444,7 @@ F 0 "SPI2_MISO1" H 9708 6118 50  0000 L CNN
 F 1 "TestPoint" H 9708 6027 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9850 6000 50  0001 C CNN
 F 3 "~" H 9850 6000 50  0001 C CNN
+F 4 "np" H 9650 6000 50  0001 C CNN "Supplier"
 	1    9650 6000
 	1    0    0    -1  
 $EndComp
@@ -1438,6 +1456,7 @@ F 0 "SPI2_CK1" H 10208 6118 50  0000 L CNN
 F 1 "TestPoint" H 10208 6027 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10350 6000 50  0001 C CNN
 F 3 "~" H 10350 6000 50  0001 C CNN
+F 4 "np" H 10150 6000 50  0001 C CNN "Supplier"
 	1    10150 6000
 	1    0    0    -1  
 $EndComp
@@ -1453,6 +1472,7 @@ F 0 "SPI2_MOSI1" H 10658 6118 50  0000 L CNN
 F 1 "TestPoint" H 10658 6027 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10800 6000 50  0001 C CNN
 F 3 "~" H 10800 6000 50  0001 C CNN
+F 4 "np" H 10600 6000 50  0001 C CNN "Supplier"
 	1    10600 6000
 	1    0    0    -1  
 $EndComp
@@ -1486,6 +1506,7 @@ F 0 "PC3" H 7808 6318 50  0000 L CNN
 F 1 "TestPoint" H 7808 6227 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 7950 6200 50  0001 C CNN
 F 3 "~" H 7950 6200 50  0001 C CNN
+F 4 "np" H 7750 6200 50  0001 C CNN "Supplier"
 	1    7750 6200
 	1    0    0    -1  
 $EndComp
@@ -1497,6 +1518,7 @@ F 0 "PA2" H 8308 6318 50  0000 L CNN
 F 1 "TestPoint" H 8308 6227 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 8450 6200 50  0001 C CNN
 F 3 "~" H 8450 6200 50  0001 C CNN
+F 4 "np" H 8250 6200 50  0001 C CNN "Supplier"
 	1    8250 6200
 	1    0    0    -1  
 $EndComp
@@ -1516,6 +1538,7 @@ F 0 "I2S3_WS1" H 10608 3518 50  0000 L CNN
 F 1 "TestPoint" H 10608 3427 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 3400 50  0001 C CNN
 F 3 "~" H 10750 3400 50  0001 C CNN
+F 4 "np" H 10550 3400 50  0001 C CNN "Supplier"
 	1    10550 3400
 	1    0    0    -1  
 $EndComp
@@ -1527,6 +1550,7 @@ F 0 "GND2" H 9208 5268 50  0000 L CNN
 F 1 "TestPoint" H 9208 5177 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9350 5150 50  0001 C CNN
 F 3 "~" H 9350 5150 50  0001 C CNN
+F 4 "np" H 9150 5150 50  0001 C CNN "Supplier"
 	1    9150 5150
 	1    0    0    -1  
 $EndComp
@@ -1538,6 +1562,7 @@ F 0 "GND3" H 10108 5268 50  0000 L CNN
 F 1 "TestPoint" H 10108 5177 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 5150 50  0001 C CNN
 F 3 "~" H 10250 5150 50  0001 C CNN
+F 4 "np" H 10050 5150 50  0001 C CNN "Supplier"
 	1    10050 5150
 	1    0    0    -1  
 $EndComp
@@ -1549,6 +1574,7 @@ F 0 "GND4" H 10658 5268 50  0000 L CNN
 F 1 "TestPoint" H 10658 5177 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10800 5150 50  0001 C CNN
 F 3 "~" H 10800 5150 50  0001 C CNN
+F 4 "np" H 10600 5150 50  0001 C CNN "Supplier"
 	1    10600 5150
 	1    0    0    -1  
 $EndComp
@@ -1560,6 +1586,7 @@ F 0 "3V0_3" H 9658 5718 50  0000 L CNN
 F 1 "TestPoint" H 9658 5627 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9800 5600 50  0001 C CNN
 F 3 "~" H 9800 5600 50  0001 C CNN
+F 4 "np" H 9600 5600 50  0001 C CNN "Supplier"
 	1    9600 5600
 	1    0    0    -1  
 $EndComp
@@ -1571,6 +1598,7 @@ F 0 "3V0_4" H 10608 5718 50  0000 L CNN
 F 1 "TestPoint" H 10608 5627 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 5600 50  0001 C CNN
 F 3 "~" H 10750 5600 50  0001 C CNN
+F 4 "np" H 10550 5600 50  0001 C CNN "Supplier"
 	1    10550 5600
 	1    0    0    -1  
 $EndComp
@@ -1582,6 +1610,7 @@ F 0 "3V0_2" H 9208 5718 50  0000 L CNN
 F 1 "TestPoint" H 9208 5627 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9350 5600 50  0001 C CNN
 F 3 "~" H 9350 5600 50  0001 C CNN
+F 4 "np" H 9150 5600 50  0001 C CNN "Supplier"
 	1    9150 5600
 	1    0    0    -1  
 $EndComp
@@ -1629,6 +1658,9 @@ F 0 "MK5" H 3530 9196 50  0000 L CNN
 F 1 "Microphone" H 3530 9105 50  0000 L CNN
 F 2 "" V 3400 9250 50  0001 C CNN
 F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 3400 9250 50  0001 C CNN
+F 4 "Digikey" H 3400 9150 50  0001 C CNN "Supplier"
+F 5 "423-1435-ND" H 3400 9150 50  0001 C CNN "Supplier ref."
+F 6 "MEMS Microphon" H 3400 9150 50  0001 C CNN "Description"
 	1    3400 9150
 	1    0    0    -1  
 $EndComp
@@ -1642,6 +1674,9 @@ F 0 "MK9" H 4330 9196 50  0000 L CNN
 F 1 "Microphone" H 4330 9105 50  0000 L CNN
 F 2 "" V 4200 9250 50  0001 C CNN
 F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 4200 9250 50  0001 C CNN
+F 4 "Digikey" H 4200 9150 50  0001 C CNN "Supplier"
+F 5 "423-1435-ND" H 4200 9150 50  0001 C CNN "Supplier ref."
+F 6 "MEMS Microphon" H 4200 9150 50  0001 C CNN "Description"
 	1    4200 9150
 	1    0    0    -1  
 $EndComp
@@ -1655,6 +1690,9 @@ F 0 "MK10" H 5130 9196 50  0000 L CNN
 F 1 "Microphone" H 5130 9105 50  0000 L CNN
 F 2 "" V 5000 9250 50  0001 C CNN
 F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 5000 9250 50  0001 C CNN
+F 4 "Digikey" H 5000 9150 50  0001 C CNN "Supplier"
+F 5 "423-1435-ND" H 5000 9150 50  0001 C CNN "Supplier ref."
+F 6 "MEMS Microphon" H 5000 9150 50  0001 C CNN "Description"
 	1    5000 9150
 	1    0    0    -1  
 $EndComp
@@ -1668,6 +1706,9 @@ F 0 "MK11" H 5930 9196 50  0000 L CNN
 F 1 "Microphone" H 5930 9105 50  0000 L CNN
 F 2 "" V 5800 9250 50  0001 C CNN
 F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 5800 9250 50  0001 C CNN
+F 4 "Digikey" H 5800 9150 50  0001 C CNN "Supplier"
+F 5 "423-1435-ND" H 5800 9150 50  0001 C CNN "Supplier ref."
+F 6 "MEMS Microphon" H 5800 9150 50  0001 C CNN "Description"
 	1    5800 9150
 	1    0    0    -1  
 $EndComp
@@ -1681,6 +1722,7 @@ F 0 "J44" H 3528 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 3150 9600 50  0000 L CNN
 F 2 "" H 3500 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 3500 9700 50  0001 C CNN
+F 4 "np" H 3500 9700 50  0001 C CNN "Supplier"
 	1    3500 9700
 	1    0    0    -1  
 $EndComp
@@ -1692,6 +1734,7 @@ F 0 "J45" H 4328 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 3950 9600 50  0000 L CNN
 F 2 "" H 4300 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 4300 9700 50  0001 C CNN
+F 4 "np" H 4300 9700 50  0001 C CNN "Supplier"
 	1    4300 9700
 	1    0    0    -1  
 $EndComp
@@ -1703,6 +1746,7 @@ F 0 "J46" H 5128 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 4750 9600 50  0000 L CNN
 F 2 "" H 5100 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 5100 9700 50  0001 C CNN
+F 4 "np" H 5100 9700 50  0001 C CNN "Supplier"
 	1    5100 9700
 	1    0    0    -1  
 $EndComp
@@ -1714,20 +1758,59 @@ F 0 "J47" H 5928 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 5550 9600 50  0000 L CNN
 F 2 "" H 5900 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 5900 9700 50  0001 C CNN
+F 4 "np" H 5900 9700 50  0001 C CNN "Supplier"
 	1    5900 9700
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector:AVR-JTAG-10 J?
+L Connector:AVR-JTAG-10 J48
 U 1 1 5F223B53
 P -1450 1450
-F 0 "J?" H -1879 1496 50  0000 R CNN
+F 0 "J48" H -1879 1496 50  0000 R CNN
 F 1 "STLINK-V3MINI Placeholder" H -1879 1405 50  0000 R CNN
 F 2 "" V -1600 1600 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/fr/STLINK-V3MINI/497-19530-ND/10266291/?itemSeq=333705927 ~" H -2725 900 50  0001 C CNN
+F 4 "np" H -1450 1450 50  0001 C CNN "Supplier"
 	1    -1450 1450
 	1    0    0    -1  
 $EndComp
-Text Notes 10650 1200 0    50   ~ 0
-Wrong footprint, impossible to source  “BF090-10-A-2-N-C“ used “BF090-10-A-1-N-C” with tweeking instead
+$Comp
+L audio_shield:DS28E05P U2
+U 1 1 5F3EF92F
+P 1600 6750
+F 0 "U2" H 1600 6915 50  0000 C CNN
+F 1 "DS28E05P" H 1600 6824 50  0000 C CNN
+F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 1600 6800 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 1600 6800 50  0001 C CNN
+F 4 "Mouser" H 1600 6750 50  0001 C CNN "Supplier"
+F 5 "700-DS28E05P+" H 1600 6750 50  0001 C CNN "Supplier ref."
+F 6 " 0.73" H 1600 6750 50  0001 C CNN "Price"
+	1    1600 6750
+	1    0    0    -1  
+$EndComp
+Text Notes 1150 6500 0    50   ~ 0
+EEPROM for deck identification
+$Comp
+L power:GND #PWR0129
+U 1 1 5F4170B9
+P 1200 6850
+F 0 "#PWR0129" H 1200 6600 50  0001 C CNN
+F 1 "GND" H 1205 6677 50  0000 C CNN
+F 2 "" H 1200 6850 50  0001 C CNN
+F 3 "" H 1200 6850 50  0001 C CNN
+	1    1200 6850
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1200 6850 1300 6850
+Text Label 9750 2850 0    50   ~ 0
+EEPROM
+Wire Wire Line
+	9750 2850 10150 2850
+Text Label 950  6950 0    50   ~ 0
+EEPROM
+Wire Wire Line
+	950  6950 1300 6950
+Text Notes 700  3200 0    50   ~ 0
+I2C adress 47\n
 $EndSCHEMATC

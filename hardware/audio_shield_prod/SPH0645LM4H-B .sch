@@ -32,7 +32,7 @@ AR Path="/5F0910DF/5F09357C" Ref="MK5"  Part="1"
 AR Path="/5F0910E8/5F09357C" Ref="MK6"  Part="1" 
 AR Path="/5F0910F0/5F09357C" Ref="MK7"  Part="1" 
 AR Path="/5F0910F8/5F09357C" Ref="MK8"  Part="1" 
-F 0 "MK4" H 5000 3667 50  0000 C CNN
+F 0 "MK1" H 5000 3667 50  0000 C CNN
 F 1 "SPH0645LM4H-B" H 5000 3576 50  0000 C CNN
 F 2 "audio_shield:MIC_SPH0645LM4H-B" H 5000 3200 50  0001 L BNN
 F 3 "https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432" H 5000 3200 50  0001 L BNN
@@ -62,13 +62,14 @@ AR Path="/5F0910DF/5F0947D1" Ref="R10"  Part="1"
 AR Path="/5F0910E8/5F0947D1" Ref="R12"  Part="1" 
 AR Path="/5F0910F0/5F0947D1" Ref="R14"  Part="1" 
 AR Path="/5F0910F8/5F0947D1" Ref="R16"  Part="1" 
-F 0 "R8" H 3770 3396 50  0000 L CNN
+F 0 "R2" H 3770 3396 50  0000 L CNN
 F 1 "10k" H 3770 3305 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 3630 3350 50  0001 C CNN
 F 3 "https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&no-cache=true" H 3700 3350 50  0001 C CNN
 F 4 "Distrelec" H 3700 3350 50  0001 C CNN "Supplier"
 F 5 "300-56-687" H 3700 3350 50  0001 C CNN "Supplier ref."
 F 6 "0.0084" H 3700 3350 50  0001 C CNN "Price"
+F 7 "Thick film resistor 0.1W 1%" H 3700 3350 50  0001 C CNN "Description"
 	1    3700 3350
 	1    0    0    -1  
 $EndComp
@@ -92,7 +93,7 @@ AR Path="/5F0910DF/5F09559C" Ref="C19"  Part="1"
 AR Path="/5F0910E8/5F09559C" Ref="C21"  Part="1" 
 AR Path="/5F0910F0/5F09559C" Ref="C23"  Part="1" 
 AR Path="/5F0910F8/5F09559C" Ref="C25"  Part="1" 
-F 0 "C17" V 6702 2800 50  0000 C CNN
+F 0 "C11" V 6702 2800 50  0000 C CNN
 F 1 "100n" V 6611 2800 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 6488 2650 50  0001 C CNN
 F 3 "~" H 6450 2800 50  0001 C CNN
@@ -122,7 +123,7 @@ AR Path="/5F0910DF/5F096212" Ref="C18"  Part="1"
 AR Path="/5F0910E8/5F096212" Ref="C20"  Part="1" 
 AR Path="/5F0910F0/5F096212" Ref="C22"  Part="1" 
 AR Path="/5F0910F8/5F096212" Ref="C24"  Part="1" 
-F 0 "C16" V 6252 2800 50  0000 C CNN
+F 0 "C10" V 6252 2800 50  0000 C CNN
 F 1 "220p" V 6161 2800 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 6038 2650 50  0001 C CNN
 F 3 "~" H 6000 2800 50  0001 C CNN
@@ -152,13 +153,14 @@ AR Path="/5F0910DF/5F0963B1" Ref="R11"  Part="1"
 AR Path="/5F0910E8/5F0963B1" Ref="R13"  Part="1" 
 AR Path="/5F0910F0/5F0963B1" Ref="R15"  Part="1" 
 AR Path="/5F0910F8/5F0963B1" Ref="R17"  Part="1" 
-F 0 "R9" H 6070 3246 50  0000 L CNN
+F 0 "R3" H 6070 3246 50  0000 L CNN
 F 1 "68" H 6070 3155 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 5930 3200 50  0001 C CNN
 F 3 "https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&no-cache=true" H 6000 3200 50  0001 C CNN
 F 4 "Distrelec" H 6000 3200 50  0001 C CNN "Supplier"
 F 5 "301-49-821" H 6000 3200 50  0001 C CNN "Supplier ref."
 F 6 " 0.0265" H 6000 3200 50  0001 C CNN "Price"
+F 7 "Thick film resistor 0.1W 1%" H 6000 3200 50  0001 C CNN "Description"
 	1    6000 3200
 	0    -1   -1   0   
 $EndComp
@@ -299,10 +301,11 @@ AR Path="/5F0910F8/5F1DEE78" Ref="JP9"  Part="1"
 AR Path="/5F096C14/5F1DEE78" Ref="JP10"  Part="1" 
 AR Path="/5F0950A2/5F1DEE78" Ref="JP11"  Part="1" 
 AR Path="/5F04603F/5F1DEE78" Ref="JP13"  Part="1" 
-F 0 "JP10" H 7000 3464 50  0000 C CNN
+F 0 "JP13" H 7000 3464 50  0000 C CNN
 F 1 "Jumper" H 7000 3373 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm" H 7000 3200 50  0001 C CNN
 F 3 "~" H 7000 3200 50  0001 C CNN
+F 4 "np" H 7000 3200 50  0001 C CNN "Supplier"
 	1    7000 3200
 	1    0    0    -1  
 $EndComp
