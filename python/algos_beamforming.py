@@ -154,7 +154,6 @@ def select_frequencies(
 
     frequencies = np.fft.rfftfreq(n=n_buffer, d=1 / Fs)
 
-    frequencies = np.fft.rfftfreq(n_buffer, d=1 / Fs)
     if method == "uniform":
         max_bin = int(max_freq * n_buffer // Fs)
         min_bin = int(min_freq * n_buffer // Fs)
