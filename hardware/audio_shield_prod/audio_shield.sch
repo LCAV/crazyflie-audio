@@ -1122,7 +1122,7 @@ U 1 1 5EE8979D
 P 10350 2550
 F 0 "J2" H 10430 2542 50  0000 L CNN
 F 1 "CONN_10_RIGHT" H 10430 2451 50  0000 L CNN
-F 2 "audio_shield:BF090-10-X-B2" H 10350 2550 50  0001 C CNN
+F 2 "audio_shield:BF090-10-X-B1" H 10350 2550 50  0001 C CNN
 F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 2550 50  0001 C CNN
 F 4 "Farnell" H 10350 2550 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 2550 50  0001 C CNN "Supplier ref."
@@ -1136,7 +1136,7 @@ U 1 1 5EE88981
 P 10350 1450
 F 0 "J1" H 10430 1442 50  0000 L CNN
 F 1 "CONN_10_LEFT" H 10430 1351 50  0000 L CNN
-F 2 "audio_shield:BF090-10-X-B2" H 10350 1450 50  0001 C CNN
+F 2 "audio_shield:BF090-10-X-B1" H 10350 1450 50  0001 C CNN
 F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 1450 50  0001 C CNN
 F 4 "Farnell" H 10350 1450 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 1450 50  0001 C CNN "Supplier ref."
@@ -1653,6 +1653,7 @@ Wire Wire Line
 $Comp
 L Device:Microphone MK5
 U 1 1 5F205647
+<<<<<<< HEAD
 P 3400 9150
 F 0 "MK5" H 3530 9196 50  0000 L CNN
 F 1 "Microphone" H 3530 9105 50  0000 L CNN
@@ -1662,13 +1663,22 @@ F 4 "Digikey" H 3400 9150 50  0001 C CNN "Supplier"
 F 5 "423-1435-ND" H 3400 9150 50  0001 C CNN "Supplier ref."
 F 6 "MEMS Microphon" H 3400 9150 50  0001 C CNN "Description"
 	1    3400 9150
+=======
+P 4550 9050
+F 0 "MK5" H 4680 9096 50  0000 L CNN
+F 1 "Microphone" H 4680 9005 50  0000 L CNN
+F 2 "" V 4550 9150 50  0001 C CNN
+F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 4550 9150 50  0001 C CNN
+	1    4550 9050
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
-NoConn ~ 3400 9350
-NoConn ~ 3400 8950
+NoConn ~ 4550 9250
+NoConn ~ 4550 8850
 $Comp
 L Device:Microphone MK9
 U 1 1 5F273CFE
+<<<<<<< HEAD
 P 4200 9150
 F 0 "MK9" H 4330 9196 50  0000 L CNN
 F 1 "Microphone" H 4330 9105 50  0000 L CNN
@@ -1678,13 +1688,22 @@ F 4 "Digikey" H 4200 9150 50  0001 C CNN "Supplier"
 F 5 "423-1435-ND" H 4200 9150 50  0001 C CNN "Supplier ref."
 F 6 "MEMS Microphon" H 4200 9150 50  0001 C CNN "Description"
 	1    4200 9150
+=======
+P 5350 9050
+F 0 "MK9" H 5480 9096 50  0000 L CNN
+F 1 "Microphone" H 5480 9005 50  0000 L CNN
+F 2 "" V 5350 9150 50  0001 C CNN
+F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 5350 9150 50  0001 C CNN
+	1    5350 9050
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
-NoConn ~ 4200 9350
-NoConn ~ 4200 8950
+NoConn ~ 5350 9250
+NoConn ~ 5350 8850
 $Comp
 L Device:Microphone MK10
 U 1 1 5F280136
+<<<<<<< HEAD
 P 5000 9150
 F 0 "MK10" H 5130 9196 50  0000 L CNN
 F 1 "Microphone" H 5130 9105 50  0000 L CNN
@@ -1694,13 +1713,22 @@ F 4 "Digikey" H 5000 9150 50  0001 C CNN "Supplier"
 F 5 "423-1435-ND" H 5000 9150 50  0001 C CNN "Supplier ref."
 F 6 "MEMS Microphon" H 5000 9150 50  0001 C CNN "Description"
 	1    5000 9150
+=======
+P 6150 9050
+F 0 "MK10" H 6280 9096 50  0000 L CNN
+F 1 "Microphone" H 6280 9005 50  0000 L CNN
+F 2 "" V 6150 9150 50  0001 C CNN
+F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 6150 9150 50  0001 C CNN
+	1    6150 9050
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
-NoConn ~ 5000 9350
-NoConn ~ 5000 8950
+NoConn ~ 6150 9250
+NoConn ~ 6150 8850
 $Comp
 L Device:Microphone MK11
 U 1 1 5F28C56E
+<<<<<<< HEAD
 P 5800 9150
 F 0 "MK11" H 5930 9196 50  0000 L CNN
 F 1 "Microphone" H 5930 9105 50  0000 L CNN
@@ -1710,13 +1738,22 @@ F 4 "Digikey" H 5800 9150 50  0001 C CNN "Supplier"
 F 5 "423-1435-ND" H 5800 9150 50  0001 C CNN "Supplier ref."
 F 6 "MEMS Microphon" H 5800 9150 50  0001 C CNN "Description"
 	1    5800 9150
+=======
+P 6950 9050
+F 0 "MK11" H 7080 9096 50  0000 L CNN
+F 1 "Microphone" H 7080 9005 50  0000 L CNN
+F 2 "" V 6950 9150 50  0001 C CNN
+F 3 "https://www.digikey.ch/products/en?keywords=KAS-700-0137%20" V 6950 9150 50  0001 C CNN
+	1    6950 9050
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
-NoConn ~ 5800 9350
-NoConn ~ 5800 8950
+NoConn ~ 6950 9250
+NoConn ~ 6950 8850
 $Comp
 L Connector:Conn_01x01_Female J44
 U 1 1 5F299AFD
+<<<<<<< HEAD
 P 3500 9700
 F 0 "J44" H 3528 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 3150 9600 50  0000 L CNN
@@ -1724,11 +1761,20 @@ F 2 "" H 3500 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 3500 9700 50  0001 C CNN
 F 4 "np" H 3500 9700 50  0001 C CNN "Supplier"
 	1    3500 9700
+=======
+P 4650 9500
+F 0 "J44" H 4678 9526 50  0000 L CNN
+F 1 "Conn_01x01_Female" H 4300 9400 50  0000 L CNN
+F 2 "" H 4650 9500 50  0001 C CNN
+F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 4650 9500 50  0001 C CNN
+	1    4650 9500
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
 $Comp
 L Connector:Conn_01x01_Female J45
 U 1 1 5F29A4B1
+<<<<<<< HEAD
 P 4300 9700
 F 0 "J45" H 4328 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 3950 9600 50  0000 L CNN
@@ -1736,11 +1782,20 @@ F 2 "" H 4300 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 4300 9700 50  0001 C CNN
 F 4 "np" H 4300 9700 50  0001 C CNN "Supplier"
 	1    4300 9700
+=======
+P 5450 9500
+F 0 "J45" H 5478 9526 50  0000 L CNN
+F 1 "Conn_01x01_Female" H 5100 9400 50  0000 L CNN
+F 2 "" H 5450 9500 50  0001 C CNN
+F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 5450 9500 50  0001 C CNN
+	1    5450 9500
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
 $Comp
 L Connector:Conn_01x01_Female J46
 U 1 1 5F29A98E
+<<<<<<< HEAD
 P 5100 9700
 F 0 "J46" H 5128 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 4750 9600 50  0000 L CNN
@@ -1748,11 +1803,20 @@ F 2 "" H 5100 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 5100 9700 50  0001 C CNN
 F 4 "np" H 5100 9700 50  0001 C CNN "Supplier"
 	1    5100 9700
+=======
+P 6250 9500
+F 0 "J46" H 6278 9526 50  0000 L CNN
+F 1 "Conn_01x01_Female" H 5900 9400 50  0000 L CNN
+F 2 "" H 6250 9500 50  0001 C CNN
+F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 6250 9500 50  0001 C CNN
+	1    6250 9500
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
 $Comp
 L Connector:Conn_01x01_Female J47
 U 1 1 5F29AF7C
+<<<<<<< HEAD
 P 5900 9700
 F 0 "J47" H 5928 9726 50  0000 L CNN
 F 1 "Conn_01x01_Female" H 5550 9600 50  0000 L CNN
@@ -1760,6 +1824,14 @@ F 2 "" H 5900 9700 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 5900 9700 50  0001 C CNN
 F 4 "np" H 5900 9700 50  0001 C CNN "Supplier"
 	1    5900 9700
+=======
+P 7050 9500
+F 0 "J47" H 7078 9526 50  0000 L CNN
+F 1 "Conn_01x01_Female" H 6700 9400 50  0000 L CNN
+F 2 "" H 7050 9500 50  0001 C CNN
+F 3 "https://www.digikey.ch/product-detail/en/molex/0151660077/WM19584-ND/3280959" H 7050 9500 50  0001 C CNN
+	1    7050 9500
+>>>>>>> master
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1774,6 +1846,43 @@ F 4 "np" H -1450 1450 50  0001 C CNN "Supplier"
 	1    -1450 1450
 	1    0    0    -1  
 $EndComp
-Text Notes 10650 1200 0    50   ~ 0
-Wrong footprint, impossible to source  “BF090-10-A-2-N-C“ used “BF090-10-A-1-N-C” with tweeking instead
+$Comp
+L audio_shield:DS28E05P U2
+U 1 1 5F3EF92F
+P 1600 6750
+F 0 "U2" H 1600 6915 50  0000 C CNN
+F 1 "DS28E05P" H 1600 6824 50  0000 C CNN
+F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 1600 6800 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 1600 6800 50  0001 C CNN
+F 4 "Mouser" H 1600 6750 50  0001 C CNN "Supplier"
+F 5 "700-DS28E05P+" H 1600 6750 50  0001 C CNN "Supplier ref."
+F 6 " 0.73" H 1600 6750 50  0001 C CNN "Price"
+	1    1600 6750
+	1    0    0    -1  
+$EndComp
+Text Notes 1150 6500 0    50   ~ 0
+EEPROM for deck identification
+$Comp
+L power:GND #PWR0129
+U 1 1 5F4170B9
+P 1200 6850
+F 0 "#PWR0129" H 1200 6600 50  0001 C CNN
+F 1 "GND" H 1205 6677 50  0000 C CNN
+F 2 "" H 1200 6850 50  0001 C CNN
+F 3 "" H 1200 6850 50  0001 C CNN
+	1    1200 6850
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1200 6850 1300 6850
+Text Label 9750 2850 0    50   ~ 0
+EEPROM
+Wire Wire Line
+	9750 2850 10150 2850
+Text Label 950  6950 0    50   ~ 0
+EEPROM
+Wire Wire Line
+	950  6950 1300 6950
+Text Notes 700  3200 0    50   ~ 0
+I2C adress 47\n
 $EndSCHEMATC
