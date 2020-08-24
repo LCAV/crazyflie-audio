@@ -1,0 +1,3 @@
+[submodule "firmware/crazyflie-firmware"]
+	path = firmware/crazyflie-firmware
+	url = git@github.com:LCAV/crazyflie-firmware
