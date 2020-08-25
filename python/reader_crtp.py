@@ -21,6 +21,35 @@ CRTP_PORT_AUDIO = 0x09
 logging.basicConfig(level=logging.ERROR)
 id = "radio://0/80/2M"
 
+
+
+# TODO(FD): figure out if below changes when the Crazyflie actually flies.
+# Tests have shown that when the flowdeck is attached to the Crazyflie and 
+# it is moved around (without flying), then 
+# yaw:
+# - stabilizer.yaw, controller.yaw and stateEstimate.yaw are all the same. 
+#   They are in degrees and clipped to -180, 180.
+# - mag.x sometimes gives values similar to above 3, 
+#   but sometimes it is constantly zero (should it only be used outside? 
+# - gyro.z gives the raw yaw rate (or acceleration?).
+# dx/dy: 
+# - motion.deltaX and motion.deltaY are in milimeters can be very noisy, especially when 
+#   the ground is not textured. 
+# - stabilizer.vx and stabilizer.vy are in m/s (not 100% sure) and more stable 
+#  but of course would need to be integrated for a position estimate.
+# z:
+# - range.zrange gives the raw data in milimeters (uint16), which is quite accurate.
+# - stateEstimateZ.z in milimeters (uint16), is more smooth but also overshoots a little bit, and even 
+#   goes negative sometimes which is impossible. 
+# - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
+CHOSEN_LOGGERS = {
+    'yaw': 'stabilizer.yaw', 
+    'dx': 'motion.deltaX',
+    'dy': 'motion.deltaY',
+    'z': 'range.zrange'
+}
+
+
 FFTSIZE = 32
 N_MICS = 4
 CRTP_PAYLOAD = 29 # number of bytes per package
@@ -59,22 +88,9 @@ class ReaderCRTP(object):
         self.cf = crazyflie
         self.verbose = verbose
 
-        # TODO(FD): figure out if below changes when the Crazyflie actually flies.
-        # Tests have shown that when the flowdeck is attached to the Crazyflie and 
-        # it is moved around (without flying), then 
-        # - stabilizer.yaw, controller.yaw and stateEstimate.yaw are all the same. 
-        #   They are in degrees and clipped to -180, 180.
-        # - mag.x sometimes gives values similar to above 3, 
-        #   but sometimes it is constantly zero (should it only be used outside? 
-        # - gyro.z gives the raw yaw rate (or acceleration?).
-        # - motion.deltaX and motion.deltaY can be very noisy, especially when 
-        #   the ground is not textured. 
-        # - stabilizer.vx and stabilizer.vy are more stable but of course would need 
-        #   to be integrated for a position estimate.
         lg_motion = LogConfig(name='Motion2D', period_in_ms=300)
-        lg_motion.add_variable('stabilizer.yaw', 'float')
-        lg_motion.add_variable('motion.deltaX', 'float')
-        lg_motion.add_variable('motion.deltaY', 'float')
+        for log_value in CHOSEN_LOGGERS.values():
+            lg_motion.add_variable(log_value, 'float')
         self.cf.log.add_config(lg_motion)
         lg_motion.data_received_cb.add_callback(self.callback_logging)
         lg_motion.start()
@@ -82,8 +98,8 @@ class ReaderCRTP(object):
         self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
 
         # this data can be read and published by ROS nodes
-        self.audio_data = {'time': None, 'data': None, 'published': True}
-        self.motion_data = {'time': None, 'data': None, 'published': True}
+        self.audio_data = {'timestamp': None, 'data': None, 'published': True}
+        self.motion_data = {'timestamp': None, 'data': None, 'published': True}
 
     def callback_audio(self, packet):
         # We send the first package in channel 1 to identify the start of new audio data.
@@ -105,11 +121,11 @@ class ReaderCRTP(object):
                 ]  # last bytes
                 
                 self.audio_data['data'] = np.frombuffer(self.array, dtype=np.float32)
-                self.audio_data['time'] = time.time()
+                self.audio_data['timestamp'] = time.time()
                 self.audio_data['published'] = False
 
                 if self.verbose:
-                    packet_time = self.audio_data['time'] - self.start_time
+                    packet_time = self.audio_data['timestamp'] - self.start_time
                     print(f"callback_audio: time for all packets: {packet_time}s")
             else:
                 self.array[
@@ -122,12 +138,10 @@ class ReaderCRTP(object):
             print('callback', timestamp, data, logconf.name)
 
         # TODO(FD): figure out if this timestamp is correct.
-        self.motion_data['time'] = timestamp
+        self.motion_data['timestamp'] = timestamp
         self.motion_data['published'] = False
         self.motion_data['data'] = {
-            'yaw': data['stabilizer.yaw'], 
-            'dx': data['motion.deltaX'],
-            'dy': data['motion.deltaY']
+            key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
 
 if __name__ == "__main__":
