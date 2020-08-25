@@ -48,6 +48,7 @@ CHOSEN_LOGGERS = {
     'dy': 'motion.deltaY',
     'z': 'range.zrange'
 }
+LOGGING_PERIOD_MS = 10 # logging period in ms
 
 
 FFTSIZE = 32
@@ -88,7 +89,7 @@ class ReaderCRTP(object):
         self.cf = crazyflie
         self.verbose = verbose
 
-        lg_motion = LogConfig(name='Motion2D', period_in_ms=300)
+        lg_motion = LogConfig(name='Motion2D', period_in_ms=LOGGING_PERIOD_MS)
         for log_value in CHOSEN_LOGGERS.values():
             lg_motion.add_variable(log_value, 'float')
         self.cf.log.add_config(lg_motion)
