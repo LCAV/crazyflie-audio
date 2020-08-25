@@ -129,7 +129,7 @@ class ReaderCRTP(object):
                 self.audio_data['published'] = False
 
                 if self.verbose:
-                    packet_time = self.audio_data['timestamp'] - self.packet_start_time
+                    packet_time = time.time() - self.packet_start_time
                     print(f"callback_audio: time for all packets: {packet_time}s")
             else:
                 self.array[
@@ -138,14 +138,14 @@ class ReaderCRTP(object):
             self.index += 1
 
     def callback_logging(self, timestamp, data, logconf):
-        if self.verbose:
-            print('callback', timestamp, data, logconf.name)
-
         self.motion_data['timestamp'] = self.get_time_ms()
         self.motion_data['published'] = False
         self.motion_data['data'] = {
             key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
+        if self.verbose:
+            print('callback_logging:', logconf.name, self.motion_data['data'])
+
 
 if __name__ == "__main__":
     verbose = True
