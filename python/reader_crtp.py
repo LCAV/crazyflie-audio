@@ -102,6 +102,10 @@ class ReaderCRTP(object):
         self.audio_data = {'timestamp': None, 'data': None, 'published': True}
         self.motion_data = {'timestamp': None, 'data': None, 'published': True}
 
+        # start sending audio data
+        self.cf.param.set_value("audio.send_audio_enable", 1)
+        print("set send_audio_enable")
+
     def get_time_ms(self):
         return int((time.time()-self.start_time)*1000)
 
@@ -146,7 +150,6 @@ class ReaderCRTP(object):
         if self.verbose:
             print('callback_logging:', logconf.name, self.motion_data['data'])
 
-
 if __name__ == "__main__":
     verbose = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
@@ -156,5 +159,10 @@ if __name__ == "__main__":
         #set_thrust(cf, 43000)
         reader_crtp = ReaderCRTP(cf, verbose=verbose)
 
-        while True:
-            time.sleep(1)
+        try:
+            while True:
+                time.sleep(1)
+        except:
+            print("unset audio.send_audio_enable")
+            cf.param.set_value("audio.send_audio_enable", 0)
+
