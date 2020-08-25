@@ -954,7 +954,7 @@ void uint8_array_to_uint16(uint8_t input[], uint16_t *output){
 }
 
 void receive_motorPower(){
-	dummy = HAL_I2C_Slave_Receive_DMA(&hi2c1, motorPower_array_byte,N_MOTOR*INT16_PRECISION);
+	HAL_I2C_Slave_Receive_DMA(&hi2c1, motorPower_array_byte,N_MOTOR*INT16_PRECISION);
     for (int i = 0;i<N_MOTOR;i++){
     	uint8_array_to_uint16(&motorPower_array_byte[i*INT16_PRECISION], &motorPower_array[i]);
     }
