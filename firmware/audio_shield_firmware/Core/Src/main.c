@@ -80,6 +80,11 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define FFTSIZE_SENT 32
 #define ARRAY_SIZE nMic*FFTSIZE_SENT*4*2
 
+#define N_MOTOR 4
+#define INT16_PRECISION 2 // INT_16 = 2 bytes
+uint8_t motorPower_array_byte[N_MOTOR*INT16_PRECISION];
+uint16_t motorPower_array[N_MOTOR];
+
 uint32_t ifftFlag = 0;
 uint32_t doBitReverse = 1;
 
@@ -130,6 +135,7 @@ arm_status status;
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 DMA_HandleTypeDef hdma_i2c1_tx;
+DMA_HandleTypeDef hdma_i2c1_rx;
 
 I2S_HandleTypeDef hi2s1;
 I2S_HandleTypeDef hi2s3;
@@ -163,6 +169,8 @@ void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4],uint
 void float_to_byte_array(float input, uint8_t output[]);
 void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic*2],uint8_t byte_matrix[FFTSIZE_SENT][nMic*2][4]);
 void send_corr_matrix();
+void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
+void receive_motorPower();
 
 /* USER CODE END PFP */
 
@@ -813,6 +821,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA1_Stream6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
@@ -934,6 +945,19 @@ void float_to_byte_array(float input, uint8_t output[]){
 		output[i] = temp&0xFF;
 		temp >>= 8;
 	}
+}
+
+void uint8_array_to_uint16(uint8_t input[], uint16_t *output){
+    for (int i = 0;i<INT16_PRECISION;i++){
+    	*((uint8_t*)(output) + i) = input[i];
+    }
+}
+
+void receive_motorPower(){
+	HAL_I2C_Slave_Receive_DMA(&hi2c1, motorPower_array_byte,N_MOTOR*INT16_PRECISION);
+    for (int i = 0;i<N_MOTOR;i++){
+    	uint8_array_to_uint16(&motorPower_array_byte[i*INT16_PRECISION], &motorPower_array[i]);
+    }
 }
 
 /* USER CODE END 4 */
