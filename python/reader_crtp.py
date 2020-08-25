@@ -47,9 +47,9 @@ class ReaderCRTP(object):
     The new data frame starts when the start condition is met(channel==1) and we count the incoming packets to make sure there is no packet loss.
 
     - motion_data: 
-    We read the current motion estimate through the standard logging framework provided by the Crazyflie, and then publish the estimate.  
+    We read the current motion estimate through the standard logging framework provided by the Crazyflie, and then publish the estimate as a Pose.
     """
-    def __init__(self, crazyflie):
+    def __init__(self, crazyflie, verbose=False):
         self.array = np.zeros(N_BYTES, dtype=np.uint8)
 
         self.receivedChar = Caller()
@@ -57,16 +57,29 @@ class ReaderCRTP(object):
         self.index = 0
         self.start_time = 0
         self.cf = crazyflie
+        self.verbose = verbose
 
-        # TODO: figure out correct logging parameters 
-        # motion estimate logging
-        lg_stab = LogConfig(name='Motion', period_in_ms=300)
-        lg_stab.add_variable('stabilizer.yaw', 'float')
-        self.cf.log.add_config(lg_stab)
-        lg_stab.data_received_cb.add_callback(self.callback_logging)
-        lg_stab.start()
+        # TODO(FD): figure out if below changes when the Crazyflie actually flies.
+        # Tests have shown that when the flowdeck is attached to the Crazyflie and 
+        # it is moved around (without flying), then 
+        # - stabilizer.yaw, controller.yaw and stateEstimate.yaw are all the same. 
+        #   They are in degrees and clipped to -180, 180.
+        # - mag.x sometimes gives values similar to above 3, 
+        #   but sometimes it is constantly zero (should it only be used outside? 
+        # - gyro.z gives the raw yaw rate (or acceleration?).
+        # - motion.deltaX and motion.deltaY can be very noisy, especially when 
+        #   the ground is not textured. 
+        # - stabilizer.vx and stabilizer.vy are more stable but of course would need 
+        #   to be integrated for a position estimate.
+        lg_motion = LogConfig(name='Motion2D', period_in_ms=300)
+        lg_motion.add_variable('stabilizer.yaw', 'float')
+        lg_motion.add_variable('motion.deltaX', 'float')
+        lg_motion.add_variable('motion.deltaY', 'float')
+        self.cf.log.add_config(lg_motion)
+        lg_motion.data_received_cb.add_callback(self.callback_logging)
+        lg_motion.start()
 
-        #self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
+        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
 
         # this data can be read and published by ROS nodes
         self.audio_data = {'time': None, 'data': None, 'published': True}
@@ -95,7 +108,9 @@ class ReaderCRTP(object):
                 self.audio_data['time'] = time.time()
                 self.audio_data['published'] = False
 
-                print(f"Elapsed time for receiving = {self.audio_data['time'] - self.start_time}s")
+                if self.verbose:
+                    packet_time = self.audio_data['time'] - self.start_time
+                    print(f"callback_audio: time for all packets: {packet_time}s")
             else:
                 self.array[
                     self.index * CRTP_PAYLOAD : (self.index + 1) * CRTP_PAYLOAD
@@ -103,40 +118,26 @@ class ReaderCRTP(object):
             self.index += 1
 
     def callback_logging(self, timestamp, data, logconf):
-        print('callback', timestamp, data, logconf.name)
+        if self.verbose:
+            print('callback', timestamp, data, logconf.name)
+
+        # TODO(FD): figure out if this timestamp is correct.
         self.motion_data['time'] = timestamp
         self.motion_data['published'] = False
-        self.motion_data['data'] = data['stabilizer.yaw']
+        self.motion_data['data'] = {
+            'yaw': data['stabilizer.yaw'], 
+            'dx': data['motion.deltaX'],
+            'dy': data['motion.deltaY']
+        }
 
 if __name__ == "__main__":
+    verbose = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
-
-    duration = 10 # duration (seconds) for which to run this script.
-    lg_stab = LogConfig(name='Stabilizer', period_in_ms=10)
-    lg_stab.add_variable('stabilizer.roll', 'float')
-    lg_stab.add_variable('stabilizer.pitch', 'float')
-    lg_stab.add_variable('stabilizer.yaw', 'float')
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
         #set_thrust(cf, 43000)
-        reader_crtp = ReaderCRTP(cf)
+        reader_crtp = ReaderCRTP(cf, verbose=verbose)
 
         while True:
             time.sleep(1)
-
-        with SyncLogger(scf, lg_stab) as logger:
-            endTime = time.time() + duration 
-
-            for log_entry in logger:
-                timestamp = log_entry[0]
-                data = log_entry[1]
-                logconf_name = log_entry[2]
-                print(f'[{timestamp}][{logconf_name}]: {data}')
-
-                #reader_crtp.motion_data['time'] = timestamp
-                #reader_crtp.motion_data['data'] = data
-                #reader_crtp.motion_data['published'] = False
-
-                if time.time() > endTime:
-                    break
