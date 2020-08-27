@@ -114,7 +114,7 @@ class ReaderCRTP(object):
         self.motion_data = {'timestamp': None, 'data': None, 'published': True}
 
         # start sending audio data
-        self.cf.param.set_value("audio.audio", 1)
+        self.cf.param.set_value("audio.send_audio_enable", 1)
         print("set audio")
 
     def get_time_ms(self):
@@ -123,6 +123,7 @@ class ReaderCRTP(object):
     def callback_crtp(self, packet):
         # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
+            print('callback audio')
             if (self.index_audio != 0) and (self.index_audio != N_FULL_FBINS + 1):
                 print(f"audio packets loss: received only {self.index}/{N_FULL_FBINS+1}")
             self.index_audio = 0  # reset index
@@ -131,12 +132,20 @@ class ReaderCRTP(object):
 
         # TODO: there is a lot of copy-pasting going on here, could refactor this 
         # at some point.
-        if packet.channel == 2:
-            if (self.index_fbins != 0) and (self.index_fbins != N_FULL_FBINS + 1):
-                print(f"fbins packets loss: received only {self.index_fbins}/{N_FULL_FBINS+1}")
-            self.index_fbins = 0  # reset index
-            self.start_fbins = True
-            self.packet_start_time_fbins = time.time()
+
+        if (packet.channel == 2) and self.start_audio:
+            print('callback fbins')
+            #if (self.index_fbins != 0) and (self.index_fbins != N_FULL_FBINS + 1):
+            #    print(f"fbins packets loss: received only {self.index_fbins}/{N_FULL_FBINS+1}")
+            # TODO(FD): simplify this
+            if not self.start_fbins:
+                self.index_fbins = 0  # reset index
+                self.start_fbins = True
+                self.packet_start_time_fbins = time.time()
+
+        elif (packet.channel == 2):
+            print('callback fbins without start_audio')
+
 
         if self.start_audio:
             # received all full packets, read remaining bytes
@@ -175,7 +184,7 @@ class ReaderCRTP(object):
                     0:N_BYTES_LAST_FBINS
                 ]  # last bytes
                 
-                self.fbins_data['data'] = np.frombuffer(self.fbins_array, dtype=np.float32)
+                self.fbins_data['data'] = np.frombuffer(self.fbins_array, dtype=np.uint16)
                 self.fbins_data['timestamp'] = self.get_time_ms()
                 self.fbins_data['published'] = False
 
@@ -198,8 +207,8 @@ class ReaderCRTP(object):
         self.motion_data['data'] = {
             key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
-        if self.verbose:
-            print('callback_logging:', logconf.name, self.motion_data['data'])
+        #if self.verbose:
+        #    print('callback_logging:', logconf.name, self.motion_data['data'])
 
 if __name__ == "__main__":
     import argparse
@@ -222,5 +231,5 @@ if __name__ == "__main__":
             while True:
                 time.sleep(1)
         except:
-            print("unset audio.audio")
-            cf.param.set_value("audio.audio", 0)
+            print("unset audio.send_audio_enable")
+            cf.param.set_value("audio.send_audio_enable", 0)
