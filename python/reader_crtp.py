@@ -50,14 +50,21 @@ CHOSEN_LOGGERS = {
 }
 LOGGING_PERIOD_MS = 10 # logging period in ms
 
-
 FFTSIZE = 32
 N_MICS = 4
 CRTP_PAYLOAD = 29 # number of bytes per package
 FLOAT_PRECISION = 4 # number of bytes for float32
+INT_PRECISION = 2 # number of bytes per int16
+
+# precalculations for audio signals 
 N_FLOATS = FFTSIZE * N_MICS * 2  # *2 for complex numbers
-N_BYTES = N_FLOATS * FLOAT_PRECISION
-N_FULL_PACKETS, N_BYTES_LAST_PACKET = divmod(N_BYTES, CRTP_PAYLOAD)
+N_BYTES_AUDIO = N_FLOATS * FLOAT_PRECISION
+N_FULL_AUDIO, N_BYTES_LAST_AUDIO = divmod(N_BYTES_AUDIO, CRTP_PAYLOAD)
+
+# precalculations for frequency bins
+N_INTS = FFTSIZE 
+N_BYTES_FBINS = N_INTS * INT_PRECISION
+N_FULL_FBINS, N_BYTES_LAST_FBINS = divmod(N_BYTES_FBINS, CRTP_PAYLOAD)
 
 def set_thrust(cf,thrust):
     thrust_str = f'{thrust}'
@@ -83,9 +90,12 @@ class ReaderCRTP(object):
         self.array = np.zeros(N_BYTES, dtype=np.uint8)
 
         self.receivedChar = Caller()
-        self.start = False
-        self.index = 0
-        self.packet_start_time = 0
+        self.start_audio = False
+        self.start_fbins = False
+        self.index_audio = 0
+        self.index_fbins = 0
+        self.packet_start_time_audio = 0
+        self.packet_start_time_fbins = 0
         self.cf = crazyflie
         self.verbose = verbose
 
@@ -96,11 +106,12 @@ class ReaderCRTP(object):
         lg_motion.data_received_cb.add_callback(self.callback_logging)
         lg_motion.start()
 
-        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
+        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_crtp)
 
         # this data can be read and published by ROS nodes
         self.start_time = time.time()
         self.audio_data = {'timestamp': None, 'data': None, 'published': True}
+        self.fbins_data = {'timestamp': None, 'data': None, 'published': True}
         self.motion_data = {'timestamp': None, 'data': None, 'published': True}
 
         # start sending audio data
@@ -110,37 +121,77 @@ class ReaderCRTP(object):
     def get_time_ms(self):
         return int((time.time()-self.start_time)*1000)
 
-    def callback_audio(self, packet):
-        # We send the first package in channel 1 to identify the start of new audio data.
+    def callback_crtp_audio(self, packet):
+        # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
-            if (self.index != 0) and (self.index != N_FULL_PACKETS + 1):
-                print(f"packets loss: received only {self.index}/{N_FULL_PACKETS+1}")
-            self.index = 0  # reset index
-            self.start = True
-            self.packet_start_time = time.time()
+            if (self.index_audio != 0) and (self.index_audio != N_FULL_FBINS + 1):
+                print(f"packets loss: received only {self.index}/{N_FULL_FBINS+1}")
+            self.index_audio = 0  # reset index
+            self.start_audio = True
+            self.packet_start_time_audio = time.time()
 
-        if self.start:
+        # TODO: there is a lot of copy-pasting going on here, could refactor this 
+        # at some point.
+        if packet.channel == 2:
+            if (self.index_fbins != 0) and (self.index_fbins != N_FULL_FBINS + 1):
+                print(f"packets loss: received only {self.index_bins}/{N_FULL_FBINS+1}")
+            self.index_fbins = 0  # reset index
+            self.start_fbins = True
+            self.packet_start_time_fbins = time.time()
+
+        if self.start_audio:
             # received all full packets, read remaining bytes
-            if self.index == N_FULL_PACKETS:
-                self.array[
-                    self.index * CRTP_PAYLOAD : self.index * CRTP_PAYLOAD
-                    + N_BYTES_LAST_PACKET
+            if self.index_audio == N_FULL_FBINS:
+                self.audio_array[
+                    self.index_audio * CRTP_PAYLOAD : self.index_audio * CRTP_PAYLOAD
+                    + N_BYTES_LAST_FBINS
                 ] = packet.datal[
-                    0:N_BYTES_LAST_PACKET
+                    0:N_BYTES_LAST_FBINS
                 ]  # last bytes
                 
-                self.audio_data['data'] = np.frombuffer(self.array, dtype=np.float32)
+                self.audio_data['data'] = np.frombuffer(self.audio_array, dtype=np.float32)
                 self.audio_data['timestamp'] = self.get_time_ms()
                 self.audio_data['published'] = False
 
+                # TODO(FD): do we need this? It was not here before. 
+                self.start_audio = False
+
                 if self.verbose:
-                    packet_time = time.time() - self.packet_start_time
-                    print(f"callback_audio: time for all packets: {packet_time}s")
+                    packet_time = time.time() - self.packet_start_time_audio
+                    print(f"callback_crtp: time for all audio packets: {packet_time}s")
+
             else:
-                self.array[
-                    self.index * CRTP_PAYLOAD : (self.index + 1) * CRTP_PAYLOAD
+                self.audio_array[
+                    self.index_audio * CRTP_PAYLOAD : (self.index_audio + 1) * CRTP_PAYLOAD
                 ] = packet.datal # packet in list format
-            self.index += 1
+            self.index_audio += 1
+
+        if self.start_fbins:
+            # received all full packets, read remaining bytes
+            if self.index_fbins == N_FULL_FBINS:
+                self.fbins_array[
+                    self.index_fbins * CRTP_PAYLOAD : self.index_fbins * CRTP_PAYLOAD
+                    + N_BYTES_LAST_FBINS
+                ] = packet.datal[
+                    0:N_BYTES_LAST_FBINS
+                ]  # last bytes
+                
+                self.fbins_data['data'] = np.frombuffer(self.fbins_array, dtype=np.float32)
+                self.fbins_data['timestamp'] = self.get_time_ms()
+                self.fbins_data['published'] = False
+
+                # TODO(FD): do we need this? It was not here before. 
+                self.start_fbins = False
+
+                if self.verbose:
+                    packet_time = time.time() - self.packet_start_time_fbins
+                    print(f"callback_crtp: time for all fbins packets: {packet_time}s")
+
+            else:
+                self.fbins_array[
+                    self.index_fbins * CRTP_PAYLOAD : (self.index_fbins + 1) * CRTP_PAYLOAD
+                ] = packet.datal # packet in list format
+            self.index_fbins += 1
 
     def callback_logging(self, timestamp, data, logconf):
         self.motion_data['timestamp'] = self.get_time_ms()
