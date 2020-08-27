@@ -114,6 +114,8 @@ float mat_Xf[FFTSIZE][nMic * 2];
 uint8_t mat_Xf_bytes[FFTSIZE_SENT][nMic * 2][4];
 uint8_t array_Xf_bytes[ARRAY_SIZE];
 
+uint16_t selected_bin_indexes[FFTSIZE_SENT];
+
 #endif
 
 uint8_t srcRows;
@@ -171,6 +173,7 @@ void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic * 2],
 void send_corr_matrix();
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
 void receive_motorPower();
+void frequency_bin_selection(uint16_t * selected_bin_indexes);
 
 /* USER CODE END PFP */
 
@@ -319,6 +322,7 @@ int main(void) {
 			}
 
 			STOPCHRONO;
+			frequency_bin_selection(selected_bin_indexes);
 			send_corr_matrix(mat_Xf);
 			new_sample_to_send = 0;
 		}
@@ -896,14 +900,77 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 #endif
 }
 
-/*
- void inline Process_3(int16_t *pIn, uint16_t size) {
- for (uint16_t i = 0; i < size/2; i++){
- left_3[i] = *pIn++;
- right_3[i] = *pIn++;
- }
- }
- */
+void frequency_bin_selection(uint16_t * selected_bin_indexes){
+	uint16_t thrust = 43000;
+#define LEN_CARAC_FREQU 32
+	float const caract_frequ[LEN_CARAC_FREQU] = {0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ,19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
+	uint8_t bins_basic_candidates [FFTSIZE];
+
+#define DF (16000/FFTSIZE)
+#define DELTA_F_PROP 100
+#define HI_PASS_INDEX (int)(100/DF)
+#define LO_PASS_INDEX (int)(10000/DF)
+
+
+	float om_0 = 3.27258551 * sqrt(thrust) - 26.41814899;
+
+	// Remove propeler sound +- delta f
+	for(uint16_t i = 0; i < FFTSIZE; i++){
+	    uint8_t in_prop_range = 0;
+	    for(uint8_t j = 0; j < LEN_CARAC_FREQU; j++){
+	        if( fabs((i*DF - (caract_frequ[j] * om_0))) < DELTA_F_PROP){
+	            in_prop_range = 1;
+	        	break;
+	        }
+	    }
+		if(in_prop_range){
+			bins_basic_candidates[i] = 0;
+		}else{
+			bins_basic_candidates[i] = 1;
+		}
+	}
+
+	// Remove Hi-pass and low-pass candidates
+	for(uint16_t i = 0; i < FFTSIZE; i++){
+	    if((i < HI_PASS_INDEX) || (i > LO_PASS_INDEX )){
+	        bins_basic_candidates[i] = 0;
+	    }
+	}
+
+	// Count candidate that are still available
+	uint16_t sum_candidate = 0;
+	for(uint16_t i = 0; i < FFTSIZE; i++){
+	    if(bins_basic_candidates[i] == 1){
+	        sum_candidate += 1;
+	    }
+	}
+
+	// Samples uniformly among remaining candidates
+	uint8_t decimation = (int)ceil(sum_candidate / FFTSIZE_SENT);
+
+	uint8_t count_selected_candidates = 0;
+	for(uint16_t i = 0; i < FFTSIZE; i++){
+	    if(bins_basic_candidates[i] == 1){
+	        uint8_t sum = 0;
+	        // check if any of the previous decimation bits where 1
+	        for(uint8_t j = 1; j < decimation; j++){
+	            sum += bins_basic_candidates[((i - j) < 0) ? 0 : (i - j) ];
+	        	if(sum >= 1){
+	        		break;
+	        	}
+	        }
+	        // if previous samples where 0, then ok to place a one
+	        if( (sum == 0) & (count_selected_candidates < FFTSIZE_SENT)){
+	            selected_bin_indexes[count_selected_candidates] = i;
+	        	bins_basic_candidates[i] = 1;
+	            count_selected_candidates += 1;
+	        }else{
+	        	bins_basic_candidates[i] = 0;
+	        }
+	    }
+	}
+}
+
 void send_corr_matrix() {
 	float_matrix_to_byte_matrix(mat_Xf, mat_Xf_bytes);
 	corr_matrix_to_corr_array(mat_Xf_bytes, array_Xf_bytes);
