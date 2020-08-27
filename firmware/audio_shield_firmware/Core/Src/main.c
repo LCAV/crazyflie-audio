@@ -340,7 +340,7 @@ int main(void) {
 
 			STOPCHRONO;
 			frequency_bin_selection(selected_bin_indexes);
-			send_corr_matrix(mat_Xf);
+			send_I2C_array();
 			new_sample_to_send = 0;
 		}
 #else
