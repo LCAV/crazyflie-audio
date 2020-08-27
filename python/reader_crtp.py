@@ -19,8 +19,6 @@ CRTP_PORT_AUDIO = 0x09
 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
-id = "radio://0/80/2M"
-
 
 
 # TODO(FD): figure out if below changes when the Crazyflie actually flies.
@@ -87,7 +85,8 @@ class ReaderCRTP(object):
     We read the current motion estimate through the standard logging framework provided by the Crazyflie, and then publish the estimate as a Pose.
     """
     def __init__(self, crazyflie, verbose=False):
-        self.array = np.zeros(N_BYTES, dtype=np.uint8)
+        self.audio_array = np.zeros(N_BYTES_AUDIO, dtype=np.uint8)
+        self.fbins_array = np.zeros(N_BYTES_FBINS, dtype=np.uint8)
 
         self.receivedChar = Caller()
         self.start_audio = False
@@ -115,17 +114,17 @@ class ReaderCRTP(object):
         self.motion_data = {'timestamp': None, 'data': None, 'published': True}
 
         # start sending audio data
-        self.cf.param.set_value("audio.send_audio_enable", 1)
-        print("set send_audio_enable")
+        self.cf.param.set_value("audio.audio", 1)
+        print("set audio")
 
     def get_time_ms(self):
         return int((time.time()-self.start_time)*1000)
 
-    def callback_crtp_audio(self, packet):
+    def callback_crtp(self, packet):
         # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
             if (self.index_audio != 0) and (self.index_audio != N_FULL_FBINS + 1):
-                print(f"packets loss: received only {self.index}/{N_FULL_FBINS+1}")
+                print(f"audio packets loss: received only {self.index}/{N_FULL_FBINS+1}")
             self.index_audio = 0  # reset index
             self.start_audio = True
             self.packet_start_time_audio = time.time()
@@ -134,7 +133,7 @@ class ReaderCRTP(object):
         # at some point.
         if packet.channel == 2:
             if (self.index_fbins != 0) and (self.index_fbins != N_FULL_FBINS + 1):
-                print(f"packets loss: received only {self.index_bins}/{N_FULL_FBINS+1}")
+                print(f"fbins packets loss: received only {self.index_fbins}/{N_FULL_FBINS+1}")
             self.index_fbins = 0  # reset index
             self.start_fbins = True
             self.packet_start_time_fbins = time.time()
@@ -203,8 +202,16 @@ class ReaderCRTP(object):
             print('callback_logging:', logconf.name, self.motion_data['data'])
 
 if __name__ == "__main__":
+    import argparse
     verbose = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
+
+    parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
+    parser.add_argument('id', metavar='ID', type=int, help='number of Crazyflie ("radio://0/ID/2M")',
+                        default=69)
+    args = parser.parse_args()
+    id = f"radio://0/{args.id}/2M"
+
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
@@ -215,6 +222,5 @@ if __name__ == "__main__":
             while True:
                 time.sleep(1)
         except:
-            print("unset audio.send_audio_enable")
-            cf.param.set_value("audio.send_audio_enable", 0)
-
+            print("unset audio.audio")
+            cf.param.set_value("audio.audio", 0)
