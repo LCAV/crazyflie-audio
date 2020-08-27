@@ -56,17 +56,16 @@ om_0s = om_0 * np.append([0.5, 1, 1.5], np.arange(2, 10, 1))
 
 NSamples = 1024
 
-chosen_bin = np.arange(1, 32, 1)
-
 for signal in signals_props:
     freq = np.fft.rfftfreq(len(signal[0:NSamples]), 1 / f)
     Y = np.fft.rfft(signal[0:NSamples]) / len(signal[0:NSamples])
-    plt.plot(range(len(freq)), np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
+    #plt.plot(range(len(freq)), np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
+    plt.plot(freq, np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
 
 bins_basic_candidates = np.ones(np.size(freq))
 
 DELTA_F_PROP = 100
-NUMBER_FINAL_BINS = 32
+FFTSIZE_SENT = 32
 
 hi_pass_f = 100
 lo_pass_f = 10000
@@ -97,13 +96,13 @@ bins_snr_avoid_prop = np.zeros(np.shape(bins_basic_candidates))
 bins_uniforme_avoid_prop = np.zeros(np.shape(bins_basic_candidates))
 
 ## samples uniformly among remaining candidates
-decimation = int(np.ceil(sum_candidate / NUMBER_FINAL_BINS)) + 1
+decimation = int(np.ceil(sum_candidate / FFTSIZE_SENT)) + 1
 print(f'candidates = {sum_candidate}, decimation =  {decimation}')
 
 number_selected_candidates = 0
+selected_bins = np.zeros(FFTSIZE_SENT)
 for i in range(np.size(freq)):
 
-    # first samples are zeroed anyway
     if((bins_basic_candidates[i] == 1)):
         
         sum = 0
@@ -112,21 +111,26 @@ for i in range(np.size(freq)):
             sum += bins_uniforme_avoid_prop[i - j] 
 
         # if previous samples where 0, then ok to place a one
-        if( (sum == 0) & (number_selected_candidates < NUMBER_FINAL_BINS)):
+        if( (sum == 0) & (number_selected_candidates < FFTSIZE_SENT)):
             bins_uniforme_avoid_prop[i] = 1
+            selected_bins [number_selected_candidates] = i
             number_selected_candidates += 1
         else:
             bins_uniforme_avoid_prop[i] = 0
     else:
         bins_uniforme_avoid_prop[i] = 0
 
+print(selected_bins)
+
 sum = 0
 for j in range(len(bins_uniforme_avoid_prop)):
     sum += bins_uniforme_avoid_prop[j] 
 print(f'Final chosen bins_uniforme_avoid_prop count is: {number_selected_candidates} ')
 
-plt.scatter(range(len(freq)), + 1000 * bins_basic_candidates, label = 'bins_basic_candidates')
-plt.scatter(range(len(freq)), + 600 * bins_uniforme_avoid_prop, label = 'bins_uniforme_avoid_prop')
+#plt.scatter(range(len(freq)), + 1000 * bins_basic_candidates, label = 'bins_basic_candidates')
+#plt.scatter(range(len(freq)), + 600 * bins_uniforme_avoid_prop, label = 'bins_uniforme_avoid_prop')
+plt.scatter(freq, + 1000 * bins_basic_candidates, label = 'bins_basic_candidates')
+plt.scatter(freq, + 600 * bins_uniforme_avoid_prop, label = 'bins_uniforme_avoid_prop')
 plt.legend()
 
 plt.autoscale(enable = True, axis = 'x', tight = True)
