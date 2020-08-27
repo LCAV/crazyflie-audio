@@ -923,7 +923,7 @@ void frequency_bin_selection(uint16_t * selected_bin_indexes){
 	float const caract_frequ[LEN_CARAC_FREQU] = {0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ,19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
 	uint8_t bins_basic_candidates [FFTSIZE];
 
-#define DF (16000/FFTSIZE)
+#define DF (32000.0/FFTSIZE)
 #define DELTA_F_PROP 100
 #define HI_PASS_INDEX (int)(100/DF)
 #define LO_PASS_INDEX (int)(10000/DF)
@@ -949,8 +949,10 @@ void frequency_bin_selection(uint16_t * selected_bin_indexes){
 
 	// Remove Hi-pass and low-pass candidates
 	for(uint16_t i = 0; i < FFTSIZE; i++){
-	    if((i < HI_PASS_INDEX) || (i > LO_PASS_INDEX )){
+	    if((i <= (HI_PASS_INDEX)) || (i >= LO_PASS_INDEX)){
 	        bins_basic_candidates[i] = 0;
+	    }else{
+	        bins_basic_candidates[i] = 1;
 	    }
 	}
 
