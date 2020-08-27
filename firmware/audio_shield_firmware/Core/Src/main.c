@@ -182,7 +182,7 @@ void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic * 2],
 		uint8_t byte_matrix[FFTSIZE_SENT][nMic * 2][4]);
 void send_corr_matrix();
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
-void receive_motorPower();
+
 void frequency_bin_selection(uint16_t * selected_bin_indexes);
 void receive_I2C_param();
 
