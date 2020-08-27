@@ -62,6 +62,7 @@ for signal in signals_props:
     #plt.plot(range(len(freq)), np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
     plt.plot(freq, np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
 
+print(freq)
 bins_basic_candidates = np.ones(np.size(freq))
 
 DELTA_F_PROP = 100
