@@ -77,10 +77,20 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define FFTSIZE_SENT 32
 #define ARRAY_SIZE nMic*FFTSIZE_SENT*4*2
 
-#define N_MOTOR 4
-#define INT16_PRECISION 2 // INT_16 = 2 bytes
-uint8_t motorPower_array_byte[N_MOTOR*INT16_PRECISION];
-uint16_t motorPower_array[N_MOTOR];
+#define N_MOTORS 4
+#define INT16_PRECISION 2 // int16 = 2 bytes
+#define SIZE_OF_PARAM_I2C 3 // in uint16, min_freq = 1, max_freq = 1, snr + propeller enable = 1, tot = 3
+#define I2C_RECEIVE_LENGTH_INT16 (N_MOTORS+SIZE_OF_PARAM_I2C)
+#define I2C_RECEIVE_LENGTH_BYTE I2C_RECEIVE_LENGTH_INT16 * INT16_PRECISION
+
+
+uint8_t I2C_param_array_byte[I2C_RECEIVE_LENGTH_BYTE];
+uint16_t I2C_param_array [I2C_RECEIVE_LENGTH_INT16];
+uint16_t motorPower_array[N_MOTORS];
+uint8_t filter_propellers_enable = 0;
+uint8_t filter_snr_enable = 0;
+uint16_t min_freq = 0;
+uint16_t max_freq = 0;
 
 uint32_t ifftFlag = 0;
 uint32_t doBitReverse = 1;
@@ -174,6 +184,7 @@ void send_corr_matrix();
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
 void receive_motorPower();
 void frequency_bin_selection(uint16_t * selected_bin_indexes);
+void receive_I2C_param();
 
 /* USER CODE END PFP */
 
@@ -1013,11 +1024,19 @@ void uint8_array_to_uint16(uint8_t input[], uint16_t *output){
     }
 }
 
-void receive_motorPower(){
-	HAL_I2C_Slave_Receive_DMA(&hi2c1, motorPower_array_byte,N_MOTOR*INT16_PRECISION);
-    for (int i = 0;i<N_MOTOR;i++){
-    	uint8_array_to_uint16(&motorPower_array_byte[i*INT16_PRECISION], &motorPower_array[i]);
+void receive_I2C_param(){
+	HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte, I2C_RECEIVE_LENGTH_INT16);
+    for (int i = 0;i<I2C_RECEIVE_LENGTH_INT16;i++){
+    	uint8_array_to_uint16(&I2C_param_array_byte[i*INT16_PRECISION], &I2C_param_array[i]);
     }
+    motorPower_array[0] = I2C_param_array[0];
+    motorPower_array[1] = I2C_param_array[1];
+    motorPower_array[2] = I2C_param_array[2];
+    motorPower_array[3] = I2C_param_array[3];
+    min_freq = I2C_param_array[4];
+    max_freq = I2C_param_array[5];
+    filter_propellers_enable = I2C_param_array_byte[12];
+    filter_snr_enable = I2C_param_array_byte[13];
 }
 
 /* USER CODE END 4 */
