@@ -63,20 +63,12 @@ for signal in signals_props:
     Y = np.fft.rfft(signal[0:NSamples]) / len(signal[0:NSamples])
     plt.plot(range(len(freq)), np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
 
-#print(len(freq))
-
-# Show propelers om_0
-#for line in om_0s:
-#    plt.axvline(line, c = 'r', ls = '--')
-
-
-
-bins_basic_candidates = np.arange(0,np.size(freq))
+bins_basic_candidates = np.ones(np.size(freq))
 
 DELTA_F_PROP = 100
 NUMBER_FINAL_BINS = 32
 
-hi_pass_f = 200
+hi_pass_f = 100
 lo_pass_f = 10000
 
 # Remove propeler sound +- delta f
@@ -89,7 +81,6 @@ for i in range(np.size(freq)):
     if in_prop_range:
         bins_basic_candidates[i] = 0
 
-
 # Remove Hi-pass and low-pass candidates
 for i in range(np.size(freq)):
     if((freq[i] < hi_pass_f) | (freq[i] > lo_pass_f )):
@@ -98,55 +89,41 @@ for i in range(np.size(freq)):
 # Count candidate that are still available
 sum_candidate = 0
 for i in range(np.size(bins_basic_candidates)):
-    if(bins_basic_candidates[i]):
+    if(bins_basic_candidates[i] == 1):
         sum_candidate += 1
 
 # Backup 
 bins_snr_avoid_prop = np.zeros(np.shape(bins_basic_candidates))
-bins_uniforme_avoid_prop =  np.zeros(np.shape(bins_basic_candidates))
-
-dummy = bins_basic_candidates[bins_basic_candidates > 0]
+bins_uniforme_avoid_prop = np.zeros(np.shape(bins_basic_candidates))
 
 ## samples uniformly among remaining candidates
-decimation = int(np.floor(sum_candidate / NUMBER_FINAL_BINS))
-print(f'decimation =  {decimation}')
+decimation = int(np.ceil(sum_candidate / NUMBER_FINAL_BINS)) + 1
+print(f'candidates = {sum_candidate}, decimation =  {decimation}')
 
-dummy = dummy[0:-1:decimation]
-dummy = dummy[0:NUMBER_FINAL_BINS]
-bins_uniforme_avoid_prop[dummy]=1
-# for i in range(sum_candidate):
-#     #print(f'i = {i}')
-#
-#     # first samples are zeroed anyway
-#     if((bins_basic_candidates[i] == 1) and (i >= decimation)):
-#         #print(f'\ti - decimation =  {i - decimation}')
-#
-#         sum = 0
-#         # check if any of the previous decimation bits where 1
-#         for j in range(decimation):
-#             sum += bins_uniforme_avoid_prop[i - j]
-#             #print(f'\t\t for i =  {i}, j =  {j}, i-j = {i-j}, buffer = {bins_uniforme_avoid_prop[i - j] }')
-#
-#         # Debug print buffer while constructing it
-#         #print(bins_uniforme_avoid_prop[max(0, i - decimation) : i])
-#
-#         # if previous samples where 0, then ok to place a one
-#         #print(f'\tsum =  {sum}')
-#         if(sum == 0):
-#             bins_uniforme_avoid_prop[i] = 1
-#             #print('\tAdded 1 to buffer')
-#         else:
-#             bins_uniforme_avoid_prop[i] = 0
-#     else:
-#         bins_uniforme_avoid_prop[i] = 0
+number_selected_candidates = 0
+for i in range(np.size(freq)):
+
+    # first samples are zeroed anyway
+    if((bins_basic_candidates[i] == 1)):
+        
+        sum = 0
+        # check if any of the previous decimation bits where 1
+        for j in range(decimation):
+            sum += bins_uniforme_avoid_prop[i - j] 
+
+        # if previous samples where 0, then ok to place a one
+        if( (sum == 0) & (number_selected_candidates < NUMBER_FINAL_BINS)):
+            bins_uniforme_avoid_prop[i] = 1
+            number_selected_candidates += 1
+        else:
+            bins_uniforme_avoid_prop[i] = 0
+    else:
+        bins_uniforme_avoid_prop[i] = 0
 
 sum = 0
-
-bins_basic_candidates[bins_basic_candidates>0] = 1
-# check if any of the previous decimation bits where 1
 for j in range(len(bins_uniforme_avoid_prop)):
     sum += bins_uniforme_avoid_prop[j] 
-print(f'Final chosen bins_uniforme_avoid_prop count is: {sum} ')
+print(f'Final chosen bins_uniforme_avoid_prop count is: {number_selected_candidates} ')
 
 plt.scatter(range(len(freq)), + 1000 * bins_basic_candidates, label = 'bins_basic_candidates')
 plt.scatter(range(len(freq)), + 600 * bins_uniforme_avoid_prop, label = 'bins_uniforme_avoid_prop')
