@@ -83,6 +83,7 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define I2C_RECEIVE_LENGTH_INT16 (N_MOTORS+SIZE_OF_PARAM_I2C)
 #define I2C_RECEIVE_LENGTH_BYTE I2C_RECEIVE_LENGTH_INT16 * INT16_PRECISION
 
+#define FBINS_ARRAY_SIZE_BYTES FFTSIZE_SENT*INT16_PRECISION
 
 uint8_t I2C_param_array_byte[I2C_RECEIVE_LENGTH_BYTE];
 uint16_t I2C_param_array [I2C_RECEIVE_LENGTH_INT16];
@@ -123,7 +124,9 @@ float vect_Rinv[FFTSIZE][nMic * nMic * 2];
 float mat_Xf[FFTSIZE][nMic * 2];
 uint8_t mat_Xf_bytes[FFTSIZE_SENT][nMic * 2][4];
 uint8_t array_Xf_bytes[ARRAY_SIZE];
-
+uint16_t fbins_selected[FFTSIZE_SENT];
+uint8_t fbins_selected_byte[FBINS_ARRAY_SIZE_BYTES];
+uint8_t I2C_send_array[ARRAY_SIZE+FBINS_ARRAY_SIZE_BYTES];
 #endif
 
 uint8_t srcRows;
@@ -181,6 +184,9 @@ void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic * 2],
 void send_corr_matrix();
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
 void receive_I2C_param();
+void fill_send_array();
+void int16_array_to_byte_array(uint16_t int16_array[],uint8_t byte_array[]);
+void int16_to_byte_array(uint16_t input, uint8_t output[]);
 
 /* USER CODE END PFP */
 
@@ -914,10 +920,28 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
  }
  }
  */
-void send_corr_matrix() {
+void send_corr_matrix() { // not used anymore
 	float_matrix_to_byte_matrix(mat_Xf, mat_Xf_bytes);
 	corr_matrix_to_corr_array(mat_Xf_bytes, array_Xf_bytes);
 	HAL_I2C_Slave_Transmit_DMA(&hi2c1, array_Xf_bytes, ARRAY_SIZE);
+}
+
+void send_I2C_array() {
+	float_matrix_to_byte_matrix(mat_Xf, mat_Xf_bytes);
+	corr_matrix_to_corr_array(mat_Xf_bytes, array_Xf_bytes);
+	int16_array_to_byte_array(fbins_selected,fbins_selected_byte);
+	fill_send_array();
+	HAL_I2C_Slave_Transmit_DMA(&hi2c1, I2C_send_array,  ARRAY_SIZE+FBINS_ARRAY_SIZE_BYTES);
+}
+
+void fill_send_array(){
+	for (int i = 0; i < ARRAY_SIZE; i++) {
+		I2C_send_array[i] = array_Xf_bytes[i];
+	}
+	for (int i = 0; i < FBINS_ARRAY_SIZE_BYTES; i++) {
+		I2C_send_array[i+ARRAY_SIZE] = fbins_selected_byte[i];
+	}
+
 }
 
 void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic * 2][4],
@@ -934,7 +958,7 @@ void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][nMic * 2][4],
 }
 
 void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][nMic * 2],
-		uint8_t byte_matrix[FFTSIZE_SENT][nMic * 2][4]) {
+	uint8_t byte_matrix[FFTSIZE_SENT][nMic * 2][4]) {
 	for (int i = 0; i < FFTSIZE_SENT; i++) {
 		for (int j = 0; j < nMic * 2; j++) {
 			float_to_byte_array(float_matrix[i][j], byte_matrix[i][j]);
@@ -949,6 +973,21 @@ void float_to_byte_array(float input, uint8_t output[]) {
 		temp >>= 8;
 	}
 }
+
+void int16_array_to_byte_array(uint16_t int16_array[],uint8_t byte_array[]) {
+	for (int i = 0; i < FFTSIZE_SENT; i++) {
+		int16_to_byte_array(int16_array[i], &byte_array[i*INT16_PRECISION]);
+	}
+}
+
+void int16_to_byte_array(uint16_t input, uint8_t output[]) {
+	uint32_t temp = *((uint32_t*) &input);
+	for (int i = 0; i < INT16_PRECISION; i++) {
+		output[i] = temp & 0xFF;
+		temp >>= 8;
+	}
+}
+
 
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output){
     for (int i = 0;i<INT16_PRECISION;i++){
