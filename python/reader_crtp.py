@@ -181,7 +181,7 @@ class ReaderCRTP(object):
                 self.fbins_array[
                 self.index_fbins * CRTP_PAYLOAD: (self.index_fbins + 1) * CRTP_PAYLOAD
                 ] = packet.datal  # packet in list format
-            self.index_fbins += 1
+                self.index_fbins += 1
 
 
 
