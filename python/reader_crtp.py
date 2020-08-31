@@ -166,7 +166,8 @@ class ReaderCRTP(object):
 
         # start sending audio data
         self.cf.param.set_value("audio.send_audio_enable", 1)
-        print("set audio")
+        if self.verbose:
+            print("ReaderCRTP: set audio.send_audio_enable")
 
     def get_time_ms(self):
         return int((time.time() - self.start_time) * 1000)
@@ -183,14 +184,14 @@ class ReaderCRTP(object):
 
             if self.verbose and filled:
                 packet_time = time.time() - self.audio_array.packet_start_time
-                print(f"audio callback: time for all packets: {packet_time}s")
+                print(f"ReaderCRTP audio callback: time for all packets: {packet_time}s")
 
         elif self.start_audio and packet.channel == 2: # channel is 2: read fbins
             filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms())
 
             if self.verbose and filled:
                 packet_time = time.time() - self.fbins_array.packet_start_time
-                print(f"fbins callback: time for all packets: {packet_time}s")
+                print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s")
 
 
     def callback_logging(self, timestamp, data, logconf):
@@ -199,8 +200,8 @@ class ReaderCRTP(object):
         self.motion_dict['data'] = {
             key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
-        #if self.verbose:
-        #    print('callback_logging:', logconf.name, self.motion_dict['data'])
+        if self.verbose:
+            print('ReaderCRTP logging callback:', logconf.name)
 
 if __name__ == "__main__":
     import argparse
@@ -223,5 +224,5 @@ if __name__ == "__main__":
             while True:
                 time.sleep(1)
         except:
-            print("unset audio.send_audio_enable")
+            print("ReaderCRTP: unset audio.send_audio_enable")
             cf.param.set_value("audio.send_audio_enable", 0)
