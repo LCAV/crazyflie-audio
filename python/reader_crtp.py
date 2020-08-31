@@ -19,8 +19,6 @@ CRTP_PORT_AUDIO = 0x09
 
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
-id = "radio://0/80/2M"
-
 
 
 # TODO(FD): figure out if below changes when the Crazyflie actually flies.
@@ -50,14 +48,17 @@ CHOSEN_LOGGERS = {
 }
 LOGGING_PERIOD_MS = 10 # logging period in ms
 
-
 FFTSIZE = 32
 N_MICS = 4
 CRTP_PAYLOAD = 29 # number of bytes per package
-FLOAT_PRECISION = 4 # number of bytes for float32
+
+# audio signals data
 N_FLOATS = FFTSIZE * N_MICS * 2  # *2 for complex numbers
-N_BYTES = N_FLOATS * FLOAT_PRECISION
-N_FULL_PACKETS, N_BYTES_LAST_PACKET = divmod(N_BYTES, CRTP_PAYLOAD)
+N_BYTES_AUDIO = N_FLOATS * 4 # 4 is number of bytes per float32
+
+# frequency bins data
+N_INTS = FFTSIZE 
+N_BYTES_FBINS = N_INTS * 2 # 2 number of bytes for int16
 
 def set_thrust(cf,thrust):
     thrust_str = f'{thrust}'
@@ -67,25 +68,81 @@ def set_thrust(cf,thrust):
     cf.param.set_value('motorPowerSet.m3', thrust_str)
     cf.param.set_value('motorPowerSet.enable', '1')
 
+
+class ArrayCRTP(object):
+    def __init__(self, data_dict, dtype, n_bytes, name="array"):
+        """
+        :param data_dict: data dictionary containing snapshot of latest data 
+        :param dtype: the type of data to be read (np.float32/np.uint16/etc.)
+        :param n_bytes: the number of bytes to form one array, we will read 
+                        CRTP packets until we reach this number of bytes.
+        :param name: name of this array (used for printing only)
+        """
+        self.name = name 
+        self.n_bytes = n_bytes
+        self.n_packets_full, self.n_bytes_last = divmod(n_bytes, CRTP_PAYLOAD)
+        self.array = np.zeros(n_bytes, dtype=np.uint8)
+        self.index = 0
+        self.dtype = dtype
+        self.packet_start_time = time.time()
+        self.data_dict = data_dict
+
+    def fill_array_from_crtp(self, packet, timestamp=0):
+        """
+        :param packet: CRTP packet
+        :param timestamp: current timestamp
+
+        :returns: True if the array was filled, False if it is not full yet.
+        """
+        if self.index == self.n_packets_full:
+            # received all full packets, read remaining bytes
+            self.array[
+                self.index * CRTP_PAYLOAD:
+                self.index * CRTP_PAYLOAD + self.n_bytes_last
+            ] = packet.datal[:self.n_bytes_last] 
+
+            self.data_dict['data'] = np.frombuffer(self.array, dtype=self.dtype)
+            self.data_dict['timestamp'] = timestamp 
+            self.data_dict['published'] = False
+
+            self.index += 1
+            return True
+        else:
+            if(self.index == 0):
+                self.packet_start_time = time.time()
+
+            assert (self.index + 1)*CRTP_PAYLOAD < len(self.array), \
+            f"{self.name}: index {self.index * CRTP_PAYLOAD} exceeds length {len(self.array)}"
+
+            self.array[
+                self.index * CRTP_PAYLOAD: 
+                (self.index + 1) * CRTP_PAYLOAD
+            ] = packet.datal
+            self.index += 1
+            return False
+
+    def reset_array(self):
+        if (self.index != 0) and (self.index != self.n_packets_full + 1):
+            print(f"{self.name}: packets loss, received only {self.index}/{self.n_packets_full+1}")
+        self.index = 0
+
+
 class ReaderCRTP(object):
     """
     ReaderCRTP recovers the data sent through the CRTP protocol and publishes them. 
     There are different schemes for different data types:
 
-    - audio_data: 
+    - audio_dict: 
     The audio data (the FFT signals at N_FREQUENCY bins, recorded from N_MICS microphones) is sent in packets of CRTP_PAYLOAD bytes each.
     The new data frame starts when the start condition is met(channel==1) and we count the incoming packets to make sure there is no packet loss.
 
-    - motion_data: 
+    - motion_dict: 
     We read the current motion estimate through the standard logging framework provided by the Crazyflie, and then publish the estimate as a Pose.
     """
     def __init__(self, crazyflie, verbose=False):
-        self.array = np.zeros(N_BYTES, dtype=np.uint8)
 
         self.receivedChar = Caller()
-        self.start = False
-        self.index = 0
-        self.packet_start_time = 0
+        self.start_audio = False
         self.cf = crazyflie
         self.verbose = verbose
 
@@ -94,66 +151,69 @@ class ReaderCRTP(object):
             lg_motion.add_variable(log_value, 'float')
         self.cf.log.add_config(lg_motion)
         lg_motion.data_received_cb.add_callback(self.callback_logging)
-        lg_motion.start()
+        # lg_motion.start()
 
-        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
+        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_crtp)
 
         # this data can be read and published by ROS nodes
         self.start_time = time.time()
-        self.audio_data = {'timestamp': None, 'data': None, 'published': True}
-        self.motion_data = {'timestamp': None, 'data': None, 'published': True}
+        self.audio_dict = {'timestamp': None, 'data': None, 'published': True}
+        self.fbins_dict = {'timestamp': None, 'data': None, 'published': True}
+        self.motion_dict = {'timestamp': None, 'data': None, 'published': True}
+
+        self.audio_array = ArrayCRTP(self.audio_dict, np.float32, N_BYTES_AUDIO, "audio")
+        self.fbins_array = ArrayCRTP(self.fbins_dict, np.int16, N_BYTES_FBINS, "fbins")
 
         # start sending audio data
         self.cf.param.set_value("audio.send_audio_enable", 1)
-        print("set send_audio_enable")
+        if self.verbose:
+            print("ReaderCRTP: set audio.send_audio_enable")
 
     def get_time_ms(self):
-        return int((time.time()-self.start_time)*1000)
+        return int((time.time() - self.start_time) * 1000)
 
-    def callback_audio(self, packet):
-        # We send the first package in channel 1 to identify the start of new audio data.
+    def callback_crtp(self, packet):
+        # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
-            if (self.index != 0) and (self.index != N_FULL_PACKETS + 1):
-                print(f"packets loss: received only {self.index}/{N_FULL_PACKETS+1}")
-            self.index = 0  # reset index
-            self.start = True
-            self.packet_start_time = time.time()
+            self.start_audio = True
+            self.audio_array.reset_array()
+            self.fbins_array.reset_array()
 
-        if self.start:
-            # received all full packets, read remaining bytes
-            if self.index == N_FULL_PACKETS:
-                self.array[
-                    self.index * CRTP_PAYLOAD : self.index * CRTP_PAYLOAD
-                    + N_BYTES_LAST_PACKET
-                ] = packet.datal[
-                    0:N_BYTES_LAST_PACKET
-                ]  # last bytes
-                
-                self.audio_data['data'] = np.frombuffer(self.array, dtype=np.float32)
-                self.audio_data['timestamp'] = self.get_time_ms()
-                self.audio_data['published'] = False
+        if self.start_audio and packet.channel != 2: # channel is either 0 or 1: read data
+            filled = self.audio_array.fill_array_from_crtp(packet, self.get_time_ms())
 
-                if self.verbose:
-                    packet_time = time.time() - self.packet_start_time
-                    print(f"callback_audio: time for all packets: {packet_time}s")
-            else:
-                self.array[
-                    self.index * CRTP_PAYLOAD : (self.index + 1) * CRTP_PAYLOAD
-                ] = packet.datal # packet in list format
-            self.index += 1
+            if self.verbose and filled:
+                packet_time = time.time() - self.audio_array.packet_start_time
+                print(f"ReaderCRTP audio callback: time for all packets: {packet_time}s")
+
+        elif self.start_audio and packet.channel == 2: # channel is 2: read fbins
+            filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms())
+
+            if self.verbose and filled:
+                packet_time = time.time() - self.fbins_array.packet_start_time
+                print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s")
+
 
     def callback_logging(self, timestamp, data, logconf):
-        self.motion_data['timestamp'] = self.get_time_ms()
-        self.motion_data['published'] = False
-        self.motion_data['data'] = {
+        self.motion_dict['timestamp'] = self.get_time_ms()
+        self.motion_dict['published'] = False
+        self.motion_dict['data'] = {
             key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
         if self.verbose:
-            print('callback_logging:', logconf.name, self.motion_data['data'])
+            print('ReaderCRTP logging callback:', logconf.name)
 
 if __name__ == "__main__":
+    import argparse
     verbose = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
+
+    parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
+    parser.add_argument('id', metavar='ID', type=int, help='number of Crazyflie ("radio://0/ID/2M")',
+                        default=69)
+    args = parser.parse_args()
+    id = f"radio://0/{args.id}/2M"
+
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
@@ -164,6 +224,5 @@ if __name__ == "__main__":
             while True:
                 time.sleep(1)
         except:
-            print("unset audio.send_audio_enable")
+            print("ReaderCRTP: unset audio.send_audio_enable")
             cf.param.set_value("audio.send_audio_enable", 0)
-

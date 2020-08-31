@@ -8,3 +8,5 @@ python/.idea/
 *.sch-bak
 
 *.kicad_pcb-bak
+
+python/.idea/
