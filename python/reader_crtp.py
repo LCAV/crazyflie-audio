@@ -87,7 +87,7 @@ class ArrayCRTP(object):
         self.packet_start_time = time.time()
         self.data_dict = data_dict
 
-    def fill_array_from_crtp(self, packet, timestamp=0):
+    def fill_array_from_crtp(self, packet, timestamp=0, verbose=False):
         """
         :param packet: CRTP packet
         :param timestamp: current timestamp
@@ -100,7 +100,7 @@ class ArrayCRTP(object):
                 self.index * CRTP_PAYLOAD:
                 self.index * CRTP_PAYLOAD + self.n_bytes_last
             ] = packet.datal[:self.n_bytes_last] 
-
+            
             self.data_dict['data'] = np.frombuffer(self.array, dtype=self.dtype)
             self.data_dict['timestamp'] = timestamp 
             self.data_dict['published'] = False
@@ -118,6 +118,12 @@ class ArrayCRTP(object):
                 self.index * CRTP_PAYLOAD: 
                 (self.index + 1) * CRTP_PAYLOAD
             ] = packet.datal
+
+            if verbose and (self.name == "fbins"):
+                print(f"filling fbins: (every second should be zero or one):", packet.datal)
+                #packet_bits = [format(byte, '08b') for byte in packet.data]
+                #print("filling in bits: ", packet_bits)
+
             self.index += 1
             return False
 
@@ -162,7 +168,7 @@ class ReaderCRTP(object):
         self.motion_dict = {'timestamp': None, 'data': None, 'published': True}
 
         self.audio_array = ArrayCRTP(self.audio_dict, np.float32, N_BYTES_AUDIO, "audio")
-        self.fbins_array = ArrayCRTP(self.fbins_dict, np.int16, N_BYTES_FBINS, "fbins")
+        self.fbins_array = ArrayCRTP(self.fbins_dict, np.uint16, N_BYTES_FBINS, "fbins")
 
         # start sending audio data
         self.cf.param.set_value("audio.send_audio_enable", 1)
@@ -171,6 +177,7 @@ class ReaderCRTP(object):
 
     def get_time_ms(self):
         return int((time.time() - self.start_time) * 1000)
+
 
     def callback_crtp(self, packet):
         # We send the first package this channel to identify the start of new audio data.
@@ -187,7 +194,7 @@ class ReaderCRTP(object):
                 print(f"ReaderCRTP audio callback: time for all packets: {packet_time}s")
 
         elif self.start_audio and packet.channel == 2: # channel is 2: read fbins
-            filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms())
+            filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=True)
 
             if self.verbose and filled:
                 packet_time = time.time() - self.fbins_array.packet_start_time
@@ -202,6 +209,7 @@ class ReaderCRTP(object):
         }
         if self.verbose:
             print('ReaderCRTP logging callback:', logconf.name)
+
 
 if __name__ == "__main__":
     import argparse
