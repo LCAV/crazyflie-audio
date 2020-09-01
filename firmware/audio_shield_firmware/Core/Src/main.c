@@ -228,12 +228,17 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
 void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c){
 	//STOPCHRONO;
 	//time_fft = time_us;
+	//receive_I2C_param();
+
 }
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c){
 	STOPCHRONO;
 	time_fft = time_us;
-	receive_I2C_param();
+//	send_I2C_array();
+//	receive_I2C_param();
+//
+//	HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte, I2C_RECEIVE_LENGTH_BYTE);
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c){
@@ -283,8 +288,6 @@ int main(void)
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
-	HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte, I2C_RECEIVE_LENGTH_BYTE);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -322,6 +325,8 @@ int main(void)
 
 			frequency_bin_selection(selected_bin_indexes);
 			send_I2C_array();
+//			receive_I2C_param();
+
 			new_sample_to_send = 0;
 		}
 	}
@@ -821,6 +826,8 @@ void uint8_array_to_uint16(uint8_t input[], uint16_t *output){
 }
 
 void receive_I2C_param(){
+	HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte, I2C_RECEIVE_LENGTH_BYTE);
+
 	for (int i = 0;i<I2C_RECEIVE_LENGTH_INT16;i++){
     	uint8_array_to_uint16(&I2C_param_array_byte[i*INT16_PRECISION], &I2C_param_array[i]);
     }
