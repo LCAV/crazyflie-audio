@@ -325,7 +325,8 @@ int main(void)
 
 			frequency_bin_selection(selected_bin_indexes);
 			send_I2C_array();
-//			receive_I2C_param();
+			HAL_Delay(10);
+			receive_I2C_param();
 
 			new_sample_to_send = 0;
 		}
