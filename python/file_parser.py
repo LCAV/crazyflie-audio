@@ -67,16 +67,16 @@ def read_recording_14_7_20(gt_degrees=0, verbose=False, type_="props"):
 
 
 def read_recordings_9_7_20(loudness="high", gt_degrees=0, verbose=False):
-    signals_props = read_recordings_9_7_20(loudness, gt_degrees, verbose, type_="props")
-    signals_source = read_recordings_9_7_20(loudness, gt_degrees, verbose, type_="source")
-    signals_all = read_recordings_9_7_20(loudness, gt_degrees, verbose, type_="all")
+    signals_props,*_ = read_recording_9_7_20(loudness, gt_degrees, verbose, type_="props")
+    signals_source,*_ = read_recording_9_7_20(loudness, gt_degrees, verbose, type_="source")
+    signals_all,*_ = read_recording_9_7_20(loudness, gt_degrees, verbose, type_="all")
     return signals_props, signals_source, signals_all
 
 
-def read_recording_14_7_20(loudness="high", gt_degrees=0, verbose=False):
-    signals_props = read_recordings_14_7_20(loudness, gt_degrees, verbose, type_="props")
-    signals_source = read_recordings_14_7_20(loudness, gt_degrees, verbose, type_="source")
-    signals_all = read_recordings_14_7_20(loudness, gt_degrees, verbose, type_="all")
+def read_recordings_14_7_20(gt_degrees=0, verbose=False):
+    signals_props,*_ = read_recording_14_7_20(gt_degrees, verbose, type_="props")
+    signals_source,*_ = read_recording_14_7_20(gt_degrees, verbose, type_="source")
+    signals_all,*_ = read_recording_14_7_20(gt_degrees, verbose, type_="all")
     return signals_props, signals_source, signals_all
 
 
@@ -125,7 +125,7 @@ def read_recordings(dir_name, loudness, gt_degrees, source=None):
     if dir_name == "recordings_9_7_20":
         return read_recordings_9_7_20(loudness, gt_degrees)
     elif dir_name == "recordings_14_7_20":
-        return read_recordings_14_7_20(loudness, gt_degrees)
+        return read_recordings_14_7_20(gt_degrees)
     elif dir_name == "recordings_16_7_20":
         return read_recordings_16_7_20(loudness, gt_degrees, source)
     else:
