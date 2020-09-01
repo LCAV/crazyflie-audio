@@ -191,6 +191,7 @@ void receive_I2C_param();
 void fill_send_array();
 void int16_array_to_byte_array(uint16_t int16_array[],uint8_t byte_array[]);
 void int16_to_byte_array(uint16_t input, uint8_t output[]);
+void send_I2C_array(void);
 
 /* USER CODE END PFP */
 
@@ -339,6 +340,9 @@ int main(void) {
 			}
 
 			STOPCHRONO;
+			for(int i = 0; i < FFTSIZE_SENT; i++){
+				selected_bin_indexes[i] = 0;
+			}
 			frequency_bin_selection(selected_bin_indexes);
 			send_I2C_array();
 			new_sample_to_send = 0;
@@ -928,41 +932,30 @@ void frequency_bin_selection(uint16_t * selected_bin_indexes){
 #define HI_PASS_INDEX (int)(100/DF)
 #define LO_PASS_INDEX (int)(10000/DF)
 
+	uint16_t sum_candidate = 0;
 
 	float om_0 = 3.27258551 * sqrt(thrust) - 26.41814899;
 
-	// Remove propeler sound +- delta f
 	for(uint16_t i = 0; i < FFTSIZE; i++){
 	    uint8_t in_prop_range = 0;
+	    // Remove propeler sound +- delta f
 	    for(uint8_t j = 0; j < LEN_CARAC_FREQU; j++){
-	        if( fabs((i*DF - (caract_frequ[j] * om_0))) < DELTA_F_PROP){
+	        if( fabs((i*DF - (caract_frequ[j] * om_0))) < DELTA_F_PROP)
 	            in_prop_range = 1;
-	        	break;
-	        }
+			if(in_prop_range){
+				bins_basic_candidates[i] = 0;
+			}else{
+				bins_basic_candidates[i] = 1;
+			}
 	    }
-		if(in_prop_range){
-			bins_basic_candidates[i] = 0;
-		}else{
-			bins_basic_candidates[i] = 1;
-		}
-	}
-
-	// Remove Hi-pass and low-pass candidates
-	for(uint16_t i = 0; i < FFTSIZE; i++){
-	    if((i <= (HI_PASS_INDEX)) || (i >= LO_PASS_INDEX)){
+		// Remove Hi-pass and low-pass candidates
+	    if((i <= (HI_PASS_INDEX)) || (i >= LO_PASS_INDEX))
 	        bins_basic_candidates[i] = 0;
-	    }else{
-	        bins_basic_candidates[i] = 1;
-	    }
+	    // Count candidate that are still available
+	    if(bins_basic_candidates[i] == 1)
+	        sum_candidate += 1;
 	}
 
-	// Count candidate that are still available
-	uint16_t sum_candidate = 0;
-	for(uint16_t i = 0; i < FFTSIZE; i++){
-	    if(bins_basic_candidates[i] == 1){
-	        sum_candidate += 1;
-	    }
-	}
 
 	// Samples uniformly among remaining candidates
 	uint8_t decimation = (int)ceil(sum_candidate / FFTSIZE_SENT);

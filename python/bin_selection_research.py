@@ -52,17 +52,17 @@ thrust = 43000
 
 om_0 = 3.27258551 * np.sqrt(thrust) - 26.41814899
 
-om_0s = om_0 * np.append([0.5, 1, 1.5], np.arange(2, 10, 1))
-
+om_0s = om_0 * np.append([0.5, 1, 1.5], np.arange(2, 27, 1))
+print(f'Number of harmonics {len(om_0s)}')
 NSamples = 1024
 
 for signal in signals_props:
-    freq = np.fft.rfftfreq(len(signal[0:NSamples]), 1 / f)
-    Y = np.fft.rfft(signal[0:NSamples]) / len(signal[0:NSamples])
+    freq = np.fft.rfftfreq(NSamples, 1 / f)
+    Y = np.fft.rfft(signal[0:NSamples]) / NSamples
     #plt.plot(range(len(freq)), np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
     plt.plot(freq, np.abs(Y) , label = f"{dir_names[1]} {loudnesses[1]} {gt_degrees_list[1]} {sources[1]}")
 
-print(freq)
+#print(freq)
 bins_basic_candidates = np.ones(np.size(freq))
 
 DELTA_F_PROP = 100
@@ -70,6 +70,13 @@ FFTSIZE_SENT = 32
 
 hi_pass_f = 100
 lo_pass_f = 10000
+
+lo_pass_index = lo_pass_f/(f/NSamples)
+hi_pass_index = hi_pass_f/(f/NSamples)
+
+print(f/NSamples)
+
+print(f'hi_pass_index = {hi_pass_index } ({hi_pass_f}), lo_pass_index = {lo_pass_index } ({lo_pass_f})')
 
 # Remove propeler sound +- delta f
 for i in range(np.size(freq)):
@@ -85,6 +92,9 @@ for i in range(np.size(freq)):
 for i in range(np.size(freq)):
     if((freq[i] < hi_pass_f) | (freq[i] > lo_pass_f )):
         bins_basic_candidates[i] = 0
+
+for i in range(np.size(freq)):
+    print(f'i = {i}: bins_basic_candidates = {bins_basic_candidates[i]}')
 
 # Count candidate that are still available
 sum_candidate = 0
