@@ -11,12 +11,12 @@ DELTA_F_PROP = 100
 FFTSIZE_SENT = 32
 N_MICS = 4
 
-def select_frequencies(thrust=None, min_f=100, max_f=10000, filter_snr=False, signals_f=None, ax=None):
-    freq = np.fft.rfftfreq(N_BUFFER, 1 / FS)
+def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, ax=None):
+    freq = np.fft.rfftfreq(n_buffer, 1 / fs)
     n_frequencies = len(freq)
 
-    min_index = int(min_f * N_BUFFER / FS)
-    max_index = int(max_f * N_BUFFER / FS)
+    min_index = int(min_freq * n_buffer / fs)
+    max_index = int(max_freq * n_buffer / fs)
 
     assert max_index < n_frequencies, f"{max_index, n_frequencies}"
 
@@ -57,7 +57,7 @@ def select_frequencies(thrust=None, min_f=100, max_f=10000, filter_snr=False, si
         for i in potential_indices:
             sum_ = 0
             for j in range(N_MICS):
-                sum_ += np.abs(signals_f[j, i])
+                sum_ += np.abs(buffer_f[j, i])
             struct = {'amplitude': sum_, 'index': i}
             signals_amp_list.append(struct)
 
@@ -88,25 +88,25 @@ if __name__ == "__main__":
 
     signals_props, signals_source, signals_all = read_recordings(dir_names[1], loudness=loudnesses[1], gt_degrees=gt_degrees_list[1], source=sources[1])
 
-    signals_f = np.fft.rfft(signals_props[:, :N_BUFFER])
+    buffer_f = np.fft.rfft(signals_props[:, :N_BUFFER])
     freqs = np.fft.rfftfreq(N_BUFFER, d=1/FS)
 
     fig, ax = plt.subplots()
 
     thrust = 43000
-    min_f = 100
-    max_f = 15999
-    assert max_f <= FS / 2
-    bin_uniform_avoid_props = select_frequencies(thrust=thrust, min_f=min_f, max_f=max_f, filter_snr=False, ax=ax)
-    bin_uniform_avoid_props_snr = select_frequencies(thrust=thrust, min_f=min_f, max_f=max_f, filter_snr=True, signals_f=signals_f, ax=ax)
+    min_freq = 100
+    max_freq = 4000
+    assert max_freq <= FS / 2
+    bin_uniform_avoid_props = select_frequencies(N_BUFFER, FS, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=False, ax=ax)
+    bin_uniform_avoid_props_snr = select_frequencies(N_BUFFER, FS, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=True, buffer_f=buffer_f, ax=ax)
 
     ### plotting
-    max_amp = np.max(np.abs(signals_f[:, (freqs<max_f) & (freqs>min_f)]))
-    for i, signal in enumerate(signals_f):
+    max_amp = np.max(np.abs(buffer_f[:, (freqs<max_freq) & (freqs>min_freq)]))
+    for i, signal in enumerate(buffer_f):
         ax.plot(freqs, np.abs(signal), label = f"mic{i}")
     ax.scatter(freqs[bin_uniform_avoid_props], [0.3 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props')
     ax.scatter(freqs[bin_uniform_avoid_props_snr], [0.6 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props_snr')
-    ax.set_xlim(0.5*min_f, 1.5*max_f)
+    ax.set_xlim(0.5*min_freq, 1.5*max_freq)
     ax.set_ylim(-1, max_amp)
     ax.legend()
     plt.show()
