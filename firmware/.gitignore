@@ -61,3 +61,4 @@ makefile
 *.settings/
 *.cproject
 *.mxproject
+audio_shield_firmware/Core/.project

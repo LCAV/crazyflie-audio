@@ -11,10 +11,9 @@ from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.crazyflie.syncLogger import SyncLogger
 import cflib.crtp
 
+from cflib.crtp.crtpstack import CRTPPort
 # TODO(FD) for now, below only works with modified cflib.
-# from cflib.crtp.crtpstack import CRTPPort
 # CRTP_PORT_AUDIO = CRTPPort.AUDIO
-
 CRTP_PORT_AUDIO = 0x09
 
 # Only output errors from the logging framework
@@ -94,8 +93,14 @@ class ArrayCRTP(object):
 
         :returns: True if the array was filled, False if it is not full yet.
         """
+        if verbose and (self.name == "fbins"):
+            print(f"ReaderCRTP: filling fbins {self.index} (every second should be zero or one): {packet.datal}")
+        elif verbose and (self.name == "audio"):
+            print(f"ReaderCRTP: filling audio {self.index} (first 6 floats): {packet.datal[:6*4]}")
+
+
+        # received all full packets, read remaining bytes
         if self.index == self.n_packets_full:
-            # received all full packets, read remaining bytes
             self.array[
                 self.index * CRTP_PAYLOAD:
                 self.index * CRTP_PAYLOAD + self.n_bytes_last
@@ -118,11 +123,6 @@ class ArrayCRTP(object):
                 self.index * CRTP_PAYLOAD: 
                 (self.index + 1) * CRTP_PAYLOAD
             ] = packet.datal
-
-            if verbose and (self.name == "fbins"):
-                print(f"filling fbins: (every second should be zero or one):", packet.datal)
-                #packet_bits = [format(byte, '08b') for byte in packet.data]
-                #print("filling in bits: ", packet_bits)
 
             self.index += 1
             return False
@@ -159,7 +159,8 @@ class ReaderCRTP(object):
         lg_motion.data_received_cb.add_callback(self.callback_logging)
         # lg_motion.start()
 
-        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_crtp)
+        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
+        self.cf.add_port_callback(CRTPPort.CONSOLE, self.callback_console)
 
         # this data can be read and published by ROS nodes
         self.start_time = time.time()
@@ -179,7 +180,7 @@ class ReaderCRTP(object):
         return int((time.time() - self.start_time) * 1000)
 
 
-    def callback_crtp(self, packet):
+    def callback_audio(self, packet):
         # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
             self.start_audio = True
@@ -187,19 +188,22 @@ class ReaderCRTP(object):
             self.fbins_array.reset_array()
 
         if self.start_audio and packet.channel != 2: # channel is either 0 or 1: read data
-            filled = self.audio_array.fill_array_from_crtp(packet, self.get_time_ms())
+            filled = self.audio_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=False)
 
             if self.verbose and filled:
                 packet_time = time.time() - self.audio_array.packet_start_time
                 print(f"ReaderCRTP audio callback: time for all packets: {packet_time}s")
 
         elif self.start_audio and packet.channel == 2: # channel is 2: read fbins
-            filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=True)
+            filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=False)
 
             if self.verbose and filled:
                 packet_time = time.time() - self.fbins_array.packet_start_time
                 print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s")
 
+    def callback_console(self, packet):
+        message = ''.join(chr(n) for n in packet.datal)
+        print(message, end='')
 
     def callback_logging(self, timestamp, data, logconf):
         self.motion_dict['timestamp'] = self.get_time_ms()
@@ -213,7 +217,7 @@ class ReaderCRTP(object):
 
 if __name__ == "__main__":
     import argparse
-    verbose = True
+    verbose = False
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
     parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
