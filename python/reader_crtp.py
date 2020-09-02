@@ -11,10 +11,9 @@ from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.crazyflie.syncLogger import SyncLogger
 import cflib.crtp
 
+from cflib.crtp.crtpstack import CRTPPort
 # TODO(FD) for now, below only works with modified cflib.
-# from cflib.crtp.crtpstack import CRTPPort
 # CRTP_PORT_AUDIO = CRTPPort.AUDIO
-
 CRTP_PORT_AUDIO = 0x09
 
 # Only output errors from the logging framework
@@ -160,7 +159,8 @@ class ReaderCRTP(object):
         lg_motion.data_received_cb.add_callback(self.callback_logging)
         # lg_motion.start()
 
-        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_crtp)
+        self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
+        self.cf.add_port_callback(CRTPPort.CONSOLE, self.callback_console)
 
         # this data can be read and published by ROS nodes
         self.start_time = time.time()
@@ -180,7 +180,7 @@ class ReaderCRTP(object):
         return int((time.time() - self.start_time) * 1000)
 
 
-    def callback_crtp(self, packet):
+    def callback_audio(self, packet):
         # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
             self.start_audio = True
@@ -201,6 +201,9 @@ class ReaderCRTP(object):
                 packet_time = time.time() - self.fbins_array.packet_start_time
                 print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s")
 
+    def callback_console(self, packet):
+        message = ''.join(chr(n) for n in packet.datal)
+        print(message, end='')
 
     def callback_logging(self, timestamp, data, logconf):
         self.motion_dict['timestamp'] = self.get_time_ms()
@@ -214,7 +217,7 @@ class ReaderCRTP(object):
 
 if __name__ == "__main__":
     import argparse
-    verbose = True
+    verbose = False
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
     parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
