@@ -6,16 +6,12 @@ file_parser.py: functions to parse audio measurements into standard numpy array 
 
 import os
 
+from mic_array import get_square_array
+
 import numpy as np
 from scipy.io.wavfile import read
 
 root_dir = os.path.abspath(os.path.dirname(__file__) + "/../data/")
-
-parameters = {
-    "recordings_9_7_20": {"Fs": 32000, "time_index": 100},
-    "recordings_14_7_20": {"Fs": 32000, "time_index": 100},
-    "recordings_16_7_20": {"Fs": 42000, "time_index": 42000},
-}
 
 FILENAMES = [
     "back_left.npy",  # 0, should be 2
@@ -23,16 +19,38 @@ FILENAMES = [
     "front_left.npy",  # 2, should be 1
     "front_right.npy",  # 3, should be 3
 ]
+# Note that these positions were not very accurate
+MEMS_MIC_POSITIONS = get_square_array(baseline=0.11, delta=0) 
+MEMS_SOURCE_DISTANCE = 1.925
 
-def read_all(dir_name, verbose=False, fnames=FILENAMES):
+# These positions were more accurate
+MEAS_MIC_POSITIONS = get_square_array(baseline=0.11, delta=0)
+MEAS_SOURCE_DISTANCE = 1.965
+
+SIM_MIC_POSITIONS = get_square_array(baseline=0.11, delta=0)
+SIM_SOURCE_DISTANCE = 1.925
+
+parameters = {
+        "recordings_9_7_20": {"Fs": 32000, "time_index": 100, "mic_positions": MEMS_MIC_POSITIONS, "source_distance": MEMS_SOURCE_DISTANCE},
+        "recordings_14_7_20": {"Fs": 32000, "time_index": 100, "mic_positions": MEMS_MIC_POSITIONS, "source_distance": MEMS_SOURCE_DISTANCE},
+        "recordings_16_7_20": {"Fs": 48000, "time_index": 42000, "mic_positions": MEAS_MIC_POSITIONS, "source_distance": MEAS_SOURCE_DISTANCE},
+        "analytical": {"Fs": 44100, "time_index": 0, "mic_positions": SIM_MIC_POSITIONS, "source_distance": SIM_SOURCE_DISTANCE} 
+        "pyroomacoustics": {"Fs": 44100, "time_index": 400, "mic_positions": SIM_MIC_POSITIONS, "source_distance": SIM_SOURCE_DISTANCE} 
+}
+
+
+
+def read_all(dir_name, Fs=None, verbose=False, fnames=FILENAMES):
     n_times = None
-    Fs = None
     for i, fname in enumerate(fnames):
         fullname = f"{dir_name}/{fname}"
         if fullname.split('.')[-1] == "npy":
+            # Unfortunately we cannot check that the sampling rate matches for 
+            # numpy arrays as it is not saved.
             signal0 = np.load(fullname)
         elif fullname.split('.')[-1] == "wav":
             Fs_new, signal0 = read(fullname)
+            # Check that the sampling rate matches for wav files.
             if Fs is not None:
                 assert Fs == Fs_new
             Fs = Fs_new
@@ -53,7 +71,8 @@ def read_recording_9_7_20(loudness="high", gt_degrees=0, verbose=False, type_="p
         dir_name = root_dir + f"recordings_9_7_20/200Hz/{loudness}_sound/without_prop/"
     elif type_ == "all":
         dir_name = root_dir + f"recordings_9_7_20/200Hz/{loudness}_sound/with_prop/{gt_degrees}_deg/"
-    return read_all(dir_name, verbose)
+    Fs = parameters["recordings_9_7_20"]
+    return read_all(dir_name, Fs, verbose)
 
 
 def read_recording_14_7_20(gt_degrees=0, verbose=False, type_="props"):
@@ -63,7 +82,9 @@ def read_recording_14_7_20(gt_degrees=0, verbose=False, type_="props"):
         dir_name = root_dir + f"/recordings_14_7_20/external_source_only/"
     elif type_ == "all":
         dir_name = root_dir + f"/recordings_14_7_20/external_source_and_propellers/{gt_degrees}deg/"
-    return read_all(dir_name, verbose)
+
+    Fs = parameters["recordings_14_7_20"]
+    return read_all(dir_name, Fs, verbose)
 
 
 def read_recordings_9_7_20(loudness="high", gt_degrees=0, verbose=False):
@@ -132,7 +153,13 @@ def read_recordings(dir_name, loudness, gt_degrees, source=None):
         raise ValueError(dir_name)
 
 
-def read_simulation(type_="analytical_source", verbose=False):
+def read_simulation(type_="analytical", verbose=False):
+    Fs = parameters[type_]
     data_dir = root_dir + "/simulated/"
-    fnames = [f"{type_}_mic{i}.wav" for i in range(1, 5)]
-    return read_all(data_dir, verbose, fnames)
+    fnames_source = [f"{type_}_source_mic{i}.wav" for i in range(1, 5)]
+    signals_source = read_all(data_dir, Fs, verbose, fnames_source)
+    fnames_all = [f"{type_}_all_mic{i}.wav" for i in range(1, 5)]
+    signals_all = read_all(data_dir, Fs, verbose, fnames_all)
+    fnames_props = [f"{type_}_props_mic{i}.wav" for i in range(1, 5)]
+    signals_props = read_props(data_dir, Fs, verbose, fnames_props)
+    return signals_props, signals_source, signals_all
