@@ -6,7 +6,7 @@ Recorded by: Isaac Bernardino
 
 Place: Audio room in INR018. 
 
-Hardware: 1 speaker (MODEL?) and 4 measurement microphones, mounted on the drone outside of the propellers. The drone is standing 1.925 m from the speaker.
+Hardware: 1 speaker (MODEL?) and 4 measurement microphones, mounted on the drone outside of the propellers. The drone is standing 1.965 m from the speaker.
 
 Protocol: 
 
