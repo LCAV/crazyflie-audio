@@ -17,6 +17,7 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
 
     min_index = int(min_freq * n_buffer / fs)
     max_index = int(max_freq * n_buffer / fs)
+    print(min_index, max_index)
 
     assert max_index < n_frequencies, f"{max_index, n_frequencies}"
 
@@ -95,7 +96,7 @@ if __name__ == "__main__":
 
     thrust = 43000
     min_freq = 100
-    max_freq = 4000
+    max_freq = 10000
     assert max_freq <= FS / 2
     bin_uniform_avoid_props = select_frequencies(N_BUFFER, FS, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=False, ax=ax)
     bin_uniform_avoid_props_snr = select_frequencies(N_BUFFER, FS, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=True, buffer_f=buffer_f, ax=ax)
