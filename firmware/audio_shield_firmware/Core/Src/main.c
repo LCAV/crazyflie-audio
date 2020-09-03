@@ -32,7 +32,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-//#define USE_TEST_SIGNALS
+#define USE_TEST_SIGNALS
 #ifdef USE_TEST_SIGNALS
 
 #include "fft_bin_data.h"
@@ -85,6 +85,10 @@ float right_3_f[N_ACTUAL_SAMPLES];
 
 #define FBINS_ARRAY_SIZE_BYTES FFTSIZE_SENT*INT16_PRECISION
 
+#define N_PROP_FACTORS 32
+#define DF (32000.0/FFTSIZE)
+#define DELTA_F_PROP 100
+
 uint8_t I2C_param_array_byte[I2C_RECEIVE_LENGTH_BYTE];
 uint16_t I2C_param_array [I2C_RECEIVE_LENGTH_INT16];
 uint16_t motorPower_array[N_MOTORS];
@@ -94,8 +98,6 @@ uint16_t min_freq = 0;
 uint16_t max_freq = 0;
 
 uint32_t ifftFlag = 0;
-uint32_t doBitReverse = 1;
-
 uint32_t time_fft;
 volatile uint32_t time_bin_process;
 
@@ -114,19 +116,12 @@ float vect_Xfh[N_MIC * 2];
 float vect_R[FFTSIZE][N_MIC * N_MIC * 2];
 float vect_Rinv[FFTSIZE][N_MIC * N_MIC * 2];
 
-// TESTING FD
-//arm_matrix_instance_f32 matX;
-//arm_matrix_instance_f32 matXh;
-//arm_matrix_instance_f32 result;
+uint32_t doBitReverse = 1;
 
 #else
 
-float mat_Xf[FFTSIZE][N_MIC * 2];
-uint8_t mat_Xf_bytes[FFTSIZE_SENT][N_MIC * 2][4];
-uint8_t array_Xf_bytes[ARRAY_SIZE];
-uint8_t fbins_selected_byte[FBINS_ARRAY_SIZE_BYTES];
 uint8_t I2C_send_array[ARRAY_SIZE+FBINS_ARRAY_SIZE_BYTES];
-uint16_t selected_bin_indexes[FFTSIZE_SENT];
+uint16_t selected_indices[FFTSIZE_SENT];
 
 
 #endif
@@ -183,20 +178,43 @@ void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4],
 void float_to_byte_array(float input, uint8_t output[]);
 void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][N_MIC * 2],
 		uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4]);
-void send_corr_matrix();
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
 
-void frequency_bin_selection(uint16_t * selected_bin_indexes);
+void frequency_bin_selection(uint16_t * selected_indices);
 void receive_I2C_param();
 void fill_send_array();
 void int16_array_to_byte_array(uint16_t int16_array[],uint8_t byte_array[]);
 void int16_to_byte_array(uint16_t input, uint8_t output[]);
 void send_I2C_array(void);
+int compare_amplitudes(const void *a, const void *b);
+float abs_value(float real_imag[]);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+struct index_amplitude
+{
+    float amplitude;
+    int index;
+};
+
+int compare_amplitudes(const void *a, const void *b)
+{
+    struct index_amplitude *a1 = (struct index_amplitude *)a;
+    struct index_amplitude *a2 = (struct index_amplitude *)b;
+    if ((*a1).amplitude > (*a2).amplitude)
+        return -1;
+    else if ((*a1).amplitude < (*a2).amplitude)
+        return 1;
+    else
+        return 0;
+}
+
+float abs_value(float real_imag[]) {
+	return sqrt(real_imag[0]*real_imag[0] + real_imag[1]*real_imag[0]);
+}
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 #ifndef USE_TEST_SIGNALS
@@ -284,7 +302,7 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
-	// Start DMAs
+    // Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
@@ -304,6 +322,7 @@ int main(void)
 			right_1[i] = mic2[i];
 			right_3[i] = mic3[i];
 		}
+		new_sample_to_send = 1;
 #endif
 
 		if (new_sample_to_send) {
@@ -323,7 +342,7 @@ int main(void)
 
 			STOPCHRONO;
 
-			frequency_bin_selection(selected_bin_indexes);
+			frequency_bin_selection(selected_indices);
 			send_I2C_array();
 			HAL_Delay(10);
 			receive_I2C_param();
@@ -710,95 +729,84 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 #endif
 }
 
-void frequency_bin_selection(uint16_t * selected_bin_indexes){
+void frequency_bin_selection(uint16_t * selected_indices){
+
+	// TODO(FD) read this from propellers
 	uint16_t thrust = 43000;
-#define LEN_CARAC_FREQU 32
-	float const caract_frequ[LEN_CARAC_FREQU] = {0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ,19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
-	uint8_t bins_basic_candidates [FFTSIZE];
+	float const prop_factors[N_PROP_FACTORS] = {0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ,19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
+	float prop_freq = 3.27258551 * sqrt(thrust) - 26.41814899;
 
-#define DF (32000.0/FFTSIZE)
-#define DELTA_F_PROP 100
-#define HI_PASS_INDEX (int)(100/DF)
-#define LO_PASS_INDEX (int)(10000/DF)
+    int min_freq_idx = (int) min_freq / DF;
+    int max_freq_idx = (int) max_freq / DF;
 
-	uint16_t sum_candidate = 0;
+    // Will only be partially filled. Could implement this with
+    // a dynamic list if it is necessary.
+    uint16_t potential_indices[N_BUFFER];
+    uint16_t potential_count = 0;
 
-	float om_0 = 3.27258551 * sqrt(thrust) - 26.41814899;
+    // Fill bin candidates with the available ones.
+	for(uint16_t i = min_freq_idx; i < max_freq_idx; i++){
 
-	for(uint16_t i = 0; i < FFTSIZE; i++){
-	    uint8_t in_prop_range = 0;
-	    // Remove propeler sound +- delta f
-	    for(uint8_t j = 0; j < LEN_CARAC_FREQU; j++){
-	        if( fabs((i*DF - (caract_frequ[j] * om_0))) < DELTA_F_PROP)
-	            in_prop_range = 1;
-			if(in_prop_range){
-				bins_basic_candidates[i] = 0;
-			}else{
-				bins_basic_candidates[i] = 1;
+		if (filter_propellers_enable) {
+
+			// TODO(FD) loop through all motors here
+			for(uint8_t j = 0; j < N_PROP_FREQ; j++){
+				if( fabs((i*DF - (caract_freq[j] * prop_freq))) < DELTA_F_PROP)
+					continue;
+			    potential_indices[potential_count] = i;
+			    potential_count++;
 			}
-	    }
-		// Remove Hi-pass and low-pass candidates
-	    if((i <= (HI_PASS_INDEX)) || (i >= LO_PASS_INDEX))
-	        bins_basic_candidates[i] = 0;
-	    // Count candidate that are still available
-	    if(bins_basic_candidates[i] == 1)
-	        sum_candidate += 1;
+		}
 	}
 
+	// TODO(FD): check that we have enough potential candidates left:
+	// potential_count should be bigger than FFTSIZE_SENT.
+	// Otherwise come up with a good strategy.
 
-	// Samples uniformly among remaining candidates
-	uint8_t decimation = (int)ceil(sum_candidate / FFTSIZE_SENT);
-
-	uint8_t count_selected_candidates = 0;
-	for(uint16_t i = 0; i < FFTSIZE; i++){
-	    if(bins_basic_candidates[i] == 1){
-	        uint8_t sum = 0;
-	        // check if any of the previous decimation bits where 1
-	        for(uint8_t j = 1; j < decimation; j++){
-	            sum += bins_basic_candidates[((i - j) < 0) ? 0 : (i - j) ];
-	        	if(sum >= 1){
-	        		break;
-	        	}
-	        }
-	        // if previous samples where 0, then ok to place a one
-	        if( (sum == 0) & (count_selected_candidates < FFTSIZE_SENT)){
-	            selected_bin_indexes[count_selected_candidates] = i;
-	        	bins_basic_candidates[i] = 1;
-	            count_selected_candidates += 1;
-	        }else{
-	        	bins_basic_candidates[i] = 0;
-	        }
-	    }
+	if (!filter_snr_enable) {
+		// Samples uniformly among remaining candidates
+		float decimation = (float) bins_idx / FFTSIZE_SENT;
+		for (int i = 0; i < FFTSIZE_SENT; i++) {
+			selected_indices[i] = potential_indices[(int) (float) i * decimation];
+		}
 	}
-}
 
-void send_corr_matrix() {
-	float_matrix_to_byte_matrix(mat_Xf, mat_Xf_bytes);
-	corr_matrix_to_corr_array(mat_Xf_bytes, array_Xf_bytes);
-	HAL_I2C_Slave_Transmit_DMA(&hi2c1, array_Xf_bytes, ARRAY_SIZE);
+	else {
+		struct index_amplitude sort_this[potential_count];
+		float total_amplitude;
+
+		for (int i = 0; i < potential_count; i++) {
+			sort_this[i].amplitude = abs_value(&left_1_f[2*potential_indices[i]])
+								   + abs_value(&left_3_f[2*potential_indices[i]])
+								   + abs_value(&right_1_f[2*potential_indices[i]])
+								   + abs_value(&right_3_f[2*potential_indices[i]]);
+			sort_this[i].index = potential_indices[i];
+		}
+
+		qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
+		for (int i = 0; i < FFTSIZE_SENT; i++) {
+			selected_indices[i] = sort_this[i].index;
+		}
+	}
 }
 
 void send_I2C_array() {
-
-
 	uint16_t i_array = 0;
+
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-
-		float_to_byte_array(left_1_f[selected_bin_indexes[i_fbin]], &I2C_send_array[i_array]); 			i_array += 4;
-		float_to_byte_array(left_3_f[selected_bin_indexes[i_fbin]], &I2C_send_array[i_array]); 			i_array += 4;
-		float_to_byte_array(right_1_f[selected_bin_indexes[i_fbin]], &I2C_send_array[i_array]); 		i_array += 4;
-		float_to_byte_array(right_3_f[selected_bin_indexes[i_fbin]], &I2C_send_array[i_array]); 		i_array += 4;
-		float_to_byte_array(left_1_f[selected_bin_indexes[i_fbin] +1 ], &I2C_send_array[i_array]); 		i_array += 4;
-		float_to_byte_array(left_3_f[selected_bin_indexes[i_fbin] +1 ], &I2C_send_array[i_array]); 		i_array += 4;
-		float_to_byte_array(right_1_f[selected_bin_indexes[i_fbin] +1 ], &I2C_send_array[i_array]); 	i_array += 4;
-		float_to_byte_array(right_3_f[selected_bin_indexes[i_fbin] +1 ], &I2C_send_array[i_array]); 	i_array += 4;
-
+		float_to_byte_array(left_1_f[2*selected_indices[i_fbin]], &I2C_send_array[i_array]); 		i_array += 4;
+		float_to_byte_array(left_3_f[2*selected_indices[i_fbin]], &I2C_send_array[i_array]); 		i_array += 4;
+		float_to_byte_array(right_1_f[2*selected_indices[i_fbin]], &I2C_send_array[i_array]); 		i_array += 4;
+		float_to_byte_array(right_3_f[2*selected_indices[i_fbin]], &I2C_send_array[i_array]); 		i_array += 4;
+		float_to_byte_array(left_1_f[2*selected_indices[i_fbin] +1 ], &I2C_send_array[i_array]); 	i_array += 4;
+		float_to_byte_array(left_3_f[2*selected_indices[i_fbin] +1 ], &I2C_send_array[i_array]); 	i_array += 4;
+		float_to_byte_array(right_1_f[2*selected_indices[i_fbin] +1 ], &I2C_send_array[i_array]); 	i_array += 4;
+		float_to_byte_array(right_3_f[2*selected_indices[i_fbin] +1 ], &I2C_send_array[i_array]); 	i_array += 4;
 	}
 
 	for (int i = 0; i < FBINS_ARRAY_SIZE_BYTES; i++) {
-		int16_to_byte_array(selected_bin_indexes[i], &I2C_send_array[i_array]); i_array += 2;
+		int16_to_byte_array(selected_indices[i], &I2C_send_array[i_array]); i_array += 2;
 	}
-
 
 	HAL_I2C_Slave_Transmit_DMA(&hi2c1, I2C_send_array,  ARRAY_SIZE+FBINS_ARRAY_SIZE_BYTES);
 }
