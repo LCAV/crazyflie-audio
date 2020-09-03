@@ -135,15 +135,19 @@ class ArrayCRTP(object):
 
 class ReaderCRTP(object):
     """
-    ReaderCRTP recovers the data sent through the CRTP protocol and publishes them. 
+    ReaderCRTP recovers the data sent through the CRTP protocol and stores it. 
     There are different schemes for different data types:
 
-    - audio_dict: 
+    - audio: 
     The audio data (the FFT signals at N_FREQUENCY bins, recorded from N_MICS microphones) is sent in packets of CRTP_PAYLOAD bytes each.
     The new data frame starts when the start condition is met(channel==1) and we count the incoming packets to make sure there is no packet loss.
 
-    - motion_dict: 
+    - motion: 
     We read the current motion estimate through the standard logging framework provided by the Crazyflie, and then publish the estimate as a Pose.
+
+    - console: 
+    We read whatever is published using DEBUG_PRINT in the firmware and print it out. 
+
     """
     def __init__(self, crazyflie, verbose=False):
 
