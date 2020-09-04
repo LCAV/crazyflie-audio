@@ -94,7 +94,7 @@ uint16_t min_freq = 100;
 uint16_t max_freq = 10000;
 uint16_t delta_freq = 100;
 
-uint32_t ifftFlag = 0;
+uint32_t ifft_flag = 0;
 uint32_t time_fft;
 volatile uint32_t time_bin_process;
 
@@ -104,7 +104,7 @@ uint8_t new_sample_to_send = 0;
 uint8_t send_buffer[AUDIO_N_BYTES + FBINS_N_BYTES];
 uint16_t selected_indices[FFTSIZE_SENT];
 
-arm_rfft_fast_instance_f32 S;
+arm_rfft_fast_instance_f32 rfft_instance;
 
 #define USE_TEST_SIGNALS
 #ifdef USE_TEST_SIGNALS
@@ -150,47 +150,27 @@ static void MX_I2S1_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
-void process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
-void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4],
-		uint8_t byte_array[AUDIO_N_BYTES]);
-void float_to_byte_array(float input, uint8_t output[]);
-void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][N_MIC * 2],
-		uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4]);
-void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
-
-void frequency_bin_selection(uint16_t *selected_indices);
-void receive_params();
-void fill_send_array();
-void int16_array_to_byte_array(uint16_t int16_array[], uint8_t byte_array[]);
-void int16_to_byte_array(uint16_t input, uint8_t output[]);
-void send_serial(void);
-int compare_amplitudes(const void *a, const void *b);
-float abs_value(float real_imag[]);
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
 
 struct index_amplitude {
 	float amplitude;
 	int index;
 };
 
-int compare_amplitudes(const void *a, const void *b) {
-	struct index_amplitude *a1 = (struct index_amplitude*) a;
-	struct index_amplitude *a2 = (struct index_amplitude*) b;
-	if ((*a1).amplitude > (*a2).amplitude)
-		return -1;
-	else if ((*a1).amplitude < (*a2).amplitude)
-		return 1;
-	else
-		return 0;
-}
+void process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
+void frequency_bin_selection(uint16_t *selected_indices);
+void send_serial(void);
+void receive_serial();
+int compare_amplitudes(const void *a, const void *b);
+float abs_value(float real_imag[]);
+void float_to_byte_array(float input, uint8_t output[]);
+void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
+void int16_to_byte_array(uint16_t input, uint8_t output[]);
 
-float abs_value(float real_imag[]) {
-	return sqrt(real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
-}
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 #ifndef USE_TEST_SIGNALS
@@ -307,14 +287,14 @@ int main(void)
 			processing = 1;
 
 			// FFT executed in the main loop to spare time in the interrupt routine
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, left_1, left_1_f, ifftFlag);
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, left_3, left_3_f, ifftFlag);
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, right_1, right_1_f, ifftFlag);
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, left_1, left_1_f, ifft_flag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, left_3, left_3_f, ifft_flag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, right_1, right_1_f, ifft_flag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, right_3, right_3_f, ifft_flag);
 			processing = 0;
 
 			STOPCHRONO;
@@ -621,17 +601,17 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 #if 0
 	STOPCHRONO;
 	/* process the data through the CFFT/CIFFT module */
-	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_1, ifftFlag, doBitReverse);
+	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_1, ifft_flag, do_bit_reverse);
 
 	/* process the data through the Complex Magnitude Module for
 	 calculating the magnitude at each bin */
-	arm_cmplx_mag_f32(left_1, testOutput, FFTSIZE);
+	arm_cmplx_mag_f32(left_1, test_output, FFTSIZE);
 
 	STOPCHRONO;
 	time_arm_cmplx_mag_f32 = time_us;
 
-	/* Calculates maxValue and returns corresponding BIN value */
-	arm_max_f32(testOutput, FFTSIZE, &maxValue, &testIndex);
+	/* Calculates max_value and returns corresponding BIN value */
+	arm_max_f32(test_output, FFTSIZE, &max_value, &test_index);
 #endif
 }
 
@@ -745,6 +725,38 @@ void send_serial() {
 	//HAL_I2C_Slave_Transmit_DMA(&hi2c1, send_buffer, AUDIO_N_BYTES + FBINS_N_BYTES);
 }
 
+void receive_serial() {
+	//HAL_I2C_Slave_Receive_DMA(&hi2c1, param_array_bytes, PARAMS_N_BYTES);
+
+	for (int i = 0; i < PARAMS_N_INT16; i++) {
+		uint8_array_to_uint16(&param_array_bytes[i * INT16_PRECISION], &param_array[i]);
+	}
+	motor_power_array[0] = param_array[0];
+	motor_power_array[1] = param_array[1];
+	motor_power_array[2] = param_array[2];
+	motor_power_array[3] = param_array[3];
+	min_freq = param_array[4];
+	max_freq = param_array[5];
+	delta_freq = param_array[6];
+	filter_props_enable = param_array[7] & 0xff;
+	filter_snr_enable = (param_array[8] >> 8);
+}
+
+int compare_amplitudes(const void *a, const void *b) {
+	struct index_amplitude *a1 = (struct index_amplitude*) a;
+	struct index_amplitude *a2 = (struct index_amplitude*) b;
+	if ((*a1).amplitude > (*a2).amplitude)
+		return -1;
+	else if ((*a1).amplitude < (*a2).amplitude)
+		return 1;
+	else
+		return 0;
+}
+
+float abs_value(float real_imag[]) {
+	return sqrt(real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
+}
+
 void float_to_byte_array(float input, uint8_t output[]) {
 	uint32_t temp = *((uint32_t*) &input);
 	for (int i = 0; i < 4; i++) {
@@ -762,22 +774,6 @@ void uint8_array_to_uint16(uint8_t input[], uint16_t *output) {
 	*output = ((uint16_t) input[1] << 8) | input[0];
 }
 
-void receive_params() {
-	//HAL_I2C_Slave_Receive_DMA(&hi2c1, param_array_bytes, PARAMS_N_BYTES);
-
-	for (int i = 0; i < PARAMS_N_INT16; i++) {
-		uint8_array_to_uint16(&param_array_bytes[i * INT16_PRECISION], &param_array[i]);
-	}
-	motor_power_array[0] = param_array[0];
-	motor_power_array[1] = param_array[1];
-	motor_power_array[2] = param_array[2];
-	motor_power_array[3] = param_array[3];
-	min_freq = param_array[4];
-	max_freq = param_array[5];
-	delta_freq = param_array[6];
-	filter_props_enable = param_array[7] & 0xff;
-	filter_snr_enable = (param_array[8] >> 8);
-}
 
 /* USER CODE END 4 */
 
