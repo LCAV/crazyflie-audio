@@ -3,13 +3,11 @@
 
 import numpy as np
 
-from file_parser import read_recordings
-
-FS = 32000
 N_BUFFER = 1024
+
+# TODO(FD) should below two parameters be input to function? 
 DELTA_F_PROP = 100
 FFTSIZE_SENT = 32
-N_MICS = 4
 
 def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, ax=None):
     freq = np.fft.rfftfreq(n_buffer, 1 / fs)
@@ -33,7 +31,7 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
         # if this frequency is not in propellers, add it to potential bins.
         if thrust is not None:
             for prop_i in prop_indices:
-                if (abs(freq[i] - prop_i * prop_freq) < DELTA_F_PROP):
+                if (abs(freq[i] - (prop_i * prop_freq)) < DELTA_F_PROP):
                     if ax is not None:
                         ax.scatter(freq[i], 0, color='red')
                     use_this = False
@@ -56,7 +54,7 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
         signals_amp_list = []
         for i in potential_indices:
             sum_ = 0
-            for j in range(N_MICS):
+            for j in range(buffer_f.shape[0]):
                 sum_ += np.abs(buffer_f[j, i])
             struct = {'amplitude': sum_, 'index': i}
             signals_amp_list.append(struct)
@@ -69,9 +67,9 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
 
     return selected_indices
 
-
 if __name__ == "__main__":
     import matplotlib.pylab as plt
+    from file_parser import read_recordings, parameters
 
     dir_names = [
         "recordings_9_7_20",  # audio shield measurements with buffer length 256, only 200Hz source
@@ -83,29 +81,35 @@ if __name__ == "__main__":
         "white_noise",
     ]  # source types (single frequency at 200Hz or white noise)
     loudnesses = ["high", "normal", "low"]  # loudness of source
-
     gt_degrees_list = [0, 20, 40]  # rotation of drone with respect to source.
 
-    signals_props, signals_source, signals_all = read_recordings(dir_names[1], loudness=loudnesses[1], gt_degrees=gt_degrees_list[1], source=sources[1])
+    dir_name = dir_names[1]
+    loudness = loudnesses[1]
+    gt_degrees = gt_degrees_list[1]
+    source = sources[1]
+    Fs = parameters[dir_name]["Fs"]
+
+    signals_props, signals_source, signals_all = read_recordings(dir_name=dir_name, 
+            loudness=loudness, gt_degrees=gt_degrees, source=source)
 
     buffer_f = np.fft.rfft(signals_props[:, :N_BUFFER])
-    freqs = np.fft.rfftfreq(N_BUFFER, d=1/FS)
+    freq = np.fft.rfftfreq(N_BUFFER, d=1/Fs)
 
     fig, ax = plt.subplots()
 
     thrust = 43000
     min_freq = 100
     max_freq = 4000
-    assert max_freq <= FS / 2
-    bin_uniform_avoid_props = select_frequencies(N_BUFFER, FS, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=False, ax=ax)
-    bin_uniform_avoid_props_snr = select_frequencies(N_BUFFER, FS, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=True, buffer_f=buffer_f, ax=ax)
+    assert max_freq <= Fs / 2
+    bin_uniform_avoid_props = select_frequencies(N_BUFFER, Fs, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=False, ax=ax)
+    bin_uniform_avoid_props_snr = select_frequencies(N_BUFFER, Fs, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=True, buffer_f=buffer_f, ax=ax)
 
     ### plotting
-    max_amp = np.max(np.abs(buffer_f[:, (freqs<max_freq) & (freqs>min_freq)]))
-    for i, signal in enumerate(buffer_f):
-        ax.plot(freqs, np.abs(signal), label = f"mic{i}")
-    ax.scatter(freqs[bin_uniform_avoid_props], [0.3 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props')
-    ax.scatter(freqs[bin_uniform_avoid_props_snr], [0.6 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props_snr')
+    max_amp = np.max(np.abs(buffer_f[:, (freq<max_freq) & (freq>min_freq)]))
+    for i, buffer_f_i in enumerate(buffer_f):
+        ax.plot(freq, np.abs(buffer_f_i), label = f"mic{i}")
+    ax.scatter(freq[bin_uniform_avoid_props], [0.3 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props')
+    ax.scatter(freq[bin_uniform_avoid_props_snr], [0.6 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props_snr')
     ax.set_xlim(0.5*min_freq, 1.5*max_freq)
     ax.set_ylim(-1, max_amp)
     ax.legend()

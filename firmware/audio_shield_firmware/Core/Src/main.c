@@ -32,11 +32,6 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-//#define USE_TEST_SIGNALS
-#ifdef USE_TEST_SIGNALS
-#include "fft_bin_data.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -55,7 +50,7 @@ volatile int32_t time_us;
 /* USER CODE BEGIN PD */
 #define N_ACTUAL_SAMPLES (1024)//32
 
-#define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right
+#define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
 
 #define MAXINT 65535
@@ -63,12 +58,12 @@ volatile int32_t time_us;
 int16_t dma_1[FULL_BUFFER_SIZE];
 int16_t dma_3[FULL_BUFFER_SIZE];
 
-float left_1[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
+float left_1[N_ACTUAL_SAMPLES];
 float right_1[N_ACTUAL_SAMPLES];
 float left_3[N_ACTUAL_SAMPLES];
 float right_3[N_ACTUAL_SAMPLES];
 
-float left_1_f[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
+float left_1_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
 float right_1_f[N_ACTUAL_SAMPLES];
 float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
@@ -76,7 +71,7 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
 #define FFTSIZE_SENT 32
-#define ARRAY_SIZE N_MIC*FFTSIZE_SENT*4*2
+#define AUDIO_N_BYTES N_MIC*FFTSIZE_SENT*4*2
 
 #define N_MOTORS 4
 #define INT16_PRECISION 2 // int16 = 2 bytes
@@ -84,7 +79,7 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define I2C_RECEIVE_LENGTH_INT16 (N_MOTORS+SIZE_OF_PARAM_I2C)
 #define I2C_RECEIVE_LENGTH_BYTE I2C_RECEIVE_LENGTH_INT16 * INT16_PRECISION
 
-#define FBINS_ARRAY_SIZE_BYTES FFTSIZE_SENT*INT16_PRECISION
+#define FBINS_N_BYTES FFTSIZE_SENT*INT16_PRECISION
 
 #define N_PROP_FACTORS 32
 #define DF (32000.0/FFTSIZE)
@@ -93,8 +88,8 @@ float right_3_f[N_ACTUAL_SAMPLES];
 uint8_t I2C_param_array_byte[I2C_RECEIVE_LENGTH_BYTE];
 uint16_t I2C_param_array[I2C_RECEIVE_LENGTH_INT16];
 uint16_t motorPower_array[N_MOTORS];
-uint8_t filter_propellers_enable = 0;
-uint8_t filter_snr_enable = 0;
+uint8_t filter_props_enable = 1;
+uint8_t filter_snr_enable = 1;
 uint16_t min_freq = 100;
 uint16_t max_freq = 10000;
 
@@ -105,7 +100,7 @@ volatile uint32_t time_bin_process;
 uint8_t processing = 0;
 uint8_t new_sample_to_send = 0;
 
-uint8_t I2C_send_array[ARRAY_SIZE + FBINS_ARRAY_SIZE_BYTES];
+uint8_t I2C_send_array[AUDIO_N_BYTES + FBINS_N_BYTES];
 uint16_t selected_indices[FFTSIZE_SENT];
 
 uint8_t srcRows;
@@ -114,6 +109,12 @@ uint8_t srcColumns;
 arm_rfft_fast_instance_f32 S;
 
 arm_status status;
+
+#define USE_TEST_SIGNALS
+#ifdef USE_TEST_SIGNALS
+#include "real_data_1024.h"
+//#include "real_data_32.h"
+#endif
 
 /* USER CODE END PD */
 
@@ -155,7 +156,7 @@ static void MX_SPI2_Init(void);
 
 void Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
 void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4],
-		uint8_t byte_array[ARRAY_SIZE]);
+		uint8_t byte_array[AUDIO_N_BYTES]);
 void float_to_byte_array(float input, uint8_t output[]);
 void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][N_MIC * 2],
 		uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4]);
@@ -282,7 +283,7 @@ int main(void)
 
 	spiTxBuffer[0] = 0xEF;
 
-	HAL_SPI_TransmitReceive_DMA(&hspi2, spiTxBuffer, spiRxBuffer, SPI_BUF_SIZE);
+	//HAL_SPI_TransmitReceive_DMA(&hspi2, spiTxBuffer, spiRxBuffer, SPI_BUF_SIZE);
 
   /* USER CODE END 2 */
 
@@ -657,15 +658,20 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	uint16_t potential_count = 0;
 
 	// Fill bin candidates with the available ones.
+	uint8_t min_fac = 0;
 	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
 		uint8_t use_this = 1;
-		if (filter_propellers_enable) {
+		if (filter_props_enable) {
 			// TODO(FD) loop through all motors here
-			for (uint8_t j = 0; j < N_PROP_FACTORS; j++) {
-				if (fabs(
-						(i * DF - (prop_factors[j] * prop_freq))) < DELTA_F_PROP)
+			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
+				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < DELTA_F_PROP) {
 					use_this = 0;
-				break;
+
+					// for the next potential bins we only need
+					// to check starting from here.
+					min_fac = j;
+					break;
+				}
 			}
 		}
 		if (use_this) {
@@ -683,7 +689,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		// Samples uniformly among remaining candidates
 		float decimation = (float) potential_count / FFTSIZE_SENT;
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] = potential_indices[(int) (i * decimation)];
+			selected_indices[i] = potential_indices[(int) round(i * decimation)];
 		}
 	}
 
@@ -737,12 +743,12 @@ void send_I2C_array() {
 		i_array += 4;
 	}
 
-	for (int i = 0; i < FBINS_ARRAY_SIZE_BYTES; i++) {
+	for (int i = 0; i < FBINS_N_BYTES; i++) {
 		int16_to_byte_array(selected_indices[i], &I2C_send_array[i_array]);
 		i_array += 2;
 	}
 
-	//HAL_I2C_Slave_Transmit_DMA(&hi2c1, I2C_send_array, ARRAY_SIZE + FBINS_ARRAY_SIZE_BYTES);
+	//HAL_I2C_Slave_Transmit_DMA(&hi2c1, I2C_send_array, AUDIO_N_BYTES + FBINS_AUDIO_ARRAY_SIZE_BYTES_BYTES);
 }
 
 void float_to_byte_array(float input, uint8_t output[]) {
@@ -770,6 +776,8 @@ void uint8_array_to_uint16(uint8_t input[], uint16_t *output) {
 void receive_I2C_param() {
 	//HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte, I2C_RECEIVE_LENGTH_BYTE);
 
+	// TODO(FD): unnecessary to convert whole array, can read only last two
+	// bytes separately.
 	for (int i = 0; i < I2C_RECEIVE_LENGTH_INT16; i++) {
 		uint8_array_to_uint16(&I2C_param_array_byte[i * INT16_PRECISION],
 				&I2C_param_array[i]);
@@ -780,7 +788,7 @@ void receive_I2C_param() {
 	motorPower_array[3] = I2C_param_array[3];
 	min_freq = I2C_param_array[4];
 	max_freq = I2C_param_array[5];
-	filter_propellers_enable = I2C_param_array_byte[12];
+	filter_props_enable = I2C_param_array_byte[12];
 	filter_snr_enable = I2C_param_array_byte[13];
 }
 
