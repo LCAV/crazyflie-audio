@@ -5,11 +5,9 @@ import numpy as np
 
 N_BUFFER = 1024
 
-# TODO(FD) should below two parameters be input to function? 
-DELTA_F_PROP = 100
 FFTSIZE_SENT = 32
 
-def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, ax=None):
+def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False):
     freq = np.fft.rfftfreq(n_buffer, 1 / fs)
     n_frequencies = len(freq)
 
@@ -21,7 +19,7 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
     potential_indices = []
 
     # Calculate propeller sound bins
-    if thrust is not None:
+    if thrust > 0:
         prop_freq = 3.27258551 * np.sqrt(thrust) - 26.41814899
         prop_indices = np.append([0.5, 1, 1.5], np.arange(2, 27, 1))
 
@@ -29,9 +27,9 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
     for i in np.arange(min_index, max_index):
         use_this = True
         # if this frequency is not in propellers, add it to potential bins.
-        if thrust is not None:
+        if thrust > 0:
             for prop_i in prop_indices:
-                if (abs(freq[i] - (prop_i * prop_freq)) < DELTA_F_PROP):
+                if (abs(freq[i] - (prop_i * prop_freq)) < delta_freq):
                     if ax is not None:
                         ax.scatter(freq[i], 0, color='red')
                     use_this = False
@@ -39,22 +37,26 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
         if use_this:
             potential_indices.append(i)
 
-    assert len(potential_indices) >= FFTSIZE_SENT
-    print(f'selecting {FFTSIZE_SENT} from {len(potential_indices)}')
+    if verbose:
+        print(f'selecting {FFTSIZE_SENT} from {len(potential_indices)}')
+    if not potential_indices:
+        print(f"Warning: did not find any potential indices. using min_freq={min_freq}")
+        potential_indices = [min_index]
 
     # Select indices based on snr or uniformly. 
     selected_indices = []
     if not filter_snr: # choose uniformly every k-th bin
         decimation = len(potential_indices) / FFTSIZE_SENT
         for i in range(FFTSIZE_SENT):
-            selected_indices.append(potential_indices[round(i * decimation)])
+            idx = round(i * decimation)
+            selected_indices += potential_indices[idx:idx+1]
 
     else: # choose the highest K amplitude bins. 
         # C-like structure to be used in qsort.
         signals_amp_list = []
         for i in potential_indices:
             sum_ = 0
-            for j in range(buffer_f.shape[0]):
+            for j in range(buffer_f.shape[0]): # buffer_f is of shape n_mics x n_bins_
                 sum_ += np.abs(buffer_f[j, i])
             struct = {'amplitude': sum_, 'index': i}
             signals_amp_list.append(struct)
@@ -63,7 +65,15 @@ def select_frequencies(n_buffer, fs, thrust=None, min_freq=100, max_freq=10000, 
         sorted_signals_amp_list = sorted(signals_amp_list, key=lambda elem: elem['amplitude'])[::-1]
 
         for i in range(FFTSIZE_SENT):
-            selected_indices.append(sorted_signals_amp_list[i]['index'])
+            # thanks to 
+            elements = sorted_signals_amp_list[i:i+1]
+            selected_indices += [e['index'] for e in elements]
+
+    if len(selected_indices) < FFTSIZE_SENT:
+        print("Warning: selected less indices than required. Duplicating fbins")
+        selected_indices += selected_indices[:1] * (FFTSIZE_SENT - len(selected_indices))
+
+    assert len(selected_indices) == FFTSIZE_SENT, len(selected_indices)
 
     return selected_indices
 
