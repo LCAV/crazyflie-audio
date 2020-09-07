@@ -5,7 +5,7 @@ algos_beamforming.py: algorithms for beamforming
 """
 import numpy as np
 
-from algos_basics import get_autocorrelation, get_mic_delta, get_mic_delays
+from algos_basics import get_autocorrelation, get_mic_delays
 from constants import SPEED_OF_SOUND
 
 def get_lcmv_beamformer(
@@ -25,6 +25,9 @@ def get_lcmv_beamformer(
     
     :returns: list of n_mics complex microphone gains for LCMV algorithm. 
     """
+
+    print("Deprecation warning: use get_lcmv_beamformer_fast for better performance.")
+
     assert mic_positions.ndim == 2, "watch out, changed argument order!!"
     
     n_mics = Rx.shape[1]
@@ -55,12 +58,54 @@ def get_lcmv_beamformer(
 
         # solve the optimization problem
         Rx_inv = np.linalg.pinv(Rx[j, :, :] + lamda * np.eye(Rx.shape[1]), rcond=rcond)
-        big_mat = C.conj().T @ Rx_inv @ C
+        # (n_constraints x n_mics) (n_mics  x n_mics) (n_mics x n_constraints) 
+        # = n_constraints x n_constraints
+        big_mat = C.conj().T @ Rx_inv @ C         
         big_inv = np.linalg.pinv(big_mat, rcond=rcond)
         H[j, :] = Rx_inv @ C @ big_inv @ c
         condition_numbers.append(np.linalg.cond(Rx[j, :, :]))
         condition_numbers_big.append(np.linalg.cond(big_mat))
     return H, condition_numbers, condition_numbers_big
+
+
+def get_lcmv_beamformer_fast(
+    Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None
+):
+    """
+    Solves the problem: h = min E(|y(t)|**2)
+    under the given constraints
+
+    :param Rx: n_frequencies x n_mics x n_mics covariance matrix.
+    :param frequencies: frequencies in Hz. 
+    :param mic_positions: n_mics x dim positions of mic array
+    :param constraints: list of constraint tuples of form (angle: response)
+    :param rcond: regularization parameter. 
+    
+    :returns: list of n_mics complex microphone gains for LCMV algorithm. 
+    """
+    assert mic_positions.ndim == 2, "watch out, changed argument order!!"
+    n_mics = Rx.shape[1]
+    assert mic_positions.shape[0] == n_mics
+
+    # generate constraints
+    C = np.zeros((len(frequencies), n_mics, 0), dtype=np.complex128)
+    c = np.array([c[1] for c in constraints], dtype=np.complex128)
+    for theta,__ in constraints:
+        delays = get_mic_delays(mic_positions, theta, elevation)
+        exponent = 2 * np.pi * delays[None, :] * frequencies[:, None] # n_freq x n_mics
+        C_row = np.exp(-1j * exponent)
+        C = np.concatenate([C, C_row[:, :, None]], axis=2) # n_freq x n_mics x n_constr
+
+    # solve the optimization problem
+    Rx_inv = np.linalg.pinv(Rx + lamda * np.eye(Rx.shape[1])[None, :, :], rcond=rcond) # n_freq x n_mics x n_mics
+    # big_mat should have dimension n_freq x n_constr x n_constr
+    # (n_freq x n_constr x n_mics) (n_freq x n_mics x n_mics) = n_freq x n_constr x n_mics 
+    # @ n_freq x n_mics x n_constr = n_freq x n_constr x n_constr
+    big_mat = np.transpose(C.conj(), (0, 2, 1)) @ Rx_inv @ C  # 
+    big_inv = np.linalg.pinv(big_mat, rcond=rcond)
+    # n_freq x n_mics x n_mics @ # n_freq x n_mics x n_constr = n_freq x n_mics x n_constr
+    H = Rx_inv @ C @ big_inv @ c
+    return H
 
 
 def get_das_beamformer(
@@ -83,26 +128,10 @@ def get_das_beamformer(
     return gains / mic_positions.shape[0]
 
 
-# TODO: redundant function, to be deleted soon.
-def get_das_powers(azimuth, frequencies, mic_positions, Rx):
-    n_frequencies = Rx.shape[0]
-    beamformer = das(azimuth, frequencies, mic_positions)
-    powers = np.empty(n_frequencies)
-    for j in range(n_frequencies):
-        a = beamformer[j, :]
-        powers[j] = np.abs(a.conj() @ Rx[j, :, :] @ a / (a.conj() @ a))
-    return powers
-
-
 def get_beampattern(azimuth, frequencies, mic_positions, H):
     mic_ref = mic_positions[0]
     elevation = None
-    delays = np.array(
-        [
-            get_mic_delta(mic_ref, mic_other, azimuth, elevation) / SPEED_OF_SOUND
-            for mic_other in mic_positions
-        ]
-    )
+    delays = get_mic_delays(mic_positions, azimuth, elevation)
     exponent = 2 * np.pi * np.outer(frequencies, delays)
     if (azimuth <= np.pi / 2) and (azimuth >= 0):
         assert np.all(exponent >= 0)
@@ -126,11 +155,9 @@ def get_powers(H, Rx):
     n_mics = Rx.shape[1]
     assert H.shape[0] == n_frequencies
     assert H.shape[1] == n_mics
-
-    powers = np.empty(n_frequencies)
-    for j in range(n_frequencies):
-        h = H[j, :]
-        powers[j] = np.abs(h.conj() @ Rx[j, :, :] @ h)
+    # (n_frequencies x 1 x n_mics) (n_frequencies x n_mics x n_mics) (n_frequencies x n_mics x 1) 
+    # n_frequencies x 1 x n_mics (n_frequencies x n_mics x 1)
+    powers =  np.abs(H.conj()[:, None, :] @ Rx @ H[:, :, None]).squeeze()
     return powers
 
 
