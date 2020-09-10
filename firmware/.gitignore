@@ -62,4 +62,6 @@ makefile
 *.cproject
 *.mxproject
 audio_shield_firmware/Core/.project
-**/subdir.mk
+
+# below files are changed on ubuntu for some reason
+subdir.mk
