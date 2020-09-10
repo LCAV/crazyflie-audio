@@ -43,6 +43,8 @@
 		HAL_TIM_Base_Start(&htim2);\
 })
 volatile int32_t time_us;
+volatile int32_t time_spi_error;
+volatile int32_t time_spi_ok;
 
 /* USER CODE END PTD */
 
@@ -119,6 +121,9 @@ arm_rfft_fast_instance_f32 rfft_instance;
 int current_error;
 uint8_t retval=0;
 uint8_t waiting=0;
+uint32_t counter_error=0;
+uint32_t counter_ok=0;
+
 // DEBUGGING END
 
 
@@ -267,7 +272,8 @@ int main(void)
   HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
   memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
-  spi_tx_buffer[0] = 0x01;
+  memset(selected_indices, 0x00, FFTSIZE_SENT);
+  //spi_tx_buffer[0] = 0x01;
 
   /* USER CODE END 2 */
 
@@ -321,14 +327,20 @@ int main(void)
 		//retval = HAL_SPI_Transmit_IT(&hspi2, spi_tx_buffer, SPI_N_BYTES);
 		//retval = HAL_SPI_Receive_IT(&hspi2, spi_rx_buffer, SPI_N_BYTES);
 
+		STOPCHRONO;
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		STOPCHRONO;
 		if (retval != HAL_OK) {
-			Error_Handler();
+			time_spi_error = time_us;
+			counter_error++;
+			//Error_Handler();
 		}
 		else {
+			time_spi_ok = time_us;
+			counter_ok++;
 			read_rx_buffer();
-			spi_tx_buffer[0] += 1;
-			spi_tx_buffer[0] %= 0xFF;
+			//spi_tx_buffer[0] += 1;
+			//spi_tx_buffer[0] %= 0xFF;
 		}
 		//while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {}
 	}
@@ -644,6 +656,10 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 			25, 26, 27, 28, 29, 30 };
 	float prop_freq = 3.27258551 * sqrt(thrust) - 26.41814899;
 
+	if (min_freq > max_freq) {
+		return;
+	}
+
 	int min_freq_idx = (int) min_freq / DF;
 	int max_freq_idx = (int) max_freq / DF;
 
@@ -679,6 +695,9 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	// TODO(FD): check that we have enough potential candidates left:
 	// potential_count should be bigger than FFTSIZE_SENT.
 	// Otherwise come up with a good strategy.
+	if (potential_count < FFTSIZE_SENT) {
+		return;
+	}
 
 	if (!filter_snr_enable) {
 		// Samples uniformly among remaining candidates
