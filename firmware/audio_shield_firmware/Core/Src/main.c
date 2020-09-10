@@ -320,9 +320,6 @@ int main(void)
 		}
 		current_error = 0;
 		waiting = 0;
-		//retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-		//retval = HAL_SPI_Transmit_IT(&hspi2, spi_tx_buffer, SPI_N_BYTES);
-		//retval = HAL_SPI_Receive_IT(&hspi2, spi_rx_buffer, SPI_N_BYTES);
 
 		STOPCHRONO;
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
@@ -339,7 +336,6 @@ int main(void)
 			//spi_tx_buffer[0] += 1;
 			//spi_tx_buffer[0] %= 0xFF;
 		}
-		//while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {}
 	}
   /* USER CODE END 3 */
 }
