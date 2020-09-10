@@ -149,19 +149,20 @@ class ReaderCRTP(object):
     We read whatever is published using DEBUG_PRINT in the firmware and print it out. 
 
     """
-    def __init__(self, crazyflie, verbose=False):
+    def __init__(self, crazyflie, verbose=False, log_motion=False):
 
         self.receivedChar = Caller()
         self.start_audio = False
         self.cf = crazyflie
         self.verbose = verbose
 
-        lg_motion = LogConfig(name='Motion2D', period_in_ms=LOGGING_PERIOD_MS)
-        for log_value in CHOSEN_LOGGERS.values():
-            lg_motion.add_variable(log_value, 'float')
-        self.cf.log.add_config(lg_motion)
-        lg_motion.data_received_cb.add_callback(self.callback_logging)
-        # lg_motion.start()
+        if log_motion:
+            lg_motion = LogConfig(name='Motion2D', period_in_ms=LOGGING_PERIOD_MS)
+            for log_value in CHOSEN_LOGGERS.values():
+                lg_motion.add_variable(log_value, 'float')
+            self.cf.log.add_config(lg_motion)
+            lg_motion.data_received_cb.add_callback(self.callback_logging)
+            lg_motion.start()
 
         self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
         self.cf.add_port_callback(CRTPPort.CONSOLE, self.callback_console)
