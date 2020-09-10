@@ -32,11 +32,6 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-//#define USE_TEST_SIGNALS
-#ifdef USE_TEST_SIGNALS
-#include "fft_bin_data.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -46,7 +41,7 @@
 		HAL_TIM_Base_Stop(&htim2);\
 		HAL_TIM_Base_Init(&htim2);\
 		HAL_TIM_Base_Start(&htim2);\
-	})
+})
 volatile int32_t time_us;
 
 /* USER CODE END PTD */
@@ -55,7 +50,7 @@ volatile int32_t time_us;
 /* USER CODE BEGIN PD */
 #define N_ACTUAL_SAMPLES (1024)//32
 
-#define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right
+#define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
 
 #define MAXINT 65535
@@ -63,12 +58,12 @@ volatile int32_t time_us;
 int16_t dma_1[FULL_BUFFER_SIZE];
 int16_t dma_3[FULL_BUFFER_SIZE];
 
-float left_1[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
+float left_1[N_ACTUAL_SAMPLES];
 float right_1[N_ACTUAL_SAMPLES];
 float left_3[N_ACTUAL_SAMPLES];
 float right_3[N_ACTUAL_SAMPLES];
 
-float left_1_f[N_ACTUAL_SAMPLES]; // Complex type to feed fft [real1,imag1, real2, imag2]
+float left_1_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
 float right_1_f[N_ACTUAL_SAMPLES];
 float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
@@ -76,62 +71,46 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
 #define FFTSIZE_SENT 32
-#define ARRAY_SIZE N_MIC*FFTSIZE_SENT*4*2
+#define AUDIO_N_BYTES N_MIC*FFTSIZE_SENT*4*2
 
 #define N_MOTORS 4
 #define INT16_PRECISION 2 // int16 = 2 bytes
-#define SIZE_OF_PARAM_I2C 3 // in uint16, min_freq = 1, max_freq = 1, snr + propeller enable = 1, tot = 3
-#define I2C_RECEIVE_LENGTH_INT16 (N_MOTORS+SIZE_OF_PARAM_I2C)
-#define I2C_RECEIVE_LENGTH_BYTE I2C_RECEIVE_LENGTH_INT16 * INT16_PRECISION
+// in uint16, min_freq = 1, max_freq = 1, delta_freq = 1,
+// snr + propeller enable = 1, tot = 4
+#define PARAMS_N_INT16 (N_MOTORS + 4)
+#define PARAMS_N_BYTES PARAMS_N_INT16 * INT16_PRECISION
 
-#define FBINS_ARRAY_SIZE_BYTES FFTSIZE_SENT*INT16_PRECISION
+#define FBINS_N_BYTES FFTSIZE_SENT*INT16_PRECISION
 
 #define N_PROP_FACTORS 32
 #define DF (32000.0/FFTSIZE)
-#define DELTA_F_PROP 100
 
-uint8_t I2C_param_array_byte[I2C_RECEIVE_LENGTH_BYTE];
-uint16_t I2C_param_array[I2C_RECEIVE_LENGTH_INT16];
-uint16_t motorPower_array[N_MOTORS];
-uint8_t filter_propellers_enable = 0;
-uint8_t filter_snr_enable = 0;
+uint8_t param_array_bytes[PARAMS_N_BYTES];
+uint16_t param_array[PARAMS_N_INT16];
+uint16_t motor_power_array[N_MOTORS];
+uint8_t filter_props_enable = 1;
+uint8_t filter_snr_enable = 1;
 uint16_t min_freq = 100;
 uint16_t max_freq = 10000;
+uint16_t delta_freq = 100;
 
-uint32_t ifftFlag = 0;
+uint32_t ifft_flag = 0;
 uint32_t time_fft;
 volatile uint32_t time_bin_process;
 
 uint8_t processing = 0;
 uint8_t new_sample_to_send = 0;
 
-#ifdef MATRIX_INVERSE_CALCULATION
-
-arm_matrix_instance_f32 matXf;
-arm_matrix_instance_f32 matXfh;
-arm_matrix_instance_f32 matR[FFTSIZE];
-arm_matrix_instance_f32 matRinv[FFTSIZE];
-
-float vect_Xf[N_MIC * 2];
-float vect_Xfh[N_MIC * 2];
-float vect_R[FFTSIZE][N_MIC * N_MIC * 2];
-float vect_Rinv[FFTSIZE][N_MIC * N_MIC * 2];
-
-uint32_t doBitReverse = 1;
-
-#else
-
-uint8_t I2C_send_array[ARRAY_SIZE + FBINS_ARRAY_SIZE_BYTES];
+uint8_t send_buffer[AUDIO_N_BYTES + FBINS_N_BYTES];
 uint16_t selected_indices[FFTSIZE_SENT];
 
+arm_rfft_fast_instance_f32 rfft_instance;
+
+#define USE_TEST_SIGNALS
+#ifdef USE_TEST_SIGNALS
+#include "real_data_1024.h"
+//#include "real_data_32.h"
 #endif
-
-uint8_t srcRows;
-uint8_t srcColumns;
-
-arm_rfft_fast_instance_f32 S;
-
-arm_status status;
 
 /* USER CODE END PD */
 
@@ -141,22 +120,23 @@ arm_status status;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
-DMA_HandleTypeDef hdma_i2c1_tx;
-DMA_HandleTypeDef hdma_i2c1_rx;
-
 I2S_HandleTypeDef hi2s1;
 I2S_HandleTypeDef hi2s3;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi3_rx;
 
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
 
 TIM_HandleTypeDef htim2;
 
-UART_HandleTypeDef huart4;
-
 /* USER CODE BEGIN PV */
+
+#define SPI_BUF_SIZE 1
+
+uint8_t spi_tx_buffer[SPI_BUF_SIZE];
+uint8_t spi_rx_buffer[SPI_BUF_SIZE];
 
 /* USER CODE END PV */
 
@@ -166,60 +146,38 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_I2S3_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_I2S1_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
-void Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
-void corr_matrix_to_corr_array(uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4],
-		uint8_t byte_array[ARRAY_SIZE]);
-void float_to_byte_array(float input, uint8_t output[]);
-void float_matrix_to_byte_matrix(float float_matrix[FFTSIZE_SENT][N_MIC * 2],
-		uint8_t byte_matrix[FFTSIZE_SENT][N_MIC * 2][4]);
-void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
-
-void frequency_bin_selection(uint16_t *selected_indices);
-void receive_I2C_param();
-void fill_send_array();
-void int16_array_to_byte_array(uint16_t int16_array[], uint8_t byte_array[]);
-void int16_to_byte_array(uint16_t input, uint8_t output[]);
-void send_I2C_array(void);
-int compare_amplitudes(const void *a, const void *b);
-float abs_value(float real_imag[]);
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
 
 struct index_amplitude {
 	float amplitude;
 	int index;
 };
 
-int compare_amplitudes(const void *a, const void *b) {
-	struct index_amplitude *a1 = (struct index_amplitude*) a;
-	struct index_amplitude *a2 = (struct index_amplitude*) b;
-	if ((*a1).amplitude > (*a2).amplitude)
-		return -1;
-	else if ((*a1).amplitude < (*a2).amplitude)
-		return 1;
-	else
-		return 0;
-}
+void process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
+void frequency_bin_selection(uint16_t *selected_indices);
+void send_serial(void);
+void receive_serial();
+int compare_amplitudes(const void *a, const void *b);
+float abs_value(float real_imag[]);
+void float_to_byte_array(float input, uint8_t output[]);
+void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
+void int16_to_byte_array(uint16_t input, uint8_t output[]);
 
-float abs_value(float real_imag[]) {
-	return sqrt(real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
-}
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 #ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
-		Process(dma_1, left_1, right_1, HALF_BUFFER_SIZE);
+		process(dma_1, left_1, right_1, HALF_BUFFER_SIZE);
 	} else {
-		Process(dma_3, left_3, right_3, HALF_BUFFER_SIZE);
+		process(dma_3, left_3, right_3, HALF_BUFFER_SIZE);
 	}
 #endif
 }
@@ -227,37 +185,34 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
-		Process(&dma_1[HALF_BUFFER_SIZE], left_1, right_1, HALF_BUFFER_SIZE);
+		process(&dma_1[HALF_BUFFER_SIZE], left_1, right_1, HALF_BUFFER_SIZE);
 	} else {
-		Process(&dma_3[HALF_BUFFER_SIZE], left_3, right_3, HALF_BUFFER_SIZE);
+		process(&dma_3[HALF_BUFFER_SIZE], left_3, right_3, HALF_BUFFER_SIZE);
 	}
 #endif
 }
 
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-}
-
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
-
-}
-
-void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-	//STOPCHRONO;
-	//time_fft = time_us;
-	//receive_I2C_param();
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(hspi);
 
 }
 
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
-	STOPCHRONO;
-	time_fft = time_us;
-//	send_I2C_array();
-//	receive_I2C_param();
-//
-//	HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte, I2C_RECEIVE_LENGTH_BYTE);
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(hspi);
+
 }
 
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(hspi);
+
+}
+
+void HAL_SPI_AbortCpltCallback(SPI_HandleTypeDef *hspi) {
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(hspi);
 
 }
 
@@ -267,7 +222,8 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
  * @brief  The application entry point.
  * @retval int
  */
-int main(void) {
+int main(void)
+{
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
@@ -293,15 +249,17 @@ int main(void) {
 	MX_DMA_Init();
 	MX_I2S3_Init();
 	MX_TIM2_Init();
-	MX_I2C1_Init();
 	MX_I2S1_Init();
 	MX_SPI2_Init();
-	MX_UART4_Init();
 	/* USER CODE BEGIN 2 */
 
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
+
+	spi_tx_buffer[0] = 0xEF;
+
+	//HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_BUF_SIZE);
 
 	/* USER CODE END 2 */
 
@@ -322,32 +280,31 @@ int main(void) {
 		new_sample_to_send = 1;
 #endif
 
+		spi_tx_buffer[0] += 1;
+		spi_tx_buffer[0] %= 0xFF;
+
 		if (new_sample_to_send) {
 			processing = 1;
-			/* Process the data through the CFFT/CIFFT module */
 
 			// FFT executed in the main loop to spare time in the interrupt routine
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, left_1, left_1_f, ifftFlag);
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, left_3, left_3_f, ifftFlag);
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, right_1, right_1_f, ifftFlag);
-			arm_rfft_fast_init_f32(&S, FFTSIZE);
-			arm_rfft_fast_f32(&S, right_3, right_3_f, ifftFlag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, left_1, left_1_f, ifft_flag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, left_3, left_3_f, ifft_flag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, right_1, right_1_f, ifft_flag);
+			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+			arm_rfft_fast_f32(&rfft_instance, right_3, right_3_f, ifft_flag);
 			processing = 0;
 
 			STOPCHRONO;
 
 			frequency_bin_selection(selected_indices);
-			send_I2C_array();
-			HAL_Delay(10);
-			//receive_I2C_param();
+			send_serial();
 
 			new_sample_to_send = 0;
 		}
 	}
-
 	/* USER CODE END 3 */
 }
 
@@ -355,10 +312,11 @@ int main(void) {
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
-	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
+void SystemClock_Config(void)
+{
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
 	/** Configure the main internal regulator output voltage
 	 */
@@ -376,23 +334,24 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
 	RCC_OscInitStruct.PLL.PLLQ = 2;
 	RCC_OscInitStruct.PLL.PLLR = 2;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/** Initializes the CPU, AHB and APB busses clocks
 	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+			|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+	{
 		Error_Handler();
 	}
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1
-			| RCC_PERIPHCLK_I2S_APB2;
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1|RCC_PERIPHCLK_I2S_APB2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
 	PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
@@ -401,41 +360,10 @@ void SystemClock_Config(void) {
 	PeriphClkInitStruct.PLLI2SDivQ = 1;
 	PeriphClkInitStruct.I2sApb2ClockSelection = RCC_I2SAPB2CLKSOURCE_PLLI2S;
 	PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+	{
 		Error_Handler();
 	}
-}
-
-/**
- * @brief I2C1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_I2C1_Init(void) {
-
-	/* USER CODE BEGIN I2C1_Init 0 */
-
-	/* USER CODE END I2C1_Init 0 */
-
-	/* USER CODE BEGIN I2C1_Init 1 */
-
-	/* USER CODE END I2C1_Init 1 */
-	hi2c1.Instance = I2C1;
-	hi2c1.Init.ClockSpeed = 100000;
-	hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-	hi2c1.Init.OwnAddress1 = 94;
-	hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-	hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	hi2c1.Init.OwnAddress2 = 0;
-	hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-	if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN I2C1_Init 2 */
-
-	/* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -443,7 +371,8 @@ static void MX_I2C1_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_I2S1_Init(void) {
+static void MX_I2S1_Init(void)
+{
 
 	/* USER CODE BEGIN I2S1_Init 0 */
 
@@ -461,7 +390,8 @@ static void MX_I2S1_Init(void) {
 	hi2s1.Init.CPOL = I2S_CPOL_LOW;
 	hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
 	hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-	if (HAL_I2S_Init(&hi2s1) != HAL_OK) {
+	if (HAL_I2S_Init(&hi2s1) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN I2S1_Init 2 */
@@ -475,7 +405,8 @@ static void MX_I2S1_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_I2S3_Init(void) {
+static void MX_I2S3_Init(void)
+{
 
 	/* USER CODE BEGIN I2S3_Init 0 */
 
@@ -493,7 +424,8 @@ static void MX_I2S3_Init(void) {
 	hi2s3.Init.CPOL = I2S_CPOL_LOW;
 	hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
 	hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-	if (HAL_I2S_Init(&hi2s3) != HAL_OK) {
+	if (HAL_I2S_Init(&hi2s3) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN I2S3_Init 2 */
@@ -507,7 +439,8 @@ static void MX_I2S3_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_SPI2_Init(void) {
+static void MX_SPI2_Init(void)
+{
 
 	/* USER CODE BEGIN SPI2_Init 0 */
 
@@ -518,18 +451,18 @@ static void MX_SPI2_Init(void) {
 	/* USER CODE END SPI2_Init 1 */
 	/* SPI2 parameter configuration*/
 	hspi2.Instance = SPI2;
-	hspi2.Init.Mode = SPI_MODE_MASTER;
+	hspi2.Init.Mode = SPI_MODE_SLAVE;
 	hspi2.Init.Direction = SPI_DIRECTION_2LINES;
 	hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
 	hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
 	hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
-	hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+	hspi2.Init.NSS = SPI_NSS_SOFT;
 	hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
 	hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
 	hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
 	hspi2.Init.CRCPolynomial = 10;
-	if (HAL_SPI_Init(&hspi2) != HAL_OK) {
+	if (HAL_SPI_Init(&hspi2) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN SPI2_Init 2 */
@@ -543,14 +476,15 @@ static void MX_SPI2_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_TIM2_Init(void) {
+static void MX_TIM2_Init(void)
+{
 
 	/* USER CODE BEGIN TIM2_Init 0 */
 
 	/* USER CODE END TIM2_Init 0 */
 
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+	TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
 
 	/* USER CODE BEGIN TIM2_Init 1 */
 
@@ -561,17 +495,19 @@ static void MX_TIM2_Init(void) {
 	htim2.Init.Period = 0xFFFFFFFF;
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
+	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
+	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
-			!= HAL_OK) {
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM2_Init 2 */
@@ -581,40 +517,10 @@ static void MX_TIM2_Init(void) {
 }
 
 /**
- * @brief UART4 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_UART4_Init(void) {
-
-	/* USER CODE BEGIN UART4_Init 0 */
-
-	/* USER CODE END UART4_Init 0 */
-
-	/* USER CODE BEGIN UART4_Init 1 */
-
-	/* USER CODE END UART4_Init 1 */
-	huart4.Instance = UART4;
-	huart4.Init.BaudRate = 115200;
-	huart4.Init.WordLength = UART_WORDLENGTH_8B;
-	huart4.Init.StopBits = UART_STOPBITS_1;
-	huart4.Init.Parity = UART_PARITY_NONE;
-	huart4.Init.Mode = UART_MODE_TX_RX;
-	huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-	if (HAL_UART_Init(&huart4) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN UART4_Init 2 */
-
-	/* USER CODE END UART4_Init 2 */
-
-}
-
-/**
  * Enable DMA controller clock
  */
-static void MX_DMA_Init(void) {
+static void MX_DMA_Init(void)
+{
 
 	/* DMA controller clock enable */
 	__HAL_RCC_DMA1_CLK_ENABLE();
@@ -624,12 +530,12 @@ static void MX_DMA_Init(void) {
 	/* DMA1_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-	/* DMA1_Stream5_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
-	/* DMA1_Stream6_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+	/* DMA1_Stream3_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+	/* DMA1_Stream4_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 	/* DMA2_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -641,8 +547,9 @@ static void MX_DMA_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+static void MX_GPIO_Init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -679,7 +586,7 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
-void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
+void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 	// Do not interrupt FFT processing in the middle
 	if (processing == 0) {
@@ -693,18 +600,18 @@ void inline Process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 #if 0
 	STOPCHRONO;
-	/* Process the data through the CFFT/CIFFT module */
-	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_1, ifftFlag, doBitReverse);
+	/* process the data through the CFFT/CIFFT module */
+	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_1, ifft_flag, do_bit_reverse);
 
-	/* Process the data through the Complex Magnitude Module for
+	/* process the data through the Complex Magnitude Module for
 	 calculating the magnitude at each bin */
-	arm_cmplx_mag_f32(left_1, testOutput, FFTSIZE);
+	arm_cmplx_mag_f32(left_1, test_output, FFTSIZE);
 
 	STOPCHRONO;
 	time_arm_cmplx_mag_f32 = time_us;
 
-	/* Calculates maxValue and returns corresponding BIN value */
-	arm_max_f32(testOutput, FFTSIZE, &maxValue, &testIndex);
+	/* Calculates max_value and returns corresponding BIN value */
+	arm_max_f32(test_output, FFTSIZE, &max_value, &test_index);
 #endif
 }
 
@@ -726,15 +633,20 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	uint16_t potential_count = 0;
 
 	// Fill bin candidates with the available ones.
+	uint8_t min_fac = 0;
 	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
 		uint8_t use_this = 1;
-		if (filter_propellers_enable) {
+		if (filter_props_enable) {
 			// TODO(FD) loop through all motors here
-			for (uint8_t j = 0; j < N_PROP_FACTORS; j++) {
-				if (fabs(
-						(i * DF - (prop_factors[j] * prop_freq))) < DELTA_F_PROP)
+			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
+				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < delta_freq) {
 					use_this = 0;
-				break;
+
+					// for the next potential bins we only need
+					// to check starting from here.
+					min_fac = j;
+					break;
+				}
 			}
 		}
 		if (use_this) {
@@ -752,7 +664,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		// Samples uniformly among remaining candidates
 		float decimation = (float) potential_count / FFTSIZE_SENT;
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] = potential_indices[(int) (i * decimation)];
+			selected_indices[i] = potential_indices[(int) round(i * decimation)];
 		}
 	}
 
@@ -776,43 +688,73 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	}
 }
 
-void send_I2C_array() {
+void send_serial() {
 	uint16_t i_array = 0;
 
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
 		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin]],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin]],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin]],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin]],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin] + 1],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin] + 1],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin] + 1],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin] + 1],
-				&I2C_send_array[i_array]);
+				&send_buffer[i_array]);
 		i_array += 4;
 	}
 
-	for (int i = 0; i < FBINS_ARRAY_SIZE_BYTES; i++) {
-		int16_to_byte_array(selected_indices[i], &I2C_send_array[i_array]);
+	for (int i = 0; i < FBINS_N_BYTES; i++) {
+		int16_to_byte_array(selected_indices[i], &send_buffer[i_array]);
 		i_array += 2;
 	}
+	//HAL_I2C_Slave_Transmit_DMA(&hi2c1, send_buffer, AUDIO_N_BYTES + FBINS_N_BYTES);
+}
 
-	HAL_I2C_Slave_Transmit_DMA(&hi2c1, I2C_send_array,
-			ARRAY_SIZE + FBINS_ARRAY_SIZE_BYTES);
+void receive_serial() {
+	//HAL_I2C_Slave_Receive_DMA(&hi2c1, param_array_bytes, PARAMS_N_BYTES);
+
+	for (int i = 0; i < PARAMS_N_INT16; i++) {
+		uint8_array_to_uint16(&param_array_bytes[i * INT16_PRECISION], &param_array[i]);
+	}
+	motor_power_array[0] = param_array[0];
+	motor_power_array[1] = param_array[1];
+	motor_power_array[2] = param_array[2];
+	motor_power_array[3] = param_array[3];
+	min_freq = param_array[4];
+	max_freq = param_array[5];
+	delta_freq = param_array[6];
+	filter_props_enable = param_array[7] & 0xff;
+	filter_snr_enable = (param_array[8] >> 8);
+}
+
+int compare_amplitudes(const void *a, const void *b) {
+	struct index_amplitude *a1 = (struct index_amplitude*) a;
+	struct index_amplitude *a2 = (struct index_amplitude*) b;
+	if ((*a1).amplitude > (*a2).amplitude)
+		return -1;
+	else if ((*a1).amplitude < (*a2).amplitude)
+		return 1;
+	else
+		return 0;
+}
+
+float abs_value(float real_imag[]) {
+	return sqrt(real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
 
 void float_to_byte_array(float input, uint8_t output[]) {
@@ -824,36 +766,14 @@ void float_to_byte_array(float input, uint8_t output[]) {
 }
 
 void int16_to_byte_array(uint16_t input, uint8_t output[]) {
-	uint32_t temp = *((uint32_t*) &input);
-	for (int i = 0; i < INT16_PRECISION; i++) {
-		output[i] = temp & 0xFF;
-		temp >>= 8;
-	}
+	output[0] = input & 0xFF; // get first byte
+	output[1] = input >> 8; // get second byte
 }
 
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output) {
-	for (int i = 0; i < INT16_PRECISION; i++) {
-		*((uint8_t*) (output) + i) = input[i];
-	}
+	*output = ((uint16_t) input[1] << 8) | input[0];
 }
 
-void receive_I2C_param() {
-	HAL_I2C_Slave_Receive_DMA(&hi2c1, I2C_param_array_byte,
-			I2C_RECEIVE_LENGTH_BYTE);
-
-	for (int i = 0; i < I2C_RECEIVE_LENGTH_INT16; i++) {
-		uint8_array_to_uint16(&I2C_param_array_byte[i * INT16_PRECISION],
-				&I2C_param_array[i]);
-	}
-	motorPower_array[0] = I2C_param_array[0];
-	motorPower_array[1] = I2C_param_array[1];
-	motorPower_array[2] = I2C_param_array[2];
-	motorPower_array[3] = I2C_param_array[3];
-	min_freq = I2C_param_array[4];
-	max_freq = I2C_param_array[5];
-	filter_propellers_enable = I2C_param_array_byte[12];
-	filter_snr_enable = I2C_param_array_byte[13];
-}
 
 /* USER CODE END 4 */
 
@@ -861,7 +781,8 @@ void receive_I2C_param() {
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void) {
+void Error_Handler(void)
+{
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 
@@ -870,18 +791,18 @@ void Error_Handler(void) {
 
 #ifdef  USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
+	/* USER CODE BEGIN 6 */
+	/* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+	/* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
 
