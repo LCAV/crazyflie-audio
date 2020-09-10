@@ -62,3 +62,4 @@ makefile
 *.cproject
 *.mxproject
 audio_shield_firmware/Core/.project
+**/subdir.mk
