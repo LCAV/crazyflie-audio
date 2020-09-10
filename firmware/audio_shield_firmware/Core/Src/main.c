@@ -87,7 +87,6 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define N_PROP_FACTORS 32
 #define DF (32000.0/FFTSIZE)
 
-//uint8_t unused_spi_tx_buffer[PARAMS_N_BYTES];
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t motor_power_array[N_MOTORS];
 uint8_t filter_props_enable = 1;
@@ -103,7 +102,6 @@ volatile uint32_t time_bin_process;
 uint8_t processing = 0;
 uint8_t new_sample_to_send = 0;
 
-uint8_t unused_spi_rx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES];
 uint16_t selected_indices[FFTSIZE_SENT];
 
 arm_rfft_fast_instance_f32 rfft_instance;
@@ -117,13 +115,12 @@ arm_rfft_fast_instance_f32 rfft_instance;
 #define SPI_DEFAULT_TIMEOUT 300U
 
 // DEBUGGING START
-#define USE_HAL_SPI_REGISTER_CALLBACKS 1U;
+//#define USE_HAL_SPI_REGISTER_CALLBACKS 1U;
 int current_error;
-uint8_t retval=0;
-uint8_t waiting=0;
-uint32_t counter_error=0;
-uint32_t counter_ok=0;
-
+uint8_t retval = 0;
+uint8_t waiting = 0;
+uint32_t counter_error = 0;
+uint32_t counter_ok = 0;
 // DEBUGGING END
 
 
