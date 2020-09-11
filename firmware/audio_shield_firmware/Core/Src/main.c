@@ -43,6 +43,7 @@
 		HAL_TIM_Base_Start(&htim2);\
 })
 volatile int32_t time_us;
+volatile int32_t time_process;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
 
@@ -108,7 +109,8 @@ arm_rfft_fast_instance_f32 rfft_instance;
 
 //#define USE_TEST_SIGNALS
 #ifdef USE_TEST_SIGNALS
-#include "real_data_1024.h"
+//#include "real_data_1024.h"
+#include "simulated_data_1024.h"
 //#include "real_data_32.h"
 #endif
 
@@ -242,7 +244,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -269,7 +272,7 @@ int main(void)
   HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
   memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
-  memset(selected_indices, 0x00, FFTSIZE_SENT);
+  memset(selected_indices, 0x00, FFTSIZE_SENT*2);
   //spi_tx_buffer[0] = 0x01;
 
   /* USER CODE END 2 */
@@ -294,6 +297,8 @@ int main(void)
 		if (new_sample_to_send) {
 			processing = 1;
 
+			STOPCHRONO;
+
 			// FFT executed in the main loop to spare time in the interrupt routine
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 			arm_rfft_fast_f32(&rfft_instance, left_1, left_1_f, ifft_flag);
@@ -303,9 +308,11 @@ int main(void)
 			arm_rfft_fast_f32(&rfft_instance, right_1, right_1_f, ifft_flag);
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 			arm_rfft_fast_f32(&rfft_instance, right_3, right_3_f, ifft_flag);
-			processing = 0;
 
 			STOPCHRONO;
+			time_fft = time_us;
+
+			processing = 0;
 
 			frequency_bin_selection(selected_indices);
 
@@ -313,6 +320,7 @@ int main(void)
 			fill_tx_buffer();
 			new_sample_to_send = 0;
 		}
+		STOPCHRONO;
 
 		// without this line, we skip many of the tansmit buffers...
 		while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
@@ -321,7 +329,6 @@ int main(void)
 		current_error = 0;
 		waiting = 0;
 
-		STOPCHRONO;
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		STOPCHRONO;
 		if (retval != HAL_OK) {
@@ -616,11 +623,20 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 	// Do not interrupt FFT processing in the middle
 	if (processing == 0) {
+		STOPCHRONO;
 		for (uint16_t i = 0; i < size; i += 2) {
 			// Copy memory into buffer and apply tukey window
-			*pOut1++ = (float) *pIn++ * tukey_window[i] / MAXINT;
-			*pOut2++ = (float) *pIn++ * tukey_window[i] / MAXINT;
+			//*pOut1++ = (float) *pIn++ * tukey_window[i] / (float) MAXINT;
+			//*pOut2++ = (float) *pIn++ * tukey_window[i] / (float) MAXINT;
+			//
+			// TODO(FD): when we add * tukey_window[i], even if it is set to constant 1,
+			// the order of magnitude of the FFT values changes. This is absurd.
+			*pOut1++ = (float) *pIn++ / (float) MAXINT;
+			*pOut2++ = (float) *pIn++ / (float) MAXINT;
+
 		}
+		STOPCHRONO;
+		time_process = time_us;
 		new_sample_to_send = 1;
 	}
 
