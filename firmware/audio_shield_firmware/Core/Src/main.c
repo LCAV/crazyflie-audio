@@ -17,7 +17,6 @@
  ******************************************************************************
  */
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
@@ -114,7 +113,9 @@ arm_rfft_fast_instance_f32 rfft_instance;
 //#include "real_data_32.h"
 #endif
 
-#define SPI_DEFAULT_TIMEOUT 300U
+#define DEBUG_SPI
+
+#define SPI_DEFAULT_TIMEOUT 20U
 
 // DEBUGGING START
 //#define USE_HAL_SPI_REGISTER_CALLBACKS 1U;
@@ -244,8 +245,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
-	HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -271,8 +271,13 @@ int main(void)
   HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
   HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
-  memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
+  for (int j = 0; j < SPI_N_BYTES; j++) {
+	spi_tx_buffer[j] = j % 0xFF;
+  }
+  spi_tx_buffer[0] = 0xEF;
+  //memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
   memset(selected_indices, 0x00, FFTSIZE_SENT*2);
+
   //spi_tx_buffer[0] = 0x01;
 
   /* USER CODE END 2 */
@@ -317,7 +322,10 @@ int main(void)
 			frequency_bin_selection(selected_indices);
 
 			// fill the transmit buffer with the new data, for later sending.
+
+#ifndef DEBUG_SPI
 			fill_tx_buffer();
+#endif
 			new_sample_to_send = 0;
 		}
 		STOPCHRONO;
@@ -329,7 +337,11 @@ int main(void)
 		current_error = 0;
 		waiting = 0;
 
+		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+
+
 		STOPCHRONO;
 		if (retval != HAL_OK) {
 			time_spi_error = time_us;
@@ -339,9 +351,12 @@ int main(void)
 		else {
 			time_spi_ok = time_us;
 			counter_ok++;
+#ifndef DEBUG_SPI
 			read_rx_buffer();
+#else
 			//spi_tx_buffer[0] += 1;
 			//spi_tx_buffer[0] %= 0xFF;
+#endif
 		}
 	}
   /* USER CODE END 3 */
@@ -361,7 +376,8 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-  /** Initializes the CPU, AHB and APB busses clocks
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -377,7 +393,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks
+  /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -596,6 +612,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
@@ -615,6 +634,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SYNCH_PIN_Pin */
+  GPIO_InitStruct.Pin = SYNCH_PIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SYNCH_PIN_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -665,7 +691,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 			25, 26, 27, 28, 29, 30 };
 	float prop_freq = 3.27258551 * sqrt(thrust) - 26.41814899;
 
-	if (min_freq > max_freq) {
+	if (min_freq >= max_freq) {
 		return;
 	}
 
