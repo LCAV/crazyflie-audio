@@ -146,7 +146,9 @@ TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 
-#define SPI_N_BYTES AUDIO_N_BYTES + FBINS_N_BYTES
+#define CHECKSUM_VALUE 	0xAB
+#define CHECKSUM_LENGTH 1
+#define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH)
 
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
@@ -341,9 +343,8 @@ int main(void)
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
-
 		STOPCHRONO;
-		if (retval != HAL_OK) {
+		if ((retval != HAL_OK) && (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)) {
 			time_spi_error = time_us;
 			counter_error++;
 			//Error_Handler();
