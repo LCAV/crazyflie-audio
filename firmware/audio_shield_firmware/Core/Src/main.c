@@ -51,7 +51,7 @@ volatile int32_t time_spi_ok;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DEBUG_SPI
+//#define DEBUG_SPI
 
 #define N_ACTUAL_SAMPLES (1024)//32
 
@@ -82,7 +82,7 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define INT16_PRECISION 2 // int16 = 2 bytes
 // in uint16, min_freq = 1, max_freq = 1, delta_freq = 1,
 // snr + propeller enable = 1, tot = 4
-#define PARAMS_N_INT16 (N_MOTORS + 4)
+#define PARAMS_N_INT16 (N_MOTORS + 5)
 #define PARAMS_N_BYTES (PARAMS_N_INT16 * INT16_PRECISION)
 
 #define FBINS_N_BYTES (FFTSIZE_SENT * INT16_PRECISION)
@@ -97,6 +97,7 @@ uint8_t filter_snr_enable = 1;
 uint16_t min_freq = 100;
 uint16_t max_freq = 10000;
 uint16_t delta_freq = 100;
+uint16_t n_average = 1;
 
 uint32_t ifft_flag = 0;
 uint32_t time_fft;
@@ -156,7 +157,7 @@ TIM_HandleTypeDef htim2;
 #define CHECKSUM_LENGTH 1
 
 #ifdef DEBUG_SPI
-#define SPI_N_BYTES 5
+#define SPI_N_BYTES 100
 #else
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH)
 #endif
@@ -356,9 +357,9 @@ int main(void)
 		}
 		STOPCHRONO;
 
-		// without this line, we skip many of the tansmit buffers...
 		current_error = 0;
 		waiting = 0;
+		// without this line, we skip many of the tansmit buffers...
 		while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
 			waiting = 1;
 		}
@@ -836,6 +837,11 @@ void read_rx_buffer() {
 	for (int i = 0; i < PARAMS_N_INT16; i++) {
 		uint8_array_to_uint16(&spi_rx_buffer[i * INT16_PRECISION], &param_array[i]);
 	}
+
+	// TODO: understand this communication issue
+	if ((param_array[4] == 0) || (param_array[4] >= param_array[5]))
+		return;
+
 	motor_power_array[0] = param_array[0];
 	motor_power_array[1] = param_array[1];
 	motor_power_array[2] = param_array[2];
@@ -843,8 +849,9 @@ void read_rx_buffer() {
 	min_freq = param_array[4];
 	max_freq = param_array[5];
 	delta_freq = param_array[6];
-	filter_props_enable = (param_array[7] & 0x100) >> 8;
-	filter_snr_enable = param_array[7] & 0x001;
+	n_average = param_array[7];
+	filter_props_enable = (param_array[8] & 0x100) >> 8;
+	filter_snr_enable = param_array[8] & 0x001;
 }
 
 int compare_amplitudes(const void *a, const void *b) {
