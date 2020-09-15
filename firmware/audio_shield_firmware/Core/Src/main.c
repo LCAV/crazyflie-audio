@@ -50,6 +50,9 @@ volatile int32_t time_spi_ok;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define DEBUG_SPI
+
 #define N_ACTUAL_SAMPLES (1024)//32
 
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
@@ -73,16 +76,16 @@ float right_3_f[N_ACTUAL_SAMPLES];
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
 #define FFTSIZE_SENT 32
-#define AUDIO_N_BYTES N_MIC*FFTSIZE_SENT*4*2
+#define AUDIO_N_BYTES (N_MIC*FFTSIZE_SENT*4*2)
 
 #define N_MOTORS 4
 #define INT16_PRECISION 2 // int16 = 2 bytes
 // in uint16, min_freq = 1, max_freq = 1, delta_freq = 1,
 // snr + propeller enable = 1, tot = 4
 #define PARAMS_N_INT16 (N_MOTORS + 4)
-#define PARAMS_N_BYTES PARAMS_N_INT16 * INT16_PRECISION
+#define PARAMS_N_BYTES (PARAMS_N_INT16 * INT16_PRECISION)
 
-#define FBINS_N_BYTES FFTSIZE_SENT*INT16_PRECISION
+#define FBINS_N_BYTES (FFTSIZE_SENT * INT16_PRECISION)
 
 #define N_PROP_FACTORS 32
 #define DF (32000.0/FFTSIZE)
@@ -97,10 +100,13 @@ uint16_t delta_freq = 100;
 
 uint32_t ifft_flag = 0;
 uint32_t time_fft;
+uint32_t time_delay;
 volatile uint32_t time_bin_process;
 
 uint8_t processing = 0;
 uint8_t new_sample_to_send = 0;
+uint32_t sample_counter = 0;
+uint32_t no_sample_counter = 0;
 
 uint16_t selected_indices[FFTSIZE_SENT];
 
@@ -113,9 +119,7 @@ arm_rfft_fast_instance_f32 rfft_instance;
 //#include "real_data_32.h"
 #endif
 
-#define DEBUG_SPI
-
-#define SPI_DEFAULT_TIMEOUT 10U
+#define SPI_DEFAULT_TIMEOUT 20U
 
 // DEBUGGING START
 //#define USE_HAL_SPI_REGISTER_CALLBACKS 1U;
@@ -150,7 +154,12 @@ TIM_HandleTypeDef htim2;
 
 #define CHECKSUM_VALUE 	0xAB
 #define CHECKSUM_LENGTH 1
+
+#ifdef DEBUG_SPI
+#define SPI_N_BYTES 5
+#else
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH)
+#endif
 
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
@@ -275,14 +284,16 @@ int main(void)
   HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
   HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
+#ifdef DEBUG_SPI
   for (int j = 0; j < SPI_N_BYTES - 1; j++) {
 	spi_tx_buffer[j] = j % 0xFF;
   }
   spi_tx_buffer[0] = 0xEF;
   spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-
+#endif
   //memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
   memset(selected_indices, 0x00, FFTSIZE_SENT*2);
+
 
   //spi_tx_buffer[0] = 0x01;
 
@@ -307,6 +318,8 @@ int main(void)
 
 		if (new_sample_to_send) {
 			processing = 1;
+
+			sample_counter += 1;
 
 			STOPCHRONO;
 
@@ -334,14 +347,21 @@ int main(void)
 #endif
 			new_sample_to_send = 0;
 		}
+		else {
+			no_sample_counter += 1;
+			STOPCHRONO;
+			HAL_Delay(15);
+			STOPCHRONO;
+			time_delay = time_us;
+		}
 		STOPCHRONO;
 
 		// without this line, we skip many of the tansmit buffers...
 		current_error = 0;
 		waiting = 0;
-		//while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
-		//	waiting = 1;
-		//}
+		while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
+			waiting = 1;
+		}
 
 		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
@@ -349,6 +369,8 @@ int main(void)
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+
+		//retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
 
 		STOPCHRONO;
