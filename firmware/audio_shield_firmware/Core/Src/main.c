@@ -115,12 +115,14 @@ arm_rfft_fast_instance_f32 rfft_instance;
 
 #define DEBUG_SPI
 
-#define SPI_DEFAULT_TIMEOUT 20U
+#define SPI_DEFAULT_TIMEOUT 10U
 
 // DEBUGGING START
 //#define USE_HAL_SPI_REGISTER_CALLBACKS 1U;
 int current_error;
 uint8_t retval = 0;
+uint8_t retval2 = 0;
+
 uint8_t waiting = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
@@ -273,10 +275,12 @@ int main(void)
   HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
   HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
-  for (int j = 0; j < SPI_N_BYTES; j++) {
+  for (int j = 0; j < SPI_N_BYTES - 1; j++) {
 	spi_tx_buffer[j] = j % 0xFF;
   }
   spi_tx_buffer[0] = 0xEF;
+  spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
+
   //memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
   memset(selected_indices, 0x00, FFTSIZE_SENT*2);
 
@@ -333,18 +337,22 @@ int main(void)
 		STOPCHRONO;
 
 		// without this line, we skip many of the tansmit buffers...
-		while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
-			waiting = 1;
-		}
 		current_error = 0;
 		waiting = 0;
+		//while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
+		//	waiting = 1;
+		//}
 
+		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
+		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
+
 		STOPCHRONO;
-		if ((retval != HAL_OK) && (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)) {
+		if ((retval != HAL_OK)) { //|| (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)
 			time_spi_error = time_us;
 			counter_error++;
 			//Error_Handler();
@@ -781,6 +789,7 @@ void fill_tx_buffer() {
 		i_array += 4;
 		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
+
 		i_array += 4;
 		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
@@ -797,6 +806,8 @@ void fill_tx_buffer() {
 		int16_to_byte_array(selected_indices[i], &spi_tx_buffer[i_array]);
 		i_array += 2;
 	}
+
+	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 }
 
 void read_rx_buffer() {
