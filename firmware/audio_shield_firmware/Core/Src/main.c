@@ -116,6 +116,13 @@ uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 uint16_t n_added = 0; // counter of how many samples were averaged.
 
+//#define SYNCH_CHECK
+#ifdef SYNCH_CHECK
+uint8_t rx_synch = 0;
+uint8_t retval_synch = 0;
+#endif
+
+
 uint32_t ifft_flag = 0;
 uint32_t time_fft;
 volatile uint32_t time_bin_process;
@@ -134,11 +141,15 @@ arm_rfft_fast_instance_f32 rfft_instance;
 //#include "real_data_32.h"
 #endif
 
-#define SPI_DEFAULT_TIMEOUT 300U
+
+// This is somewhat related to the AUDIO_TASK_FREQUENCY on the Crazyflie. In the
+// worse case we have to wait one full cycle before the Crazyflie starts transmitting,
+// so this value should never be less than 1/AUDIO_TASK_FREQUENCY.
+#define SPI_DEFAULT_TIMEOUT 100U
 
 // DEBUGGING START
 uint8_t retval = 0;
-uint8_t waiting = 0;
+uint32_t waiting = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
 // DEBUGGING END
@@ -259,6 +270,7 @@ int main(void) {
 
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 
+
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
@@ -334,11 +346,6 @@ int main(void) {
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 			arm_rfft_fast_f32(&rfft_instance, right_3, right_3_f, ifft_flag);
 
-			STOPCHRONO;
-			time_fft = time_us;
-
-			flag_fft_processing = 0;
-			new_sample_to_process = 0;
 
 			for (int i = 0; i < N_ACTUAL_SAMPLES; i++) {
 				left_1_f_avg[i] += left_1_f[i] / n_average;
@@ -347,11 +354,16 @@ int main(void) {
 				right_3_f_avg[i] += right_3_f[i] / n_average;
 			}
 
+			STOPCHRONO;
+			time_fft = time_us;
+
 			n_added += 1;
+			flag_fft_processing = 0;
+			new_sample_to_process = 0;
 		}
 		else if (!new_sample_to_process) {
 			// TODO(FD): Check if this helps, otherwise remove.
-			HAL_Delay(15);
+			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
 
 		if (n_added == n_average) {
@@ -365,29 +377,35 @@ int main(void) {
 			memset(left_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 			memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 			memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-			// TODO(FD): figure out if we want this "if" to also cover the sending part.
-		}
 
+		}
 
 		// Currently we never enter this, but we leave it here because it doesn't hurt.
-		waiting = 0;
-		while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
-			waiting = 1;
-		}
+		// waiting = 0
+		//while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
+		//	waiting += 1;
+		//}
 
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 
+#ifdef SYNCH_CHECK
+		uint8_t tx_synch = 0;
+		while (rx_synch != 0xDF) {
+			retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
+			waiting += 1;
+		}
+#endif
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+		waiting = 0;
 
 		STOPCHRONO;
-		if ((retval != HAL_OK)) { //|| (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)
+		if ((retval != HAL_OK) || (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)) {
 			time_spi_error = time_us;
 			counter_error++;
-			//Error_Handler();
 		}
 		else {
 			time_spi_ok = time_us;
@@ -396,6 +414,7 @@ int main(void) {
 			read_rx_buffer();
 #endif
 		}
+
 	}
 	/* USER CODE END 3 */
 }
