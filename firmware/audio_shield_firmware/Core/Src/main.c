@@ -73,6 +73,11 @@ float right_1_f[N_ACTUAL_SAMPLES];
 float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
 
+float left_1_f_avg[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
+float right_1_f_avg[N_ACTUAL_SAMPLES];
+float left_3_f_avg[N_ACTUAL_SAMPLES];
+float right_3_f_avg[N_ACTUAL_SAMPLES];
+
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
 #define FFTSIZE_SENT 32
@@ -97,15 +102,15 @@ uint8_t filter_snr_enable = 1;
 uint16_t min_freq = 100;
 uint16_t max_freq = 10000;
 uint16_t delta_freq = 100;
-uint16_t n_average = 1;
+uint16_t n_average = 1; // number of frequency bins to average.
+uint16_t n_added = 0; // counter of how many samples were averaged.
 
 uint32_t ifft_flag = 0;
 uint32_t time_fft;
-uint32_t time_delay;
 volatile uint32_t time_bin_process;
 
-uint8_t processing = 0;
-uint8_t new_sample_to_send = 0;
+uint8_t flag_fft_processing = 0;
+uint8_t new_sample_to_process = 0;
 uint32_t sample_counter = 0;
 uint32_t no_sample_counter = 0;
 
@@ -120,19 +125,14 @@ arm_rfft_fast_instance_f32 rfft_instance;
 //#include "real_data_32.h"
 #endif
 
-#define SPI_DEFAULT_TIMEOUT 20U
+#define SPI_DEFAULT_TIMEOUT 300U
 
 // DEBUGGING START
-//#define USE_HAL_SPI_REGISTER_CALLBACKS 1U;
-int current_error;
 uint8_t retval = 0;
-uint8_t retval2 = 0;
-
 uint8_t waiting = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
 // DEBUGGING END
-
 
 /* USER CODE END PD */
 
@@ -219,12 +219,6 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #endif
 }
 
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
-{
-  current_error = hspi->ErrorCode;
-}
-
-
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
   /* Prevent unused argument(s) compilation warning */
@@ -259,6 +253,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -294,7 +289,10 @@ int main(void)
 #endif
   //memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
   memset(selected_indices, 0x00, FFTSIZE_SENT*2);
-
+  memset(left_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+  memset(left_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+  memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+  memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 
   //spi_tx_buffer[0] = 0x01;
 
@@ -314,14 +312,11 @@ int main(void)
 			right_1[i] = mic2[i];
 			right_3[i] = mic3[i];
 		}
-		new_sample_to_send = 1;
+		new_sample_to_process = 1;
 #endif
 
-		if (new_sample_to_send) {
-			processing = 1;
-
-			sample_counter += 1;
-
+		if (new_sample_to_process && (n_added < n_average)) {
+			flag_fft_processing = 1;
 			STOPCHRONO;
 
 			// FFT executed in the main loop to spare time in the interrupt routine
@@ -337,42 +332,51 @@ int main(void)
 			STOPCHRONO;
 			time_fft = time_us;
 
-			processing = 0;
+			flag_fft_processing = 0;
+			new_sample_to_process = 0;
 
+			for (int i = 0; i < N_ACTUAL_SAMPLES; i++) {
+				left_1_f_avg[i] += left_1_f[i] / n_average;
+				left_3_f_avg[i] += left_3_f[i] / n_average;
+				right_1_f_avg[i] += right_1_f[i] / n_average;
+				right_3_f_avg[i] += right_3_f[i] / n_average;
+			}
+
+			n_added += 1;
+		}
+		else if (!new_sample_to_process) {
+			// TODO(FD): Check if this helps, otherwise remove.
+			HAL_Delay(15);
+		}
+
+		if (n_added == n_average) {
 			frequency_bin_selection(selected_indices);
-
-			// fill the transmit buffer with the new data, for later sending.
-
 #ifndef DEBUG_SPI
+			// Fill the transmit buffer with the new data, for later sending.
 			fill_tx_buffer();
 #endif
-			new_sample_to_send = 0;
+			n_added = 0;
+			memset(left_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+			memset(left_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+			memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+			memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+		// TODO(FD): figure out if we want this "if" to also cover the sending part.
 		}
-		else {
-			no_sample_counter += 1;
-			STOPCHRONO;
-			HAL_Delay(15);
-			STOPCHRONO;
-			time_delay = time_us;
-		}
-		STOPCHRONO;
 
-		current_error = 0;
+
+		// Currently we never enter this, but we leave it here because it doesn't hurt.
 		waiting = 0;
-		// without this line, we skip many of the tansmit buffers...
 		while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
 			waiting = 1;
 		}
 
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
+
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
-
-		//retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-
 
 		STOPCHRONO;
 		if ((retval != HAL_OK)) { //|| (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)
@@ -385,9 +389,6 @@ int main(void)
 			counter_ok++;
 #ifndef DEBUG_SPI
 			read_rx_buffer();
-#else
-			//spi_tx_buffer[0] += 1;
-			//spi_tx_buffer[0] %= 0xFF;
 #endif
 		}
 	}
@@ -679,23 +680,23 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
-	// Do not interrupt FFT processing in the middle
-	if (processing == 0) {
+	// Do not interrupt FFT processing in the middle.
+	if (flag_fft_processing == 0) {
 		STOPCHRONO;
 		for (uint16_t i = 0; i < size; i += 2) {
-			// Copy memory into buffer and apply tukey window
+			// Copy memory into buffer and apply tukey window.
 			//*pOut1++ = (float) *pIn++ * tukey_window[i] / (float) MAXINT;
 			//*pOut2++ = (float) *pIn++ * tukey_window[i] / (float) MAXINT;
 			//
-			// TODO(FD): when we add * tukey_window[i], even if it is set to constant 1,
-			// the order of magnitude of the FFT values changes. This is absurd.
+			// TODO(FD): When we add * tukey_window[i], even if it is set to constant 1,
+			// the order of magnitude of the FFT values changes. Need to figure out why.
 			*pOut1++ = (float) *pIn++ / (float) MAXINT;
 			*pOut2++ = (float) *pIn++ / (float) MAXINT;
 
 		}
 		STOPCHRONO;
 		time_process = time_us;
-		new_sample_to_send = 1;
+		new_sample_to_process = 1;
 	}
 
 #if 0
@@ -716,7 +717,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 }
 
 void frequency_bin_selection(uint16_t *selected_indices) {
-	// TODO(FD) read this from propellers
+	// TODO(FD): Read this from propellers.
 	uint16_t thrust = 43000;
 	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7,
 			8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
@@ -731,22 +732,23 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	int max_freq_idx = (int) max_freq / DF;
 
 	// Will only be partially filled. Could implement this with
-	// a dynamic list if it is necessary.
+	// a dynamic list if it is necessary in terms of memory.
 	uint16_t potential_indices[FFTSIZE];
 	uint16_t potential_count = 0;
 
-	// Fill bin candidates with the available ones.
+	// Fill bin candidates with the available ones, after removing propeller frequencies.
 	uint8_t min_fac = 0;
 	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
 		uint8_t use_this = 1;
 		if (filter_props_enable) {
-			// TODO(FD) loop through all motors here
+
+			// TODO(FD): Loop through all motors here?
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
 				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < delta_freq) {
 					use_this = 0;
 
-					// for the next potential bins we only need
-					// to check starting from here.
+					// For the next potential bins we only need
+					// to check starting from here, because they are increasing.
 					min_fac = j;
 					break;
 				}
@@ -759,15 +761,13 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 	}
 
-	// TODO(FD): check that we have enough potential candidates left:
-	// potential_count should be bigger than FFTSIZE_SENT.
-	// Otherwise come up with a good strategy.
+	// TODO(FD): Come up with a better strategy.
 	if (potential_count < FFTSIZE_SENT) {
 		return;
 	}
 
 	if (!filter_snr_enable) {
-		// Samples uniformly among remaining candidates
+		// Samples uniformly among remaining candidates.
 		float decimation = (float) potential_count / FFTSIZE_SENT;
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
 			selected_indices[i] = potential_indices[(int) round(i * decimation)];
@@ -798,29 +798,28 @@ void fill_tx_buffer() {
 	uint16_t i_array = 0;
 
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin]],
+		float_to_byte_array(left_1_f_avg[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin]],
+		float_to_byte_array(left_3_f_avg[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin]],
+		float_to_byte_array(right_1_f_avg[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin]],
+		float_to_byte_array(right_3_f_avg[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-
-		i_array += 4;
-		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(left_1_f_avg[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(left_3_f_avg[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(right_1_f_avg[2 * selected_indices[i_fbin] + 1],
+				&spi_tx_buffer[i_array]);
+		i_array += 4;
+		float_to_byte_array(right_3_f_avg[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
 	}
@@ -838,7 +837,8 @@ void read_rx_buffer() {
 		uint8_array_to_uint16(&spi_rx_buffer[i * INT16_PRECISION], &param_array[i]);
 	}
 
-	// TODO: understand this communication issue
+	// Sometimes, because of faulty communication, the packet is broken and we get
+	// impossible values for the parameters. In that case they should not be updated.
 	if ((param_array[4] == 0) || (param_array[4] >= param_array[5]))
 		return;
 
