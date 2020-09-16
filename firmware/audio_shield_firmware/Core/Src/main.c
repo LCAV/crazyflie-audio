@@ -217,20 +217,17 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #endif
 }
 
-void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
-{
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 	/* Prevent unused argument(s) compilation warning */
 	UNUSED(hspi);
 }
 
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
-{
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 	/* Prevent unused argument(s) compilation warning */
 	UNUSED(hspi);
 }
 
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
-{
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 	/* Prevent unused argument(s) compilation warning */
 	UNUSED(hspi);
 }
@@ -242,8 +239,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void) {
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
@@ -397,8 +393,7 @@ int main(void)
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void)
-{
+void SystemClock_Config(void) {
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
@@ -457,8 +452,7 @@ void SystemClock_Config(void)
  * @param None
  * @retval None
  */
-static void MX_I2S1_Init(void)
-{
+static void MX_I2S1_Init(void) {
 
 	/* USER CODE BEGIN I2S1_Init 0 */
 
@@ -491,8 +485,7 @@ static void MX_I2S1_Init(void)
  * @param None
  * @retval None
  */
-static void MX_I2S3_Init(void)
-{
+static void MX_I2S3_Init(void) {
 
 	/* USER CODE BEGIN I2S3_Init 0 */
 
@@ -525,8 +518,7 @@ static void MX_I2S3_Init(void)
  * @param None
  * @retval None
  */
-static void MX_SPI2_Init(void)
-{
+static void MX_SPI2_Init(void) {
 
 	/* USER CODE BEGIN SPI2_Init 0 */
 
@@ -562,8 +554,7 @@ static void MX_SPI2_Init(void)
  * @param None
  * @retval None
  */
-static void MX_TIM2_Init(void)
-{
+static void MX_TIM2_Init(void) {
 
 	/* USER CODE BEGIN TIM2_Init 0 */
 
@@ -605,8 +596,7 @@ static void MX_TIM2_Init(void)
 /**
  * Enable DMA controller clock
  */
-static void MX_DMA_Init(void)
-{
+static void MX_DMA_Init(void) {
 
 	/* DMA controller clock enable */
 	__HAL_RCC_DMA1_CLK_ENABLE();
@@ -627,8 +617,7 @@ static void MX_DMA_Init(void)
  * @param None
  * @retval None
  */
-static void MX_GPIO_Init(void)
-{
+static void MX_GPIO_Init(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	/* GPIO Ports Clock Enable */
@@ -891,8 +880,7 @@ void uint8_array_to_uint16(uint8_t input[], uint16_t *output) {
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void)
-{
+void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 
@@ -907,8 +895,7 @@ void Error_Handler(void)
  * @param  line: assert_param error line source number
  * @retval None
  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
+void assert_failed(uint8_t *file, uint32_t line) {
 	/* USER CODE BEGIN 6 */
 	/* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
