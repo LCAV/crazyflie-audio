@@ -15,6 +15,17 @@
  *                        opensource.org/licenses/BSD-3-Clause
  *
  ******************************************************************************
+ *
+ * Microphone designations:
+ *
+ * main.c  |  ROS  | color  | location (front is where sign points, looking from above)
+ * =======================================
+ * left_1  | mic0  | blue   | front right
+ * left_3  | mic1  | yellow | back right
+ * right_1 | mic2  | green  | front left
+ * right_3 | mic3  | red    | back left
+ * =============================================
+ *
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
