@@ -62,7 +62,7 @@ volatile int32_t time_spi_ok;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-//#define DEBUG_SPI
+//#define DEBUG_SPI // set this define to use smaller, fixed buffers.
 
 #define N_ACTUAL_SAMPLES (1024)//32
 
@@ -366,6 +366,10 @@ int main(void) {
 			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
 
+		// TODO(FD) for some reason, we have a higher SPI success rate when n_average
+		// is big rather than small. We need to figure out why this is the case.
+		// Does calling the below loop too often somehow "hurt"? Why would that be the case?
+
 		if (n_added == n_average) {
 			frequency_bin_selection(selected_indices);
 #ifndef DEBUG_SPI
@@ -377,7 +381,6 @@ int main(void) {
 			memset(left_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 			memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 			memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-
 		}
 
 		// Currently we never enter this, but we leave it here because it doesn't hurt.
@@ -394,13 +397,13 @@ int main(void) {
 			retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
 			waiting += 1;
 		}
+		waiting = 0;
 #endif
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
-		waiting = 0;
 
 		STOPCHRONO;
 		if ((retval != HAL_OK) || (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)) {
@@ -414,7 +417,6 @@ int main(void) {
 			read_rx_buffer();
 #endif
 		}
-
 	}
 	/* USER CODE END 3 */
 }
