@@ -18,12 +18,13 @@
  *
  * Microphone designations:
  *
- * main.c  |  ROS  | color  | location (front is where sign points, looking from above)
- * =======================================
- * left_1  | mic0  | blue   | front right
- * left_3  | mic1  | yellow | back right
- * right_1 | mic2  | green  | front left
- * right_3 | mic3  | red    | back left
+ * for location: front is where sign points, looking from above
+ * main.c  |  ROS  | color  | location    | motor  |
+ * =================================================
+ * left_1  | mic0  | blue   | front right | m1     |
+ * left_3  | mic1  | yellow | back right  | m2
+ * right_1 | mic2  | green  | front left  |
+ * right_3 | mic3  | red    | back left   | m3
  * =============================================
  *
  */
@@ -265,7 +266,6 @@ int main(void) {
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
-
 	/* MCU Configuration--------------------------------------------------------*/
 
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -311,7 +311,7 @@ int main(void) {
 	memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 	memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
 
-	//spi_tx_buffer[0] = 0x01;
+	//spi_tx_b uffer[0] = 0x01;
 
 	/* USER CODE END 2 */
 
@@ -392,6 +392,7 @@ int main(void) {
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 
 #ifdef SYNCH_CHECK
+		rx_synch = 0;
 		uint8_t tx_synch = 0;
 		while (rx_synch != 0xDF) {
 			retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
