@@ -22,10 +22,10 @@
  * main.c  |  ROS  | color  | location    | motor  |
  * =================================================
  * left_1  | mic0  | blue   | front right | m1     |
- * left_3  | mic1  | yellow | back right  | m2
- * right_1 | mic2  | green  | front left  |
- * right_3 | mic3  | red    | back left   | m3
- * =============================================
+ * left_3  | mic1  | yellow | back right  | m2     |
+ * right_1 | mic2  | green  | front left  | m4     |
+ * right_3 | mic3  | red    | back left   | m3     |
+ * =================================================
  *
  */
 /* USER CODE END Header */
