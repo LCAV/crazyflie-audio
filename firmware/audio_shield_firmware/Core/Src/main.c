@@ -730,16 +730,27 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 #endif
 }
 
+static float prop_freq = 0;
 void frequency_bin_selection(uint16_t *selected_indices) {
-	// TODO(FD): Read this from propellers.
-	uint16_t thrust = 43000;
+
+	// This should never happen:
+	if (min_freq >= max_freq) {
+		return;
+	}
+
 	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7,
 			8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 			25, 26, 27, 28, 29, 30 };
-	float prop_freq = 3.27258551 * sqrt(thrust) - 26.41814899;
 
-	if (min_freq >= max_freq) {
-		return;
+	// TODO(FD): for the moment we just use the average thrust here. We could
+	// also loop through all propeller frequencies and not use any of them,
+	// that would be more appropriate if the thrust values vary a lot between motors.
+	if (filter_props_enable) {
+		float average_thrust = 0;
+		for (int i = 0; i < 4; i++) {
+			average_thrust += motor_power_array[i] / 4.0;
+		}
+		prop_freq = 3.27258551 * sqrt(average_thrust) - 26.41814899;
 	}
 
 	int min_freq_idx = (int) min_freq / DF;
@@ -755,8 +766,6 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
 		uint8_t use_this = 1;
 		if (filter_props_enable) {
-
-			// TODO(FD): Loop through all motors here?
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
 				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < delta_freq) {
 					use_this = 0;
@@ -772,7 +781,6 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 			potential_indices[potential_count] = i;
 			potential_count++;
 		}
-
 	}
 
 	// TODO(FD): Come up with a better strategy.
