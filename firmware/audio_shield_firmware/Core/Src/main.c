@@ -119,6 +119,10 @@ uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 uint16_t n_added = 0; // counter of how many samples were averaged.
 
+#define IIR_FILTERING
+#define ALPHA 0.9
+
+
 //#define SYNCH_CHECK
 #ifdef SYNCH_CHECK
 uint8_t rx_synch = 0;
@@ -344,12 +348,23 @@ int main(void) {
 			arm_rfft_fast_f32(&rfft_instance, right_3, right_3_f, ifft_flag);
 
 			// Sum into AVG buffer
+#ifndef IIR_FILTERING
 			for (int i = 0; i < N_ACTUAL_SAMPLES/2; i++) {
-				amplitude_avg[i] += (abs_value_no_sqrt(&left_1_f[i*2])
-				+ abs_value_no_sqrt(&left_3_f[i*2])
-				+ abs_value_no_sqrt(&right_1_f[i*2])
-				+ abs_value_no_sqrt(&right_3_f[i*2])) / 4;
+				amplitude_avg[i] +=  (abs_value_no_sqrt(&left_1_f[i*2])
+									+ abs_value_no_sqrt(&left_3_f[i*2])
+									+ abs_value_no_sqrt(&right_1_f[i*2])
+									+ abs_value_no_sqrt(&right_3_f[i*2])) / 4;
 			}
+#else
+			for (int i = 0; i < N_ACTUAL_SAMPLES/2; i++) {
+				amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i] + ALPHA * (abs_value_no_sqrt(&left_1_f[i*2])
+																		   + abs_value_no_sqrt(&left_3_f[i*2])
+																		   + abs_value_no_sqrt(&right_1_f[i*2])
+																		   + abs_value_no_sqrt(&right_3_f[i*2]));
+			}
+#endif
+
+
 
 			STOPCHRONO;
 			time_fft = time_us;
