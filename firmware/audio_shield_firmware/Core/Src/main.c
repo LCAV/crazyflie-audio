@@ -65,7 +65,8 @@ volatile int32_t time_spi_ok;
 
 //#define DEBUG_SPI // set this define to use smaller, fixed buffers.
 
-#define N_ACTUAL_SAMPLES (1024)//32
+#define N_ACTUAL_SAMPLES (2048)//32
+//#define N_ACTUAL_SAMPLES (4096)//32
 
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
@@ -85,10 +86,11 @@ float right_1_f[N_ACTUAL_SAMPLES];
 float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
 
-float left_1_f_avg[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
-float right_1_f_avg[N_ACTUAL_SAMPLES];
-float left_3_f_avg[N_ACTUAL_SAMPLES];
-float right_3_f_avg[N_ACTUAL_SAMPLES];
+float amplitude_avg[N_ACTUAL_SAMPLES/2];
+//float left_1_f_avg[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
+//float right_1_f_avg[N_ACTUAL_SAMPLES];
+//float left_3_f_avg[N_ACTUAL_SAMPLES];
+//float right_3_f_avg[N_ACTUAL_SAMPLES];
 
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
@@ -209,7 +211,7 @@ void frequency_bin_selection(uint16_t *selected_indices);
 void fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
-float abs_value(float real_imag[]);
+float abs_value_no_sqrt(float real_imag[]);
 void float_to_byte_array(float input, uint8_t output[]);
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
 void int16_to_byte_array(uint16_t input, uint8_t output[]);
@@ -306,12 +308,7 @@ int main(void) {
 #endif
 	//memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
 	memset(selected_indices, 0x00, FFTSIZE_SENT*2);
-	memset(left_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-	memset(left_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-	memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-	memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-
-	//spi_tx_b uffer[0] = 0x01;
+	memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES*2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
 
 	/* USER CODE END 2 */
 
@@ -336,7 +333,7 @@ int main(void) {
 			flag_fft_processing = 1;
 			STOPCHRONO;
 
-			// FFT executed in the main loop to spare time in the interrupt routine
+			// Compute FFT
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 			arm_rfft_fast_f32(&rfft_instance, left_1, left_1_f, ifft_flag);
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -346,12 +343,12 @@ int main(void) {
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 			arm_rfft_fast_f32(&rfft_instance, right_3, right_3_f, ifft_flag);
 
-
-			for (int i = 0; i < N_ACTUAL_SAMPLES; i++) {
-				left_1_f_avg[i] += left_1_f[i] / n_average;
-				left_3_f_avg[i] += left_3_f[i] / n_average;
-				right_1_f_avg[i] += right_1_f[i] / n_average;
-				right_3_f_avg[i] += right_3_f[i] / n_average;
+			// Sum into AVG buffer
+			for (int i = 0; i < N_ACTUAL_SAMPLES/2; i++) {
+				amplitude_avg[i] += (abs_value_no_sqrt(&left_1_f[i*2])
+				+ abs_value_no_sqrt(&left_3_f[i*2])
+				+ abs_value_no_sqrt(&right_1_f[i*2])
+				+ abs_value_no_sqrt(&right_3_f[i*2])) / 4;
 			}
 
 			STOPCHRONO;
@@ -360,8 +357,7 @@ int main(void) {
 			n_added += 1;
 			flag_fft_processing = 0;
 			new_sample_to_process = 0;
-		}
-		else if (!new_sample_to_process) {
+		}else if (!new_sample_to_process) {
 			// TODO(FD): Check if this helps, otherwise remove.
 			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
@@ -376,11 +372,9 @@ int main(void) {
 			// Fill the transmit buffer with the new data, for later sending.
 			fill_tx_buffer();
 #endif
+			// Reset Average buffer.
 			n_added = 0;
-			memset(left_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-			memset(left_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-			memset(right_1_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
-			memset(right_3_f_avg, 0x00, N_ACTUAL_SAMPLES*4);
+			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES*2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
 		}
 
 		// Currently we never enter this, but we leave it here because it doesn't hurt.
@@ -792,17 +786,11 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
 			selected_indices[i] = potential_indices[(int) round(i * decimation)];
 		}
-	}
-
-	else {
+	} else {
 		struct index_amplitude sort_this[potential_count];
 
 		for (int i = 0; i < potential_count; i++) {
-			sort_this[i].amplitude = abs_value(
-					&left_1_f[2 * potential_indices[i]])
-					+ abs_value(&left_3_f[2 * potential_indices[i]])
-					+ abs_value(&right_1_f[2 * potential_indices[i]])
-					+ abs_value(&right_3_f[2 * potential_indices[i]]);
+			sort_this[i].amplitude = amplitude_avg[ potential_indices[i] ];
 			sort_this[i].index = potential_indices[i];
 		}
 
@@ -818,28 +806,28 @@ void fill_tx_buffer() {
 	uint16_t i_array = 0;
 
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-		float_to_byte_array(left_1_f_avg[2 * selected_indices[i_fbin]],
+		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_3_f_avg[2 * selected_indices[i_fbin]],
+		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_1_f_avg[2 * selected_indices[i_fbin]],
+		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_3_f_avg[2 * selected_indices[i_fbin]],
+		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_1_f_avg[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_3_f_avg[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_1_f_avg[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_3_f_avg[2 * selected_indices[i_fbin] + 1],
+		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
 	}
@@ -883,6 +871,11 @@ int compare_amplitudes(const void *a, const void *b) {
 		return 1;
 	else
 		return 0;
+}
+
+// Wrong absolute value but should work faster without sqrt
+float abs_value_no_sqrt(float real_imag[]) {
+	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
 
 float abs_value(float real_imag[]) {
