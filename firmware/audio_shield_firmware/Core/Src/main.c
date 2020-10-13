@@ -133,6 +133,8 @@ volatile uint32_t time_bin_process;
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
 
+//
+float prop_freq;
 uint16_t selected_indices[FFTSIZE_SENT];
 
 arm_rfft_fast_instance_f32 rfft_instance;
