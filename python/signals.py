@@ -14,34 +14,26 @@ import numpy as np
 from constants import AUDIO_SAMPLING_RATE
 
 
-def generate_signal_mono(Fs, duration, frequency=1000, amplitude=1.0):
+def generate_signal_mono(Fs, duration_sec, frequency_hz=1000, **kwargs):
+    times = np.linspace(0, duration_sec, int(ceil(duration_sec * Fs)))
+    return np.sin(2 * np.pi * frequency_hz * times)
+
+
+def generate_signal_random(Fs, duration_sec, **kwargs):
     """ 
-    Parameters 
-    ==========
-    Fs: float
-        Frequency in Hz. 
+    :returns: ndarray, uniform white noise between -1 and 1
     """
-    times = np.linspace(0, duration, int(ceil(duration * Fs)))
-    return amplitude * np.sin(2 * np.pi * frequency * times)
+    num_samples = int(ceil(Fs * duration_sec))
+    return 2.0 * (np.random.rand(num_samples) - 0.5)
 
 
-def generate_signal_random(num_samples, amplitude=1.0):
-    """ 
-    Returns
-    =======
-    ndarray:
-        uniform white noise between -1 and 1
-    """
-    return 2.0 * amplitude * (np.random.rand(num_samples) - 0.5)
-
-
-def generate_signal_real(Fs, fname, num_samples=None):
+def generate_signal_real(Fs, duration_sec, fname, **kwargs):
     from scipy.io.wavfile import read
 
     if not os.path.isfile(fname):
         raise ValueError(f"{fname} does not exist.")
 
-    print("reading", fname)
+    print("reading", fname, end="")
     Fs_file, real_signal = read(fname)
 
     if Fs != Fs_file:
@@ -55,7 +47,12 @@ def generate_signal_real(Fs, fname, num_samples=None):
         real_signal = resample(real_signal, num=num)
         assert len(real_signal) * q == old_length, (old_length, q * len(real_signal))
 
-    if num_samples is not None:
+    if duration_sec is not None:
+        num_samples = int(ceil(Fs * duration_sec))
+        if num_samples >= len(real_signal):
+            print(f"Warning: requested more samples than available ({num_samples}>{len(real_signal)})")
+            return real_signal
+
         start_idx = np.random.choice(np.arange(len(real_signal) - num_samples))
         print(", starting at", start_idx)
         return real_signal[start_idx:start_idx + num_samples]
@@ -63,20 +60,15 @@ def generate_signal_real(Fs, fname, num_samples=None):
     return real_signal
 
 
-def generate_signal(Fs, signal_type="mono", duration=None, num_samples=None, **kwargs):
-    if num_samples is None:
-        num_samples = ceil(Fs * duration)
-    elif duration is None:
-        duration = num_samples / Fs
-
+def generate_signal(Fs, duration_sec, signal_type="mono", **kwargs):
     if signal_type == "mono":
-        return generate_signal_mono(Fs, duration, **kwargs)
+        return generate_signal_mono(Fs, duration_sec, **kwargs)
 
     elif signal_type == "random":
-        return generate_signal_random(num_samples, **kwargs)
+        return generate_signal_random(Fs, duration_sec, **kwargs)
 
     elif signal_type == "real":
-        return generate_signal_real(Fs, num_samples=num_samples, **kwargs)
+        return generate_signal_real(Fs, duration_sec, **kwargs)
 
     else:
         raise ValueError(signal_type)
@@ -147,7 +139,7 @@ class MonoSignal(SourceSignal):
         """ 
         :param t: array or list of time instances. 
         """
-        signal = self.params['amplitude'] * np.cos(self.params['omega'] * np.array(times))
+        signal = self.params['amplitude'] * np.sin(self.params['omega'] * np.array(times))
         if noise > 0:
             signal += np.random.normal(scale=noise, loc=0, size=signal.shape)
         return signal.flatten()
