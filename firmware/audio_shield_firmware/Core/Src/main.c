@@ -87,10 +87,6 @@ float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
 
 float amplitude_avg[N_ACTUAL_SAMPLES/2];
-//float left_1_f_avg[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
-//float right_1_f_avg[N_ACTUAL_SAMPLES];
-//float left_3_f_avg[N_ACTUAL_SAMPLES];
-//float right_3_f_avg[N_ACTUAL_SAMPLES];
 
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
@@ -137,6 +133,8 @@ volatile uint32_t time_bin_process;
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
 
+//
+float prop_freq;
 uint16_t selected_indices[FFTSIZE_SENT];
 
 arm_rfft_fast_instance_f32 rfft_instance;
@@ -353,7 +351,7 @@ int main(void) {
 				amplitude_avg[i] +=  (abs_value_no_sqrt(&left_1_f[i*2])
 									+ abs_value_no_sqrt(&left_3_f[i*2])
 									+ abs_value_no_sqrt(&right_1_f[i*2])
-									+ abs_value_no_sqrt(&right_3_f[i*2])) / 4;
+									+ abs_value_no_sqrt(&right_3_f[i*2])) / N_MIC;
 			}
 #else
 			for (int i = 0; i < N_ACTUAL_SAMPLES/2; i++) {
@@ -372,7 +370,7 @@ int main(void) {
 			n_added += 1;
 			flag_fft_processing = 0;
 			new_sample_to_process = 0;
-		}else if (!new_sample_to_process) {
+		} else if (!new_sample_to_process) {
 			// TODO(FD): Check if this helps, otherwise remove.
 			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
@@ -745,7 +743,6 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 #endif
 }
 
-static float prop_freq = 0;
 void frequency_bin_selection(uint16_t *selected_indices) {
 
 	// This should never happen:
@@ -762,8 +759,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	// that would be more appropriate if the thrust values vary a lot between motors.
 	if (filter_props_enable) {
 		float average_thrust = 0;
-		for (int i = 0; i < 4; i++) {
-			average_thrust += motor_power_array[i] / 4.0;
+		for (int i = 0; i < N_MOTORS; i++) {
+			average_thrust += (float) motor_power_array[i] / N_MOTORS;
 		}
 		prop_freq = 3.27258551 * sqrt(average_thrust) - 26.41814899;
 	}
@@ -813,7 +810,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		struct index_amplitude sort_this[potential_count];
 
 		for (int i = 0; i < potential_count; i++) {
-			sort_this[i].amplitude = amplitude_avg[ potential_indices[i] ];
+			sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
 			sort_this[i].index = potential_indices[i];
 		}
 
@@ -870,19 +867,16 @@ void read_rx_buffer() {
 
 	// Sometimes, because of faulty communication, the packet is broken and we get
 	// impossible values for the parameters. In that case they should not be updated.
-	if ((param_array[4] == 0) || (param_array[4] >= param_array[5]))
+	if ((param_array[N_MOTORS] == 0) || (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
 		return;
 
-	motor_power_array[0] = param_array[0];
-	motor_power_array[1] = param_array[1];
-	motor_power_array[2] = param_array[2];
-	motor_power_array[3] = param_array[3];
-	min_freq = param_array[4];
-	max_freq = param_array[5];
-	delta_freq = param_array[6];
-	n_average = param_array[7];
-	filter_props_enable = (param_array[8] & 0x100) >> 8;
-	filter_snr_enable = param_array[8] & 0x001;
+	memcpy(motor_power_array, param_array, N_MOTORS);
+	min_freq = param_array[N_MOTORS];
+	max_freq = param_array[N_MOTORS + 1];
+	delta_freq = param_array[N_MOTORS + 2];
+	n_average = param_array[N_MOTORS + 3];
+	filter_props_enable = (param_array[N_MOTORS + 4] & 0x100) >> 8;
+	filter_snr_enable = param_array[N_MOTORS + 4] & 0x001;
 }
 
 int compare_amplitudes(const void *a, const void *b) {
