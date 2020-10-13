@@ -10,3 +10,4 @@ python/.idea/
 *.kicad_pcb-bak
 
 python/.idea/
+data/test/

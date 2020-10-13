@@ -17,6 +17,10 @@ def get_mic_delays(mic_positions, azimuth, elevation=None):
 
 
 def get_mic_delays_near(mic_positions, source):
+    """ 
+    :param mic_positions: mic coordinates of shape (n_mics, 2)
+    :param source: source coordinates of shape (2,)
+    """
     r0 = mic_positions[0]
     return np.array([get_mic_delta_near(r0, r1, source) / SPEED_OF_SOUND for r1 in mic_positions])
 
