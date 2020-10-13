@@ -9,7 +9,7 @@ from signals import generate_signal, amplify_signal
 
 FS = 44100
 N_CHANNELS = 1
-DURATION = 5 # seconds
+DURATION = 30 # seconds
 FREQ = 440
 
 
@@ -29,12 +29,14 @@ if __name__ == '__main__':
 
     in_file = None
     #signal_type = "mono"
-    signal_type = "random"
+    #signal_type = "random"
+    #signal_type = "random_linear"
+    signal_type = "mono_linear"
     #signal_type = "real"; in_file = "../data/propellers/44000.wav"
     signal = generate_signal(FS, duration_sec=DURATION, signal_type=signal_type, frequency_hz=FREQ, fname=in_file)
     out_file = f"../data/test/{signal_type}"
 
-    signal = amplify_signal(signal, target_dB=-10, verbose=True)
+    #signal = amplify_signal(signal, target_dB=-10, verbose=True)
 
     sd = get_usb_soundcard_ubuntu()
 

@@ -60,7 +60,7 @@ def generate_signal_real(Fs, duration_sec, fname, **kwargs):
     return real_signal
 
 
-def generate_signal(Fs, duration_sec, signal_type="mono", **kwargs):
+def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, **kwargs):
     if signal_type == "mono":
         return generate_signal_mono(Fs, duration_sec, **kwargs)
 
@@ -69,6 +69,14 @@ def generate_signal(Fs, duration_sec, signal_type="mono", **kwargs):
 
     elif signal_type == "real":
         return generate_signal_real(Fs, duration_sec, **kwargs)
+
+    elif signal_type == "random_linear":
+        signal = generate_signal_random(Fs, duration_sec, **kwargs)
+        return linear_increase(signal, min_dB, max_dB)
+
+    elif signal_type == "mono_linear":
+        signal = generate_signal_mono(Fs, duration_sec, **kwargs)
+        return linear_increase(signal, min_dB, max_dB)
 
     else:
         raise ValueError(signal_type)
@@ -108,6 +116,12 @@ def amplify_signal(signal, change_dB=None, target_dB=None, verbose=False):
     new_dB = get_power(new_signal)
     assert abs(new_dB - target_dB) < 1e-3, f"new {new_dB} != target {target_dB}"
     return new_signal
+
+
+def linear_increase(signal, min_dB=-50, max_dB=0):
+    powers = np.linspace(min_dB, max_dB, len(signal))
+    amplitudes = 10**(powers/20)
+    return np.multiply(amplitudes, signal)
 
 
 # TODO(FD) simplify below using above functions.
