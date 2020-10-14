@@ -15,7 +15,8 @@ from constants import AUDIO_SAMPLING_RATE
 
 
 def generate_signal_mono(Fs, duration_sec, frequency_hz=1000, **kwargs):
-    times = np.linspace(0, duration_sec, int(ceil(duration_sec * Fs)))
+    num_samples = int(ceil(Fs * duration_sec))
+    times = np.linspace(0, duration_sec, num_samples)
     return np.sin(2 * np.pi * frequency_hz * times)
 
 
@@ -77,6 +78,10 @@ def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, 
     elif signal_type == "mono_linear":
         signal = generate_signal_mono(Fs, duration_sec, **kwargs)
         return linear_increase(signal, min_dB, max_dB)
+
+    elif signal_type is None:
+        num_samples = int(ceil(Fs * duration_sec))
+        return np.zeros(num_samples)
 
     else:
         raise ValueError(signal_type)
