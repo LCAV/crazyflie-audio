@@ -188,7 +188,6 @@ TIM_HandleTypeDef htim5;
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
-// TODO (AH): Remove after test
 uint32_t timestamp;
 
 /* USER CODE END PV */
@@ -897,7 +896,7 @@ void fill_tx_buffer() {
 	}
 
 	// Fill with bins indices
-	for (int i = 0; i < FBINS_N_BYTES; i++) {
+	for (int i = 0; i < FFTSIZE_SENT; i++) {
 		int16_to_byte_array(selected_indices[i], &spi_tx_buffer[i_array]);
 		i_array += 2;
 	}
