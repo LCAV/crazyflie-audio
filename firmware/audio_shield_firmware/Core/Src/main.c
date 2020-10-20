@@ -922,7 +922,7 @@ void read_rx_buffer() {
 			|| (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
 		return;
 
-	memcpy(motor_power_array, param_array, N_MOTORS);
+	memcpy(motor_power_array, param_array, N_MOTORS*INT16_PRECISION);
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
 	delta_freq = param_array[N_MOTORS + 2];
