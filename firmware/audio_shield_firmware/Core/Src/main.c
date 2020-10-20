@@ -189,7 +189,7 @@ uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
 // TODO (AH): Remove after test
-uint32t TempcheckUsCounter;
+uint32_t TempcheckUsCounter;
 
 /* USER CODE END PV */
 
