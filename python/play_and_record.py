@@ -10,7 +10,14 @@ from signals import generate_signal, amplify_signal
 FS = 44100
 N_CHANNELS = 1
 DURATION = 30 # seconds
-FREQ = 440
+TARGET_DB = -30 # loudness, dB, set to None for now scaling
+IN_FILE = None
+FREQ = 800 #440 # Hz
+SIGNAL_TYPE = "mono"
+#SIGNAL_TYPE = "random"
+#SIGNAL_TYPE = "random_linear"
+#SIGNAL_TYPE = "mono_linear"
+#SIGNAL_TYPE = "real"; IN_FILE = "../data/propellers/44000.wav"
 
 
 def get_usb_soundcard_ubuntu(fs=FS, n_channels=N_CHANNELS):
@@ -27,16 +34,11 @@ def get_usb_soundcard_ubuntu(fs=FS, n_channels=N_CHANNELS):
 if __name__ == '__main__':
     np.random.seed(1)
 
-    in_file = None
-    #signal_type = "mono"
-    #signal_type = "random"
-    #signal_type = "random_linear"
-    signal_type = "mono_linear"
-    #signal_type = "real"; in_file = "../data/propellers/44000.wav"
-    signal = generate_signal(FS, duration_sec=DURATION, signal_type=signal_type, frequency_hz=FREQ, fname=in_file)
-    out_file = f"../data/test/{signal_type}"
+    signal = generate_signal(FS, duration_sec=DURATION, signal_type=SIGNAL_TYPE, frequency_hz=FREQ, fname=IN_FILE)
+    out_file = f"../data/test/{SIGNAL_TYPE}"
 
-    #signal = amplify_signal(signal, target_dB=-10, verbose=True)
+    if TARGET_DB is not None:
+        signal = amplify_signal(signal, target_dB=TARGET_DB, verbose=True)
 
     sd = get_usb_soundcard_ubuntu()
 

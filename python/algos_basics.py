@@ -42,7 +42,7 @@ def get_mic_delta(r0, r1, azimuth, elevation=None):
         assert len(r0) == 2
         s = np.array((np.cos(azimuth), np.sin(azimuth)))
     else:
-        ValueError('r0 has to be of length 2 or 3, but is {len(r0)}')
+        raise ValueError(f'r0 has to be of length 2 or 3, but is {len(r0)}')
     return np.inner(r0 - r1, s)
 
 
