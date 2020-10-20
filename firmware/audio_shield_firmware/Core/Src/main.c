@@ -64,7 +64,6 @@ volatile int32_t time_spi_ok;
 /* USER CODE BEGIN PD */
 
 //#define DEBUG_SPI // set this define to use smaller, fixed buffers.
-
 #define N_ACTUAL_SAMPLES (2048)//32
 //#define N_ACTUAL_SAMPLES (4096)//32
 
@@ -86,7 +85,7 @@ float right_1_f[N_ACTUAL_SAMPLES];
 float left_3_f[N_ACTUAL_SAMPLES];
 float right_3_f[N_ACTUAL_SAMPLES];
 
-float amplitude_avg[N_ACTUAL_SAMPLES/2];
+float amplitude_avg[N_ACTUAL_SAMPLES / 2];
 
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
@@ -118,13 +117,11 @@ uint16_t n_added = 0; // counter of how many samples were averaged.
 #define IIR_FILTERING
 #define ALPHA 0.9
 
-
 //#define SYNCH_CHECK
 #ifdef SYNCH_CHECK
 uint8_t rx_synch = 0;
 uint8_t retval_synch = 0;
 #endif
-
 
 uint32_t ifft_flag = 0;
 uint32_t time_fft;
@@ -145,7 +142,6 @@ arm_rfft_fast_instance_f32 rfft_instance;
 #include "simulated_data_1024.h"
 //#include "real_data_32.h"
 #endif
-
 
 // This is somewhat related to the AUDIO_TASK_FREQUENCY on the Crazyflie. In the
 // worse case we have to wait one full cycle before the Crazyflie starts transmitting,
@@ -175,20 +171,24 @@ DMA_HandleTypeDef hdma_spi3_rx;
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
 
 #define CHECKSUM_VALUE 	0xAB
 #define CHECKSUM_LENGTH 1
+#define TIMESTAMP_LENGTH 4
 
 #ifdef DEBUG_SPI
 #define SPI_N_BYTES 100
 #else
-#define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH)
+#define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH + TIMESTAMP_LENGTH)
 #endif
 
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
+
+uint32_t timestamp;
 
 /* USER CODE END PV */
 
@@ -200,8 +200,8 @@ static void MX_I2S3_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_I2S1_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
-
 
 struct index_amplitude {
 	float amplitude;
@@ -217,7 +217,6 @@ float abs_value_no_sqrt(float real_imag[]);
 void float_to_byte_array(float input, uint8_t output[]);
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
 void int16_to_byte_array(uint16_t input, uint8_t output[]);
-
 
 /* USER CODE END PFP */
 
@@ -259,7 +258,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 	UNUSED(hspi);
 }
 
-
 /* USER CODE END 0 */
 
 /**
@@ -270,11 +268,10 @@ int main(void) {
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
+
 	/* MCU Configuration--------------------------------------------------------*/
 
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
-
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
@@ -295,6 +292,7 @@ int main(void) {
 	MX_TIM2_Init();
 	MX_I2S1_Init();
 	MX_SPI2_Init();
+	MX_TIM5_Init();
 	/* USER CODE BEGIN 2 */
 
 	// Start DMAs
@@ -309,8 +307,12 @@ int main(void) {
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 #endif
 	//memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
-	memset(selected_indices, 0x00, FFTSIZE_SENT*2);
-	memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES*2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
+	memset(selected_indices, 0x00, FFTSIZE_SENT * 2);
+	memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
+
+	HAL_TIM_Base_Init(&htim5);
+	HAL_TIM_Base_Start(&htim5);
+	timestamp = 0;
 
 	/* USER CODE END 2 */
 
@@ -333,6 +335,8 @@ int main(void) {
 
 		if (new_sample_to_process && (n_added < n_average)) {
 			flag_fft_processing = 1;
+			timestamp = __HAL_TIM_GET_COUNTER(&htim5);
+
 			STOPCHRONO;
 
 			// Compute FFT
@@ -354,15 +358,15 @@ int main(void) {
 									+ abs_value_no_sqrt(&right_3_f[i*2])) / N_MIC;
 			}
 #else
-			for (int i = 0; i < N_ACTUAL_SAMPLES/2; i++) {
-				amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i] + ALPHA * (abs_value_no_sqrt(&left_1_f[i*2])
-																		   + abs_value_no_sqrt(&left_3_f[i*2])
-																		   + abs_value_no_sqrt(&right_1_f[i*2])
-																		   + abs_value_no_sqrt(&right_3_f[i*2]));
+			for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
+				amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
+						+ ALPHA
+								* (abs_value_no_sqrt(&left_1_f[i * 2])
+										+ abs_value_no_sqrt(&left_3_f[i * 2])
+										+ abs_value_no_sqrt(&right_1_f[i * 2])
+										+ abs_value_no_sqrt(&right_3_f[i * 2]));
 			}
 #endif
-
-
 
 			STOPCHRONO;
 			time_fft = time_us;
@@ -387,7 +391,7 @@ int main(void) {
 #endif
 			// Reset Average buffer.
 			n_added = 0;
-			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES*2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
+			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
 		}
 
 		// Currently we never enter this, but we leave it here because it doesn't hurt.
@@ -409,16 +413,17 @@ int main(void) {
 #endif
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer,
+				SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
 		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
 		STOPCHRONO;
-		if ((retval != HAL_OK) || (spi_rx_buffer[SPI_N_BYTES-1] != CHECKSUM_VALUE)) {
+		if ((retval != HAL_OK)
+				|| (spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
 			time_spi_error = time_us;
 			counter_error++;
-		}
-		else {
+		} else {
 			time_spi_ok = time_us;
 			counter_ok++;
 #ifndef DEBUG_SPI
@@ -434,9 +439,9 @@ int main(void) {
  * @retval None
  */
 void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
 
 	/** Configure the main internal regulator output voltage
 	 */
@@ -455,24 +460,23 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
 	RCC_OscInitStruct.PLL.PLLQ = 2;
 	RCC_OscInitStruct.PLL.PLLR = 2;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	{
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
 	/** Initializes the CPU, AHB and APB buses clocks
 	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-			|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-	{
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
 		Error_Handler();
 	}
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1|RCC_PERIPHCLK_I2S_APB2;
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1
+			| RCC_PERIPHCLK_I2S_APB2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
 	PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
@@ -481,8 +485,7 @@ void SystemClock_Config(void) {
 	PeriphClkInitStruct.PLLI2SDivQ = 1;
 	PeriphClkInitStruct.I2sApb2ClockSelection = RCC_I2SAPB2CLKSOURCE_PLLI2S;
 	PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-	{
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
 }
@@ -510,8 +513,7 @@ static void MX_I2S1_Init(void) {
 	hi2s1.Init.CPOL = I2S_CPOL_LOW;
 	hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
 	hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-	if (HAL_I2S_Init(&hi2s1) != HAL_OK)
-	{
+	if (HAL_I2S_Init(&hi2s1) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN I2S1_Init 2 */
@@ -543,8 +545,7 @@ static void MX_I2S3_Init(void) {
 	hi2s3.Init.CPOL = I2S_CPOL_LOW;
 	hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
 	hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-	if (HAL_I2S_Init(&hi2s3) != HAL_OK)
-	{
+	if (HAL_I2S_Init(&hi2s3) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN I2S3_Init 2 */
@@ -579,8 +580,7 @@ static void MX_SPI2_Init(void) {
 	hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
 	hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
 	hspi2.Init.CRCPolynomial = 10;
-	if (HAL_SPI_Init(&hspi2) != HAL_OK)
-	{
+	if (HAL_SPI_Init(&hspi2) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN SPI2_Init 2 */
@@ -600,8 +600,8 @@ static void MX_TIM2_Init(void) {
 
 	/* USER CODE END TIM2_Init 0 */
 
-	TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-	TIM_MasterConfigTypeDef sMasterConfig = {0};
+	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
+	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
 
 	/* USER CODE BEGIN TIM2_Init 1 */
 
@@ -612,24 +612,64 @@ static void MX_TIM2_Init(void) {
 	htim2.Init.Period = 0xFFFFFFFF;
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-	{
+	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
 		Error_Handler();
 	}
 	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-	{
+	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-	{
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
+			!= HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM2_Init 2 */
 
 	/* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+ * @brief TIM5 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM5_Init(void) {
+
+	/* USER CODE BEGIN TIM5_Init 0 */
+
+	/* USER CODE END TIM5_Init 0 */
+
+	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
+	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+
+	/* USER CODE BEGIN TIM5_Init 1 */
+
+	/* USER CODE END TIM5_Init 1 */
+	htim5.Instance = TIM5;
+	htim5.Init.Prescaler = 84;
+	htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim5.Init.Period = 0xffffffff;
+	htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+	if (HAL_TIM_Base_Init(&htim5) != HAL_OK) {
+		Error_Handler();
+	}
+	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK) {
+		Error_Handler();
+	}
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN TIM5_Init 2 */
+
+	/* USER CODE END TIM5_Init 2 */
 
 }
 
@@ -658,7 +698,7 @@ static void MX_DMA_Init(void) {
  * @retval None
  */
 static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -779,7 +819,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		uint8_t use_this = 1;
 		if (filter_props_enable) {
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
-				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < delta_freq) {
+				if (fabs(((i * DF) - (prop_factors[j] * prop_freq)))
+						< delta_freq) {
 					use_this = 0;
 
 					// For the next potential bins we only need
@@ -804,7 +845,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		// Samples uniformly among remaining candidates.
 		float decimation = (float) potential_count / FFTSIZE_SENT;
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] = potential_indices[(int) round(i * decimation)];
+			selected_indices[i] =
+					potential_indices[(int) round(i * decimation)];
 		}
 	} else {
 		struct index_amplitude sort_this[potential_count];
@@ -825,6 +867,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 void fill_tx_buffer() {
 	uint16_t i_array = 0;
 
+	// Fill with FFT content
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
 		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
@@ -852,25 +895,32 @@ void fill_tx_buffer() {
 		i_array += 4;
 	}
 
-	for (int i = 0; i < FBINS_N_BYTES; i++) {
+	// Fill with bins indices
+	for (int i = 0; i < FFTSIZE_SENT; i++) {
 		int16_to_byte_array(selected_indices[i], &spi_tx_buffer[i_array]);
 		i_array += 2;
 	}
+
+	// Fill with timestamp
+	uint32_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
+	i_array += 4;
 
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 }
 
 void read_rx_buffer() {
 	for (int i = 0; i < PARAMS_N_INT16; i++) {
-		uint8_array_to_uint16(&spi_rx_buffer[i * INT16_PRECISION], &param_array[i]);
+		uint8_array_to_uint16(&spi_rx_buffer[i * INT16_PRECISION],
+				&param_array[i]);
 	}
 
 	// Sometimes, because of faulty communication, the packet is broken and we get
 	// impossible values for the parameters. In that case they should not be updated.
-	if ((param_array[N_MOTORS] == 0) || (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
+	if ((param_array[N_MOTORS] == 0)
+			|| (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
 		return;
 
-	memcpy(motor_power_array, param_array, N_MOTORS);
+	memcpy(motor_power_array, param_array, N_MOTORS*INT16_PRECISION);
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
 	delta_freq = param_array[N_MOTORS + 2];
@@ -907,15 +957,22 @@ void float_to_byte_array(float input, uint8_t output[]) {
 	}
 }
 
+// TODO (AH): Change name to UINT?
 void int16_to_byte_array(uint16_t input, uint8_t output[]) {
 	output[0] = input & 0xFF; // get first byte
 	output[1] = input >> 8; // get second byte
 }
 
+void uint32_to_byte_array(uint32_t input, uint8_t output[]) {
+	output[0] = input & 0xFF; // get first byte
+	output[1] = (input >> 8) & 0xFF; // get second byte
+	output[2] = (input >> 16) & 0xFF; // get third byte
+	output[3] = (input >> 24) & 0xFF; // get fourth byte
+}
+
 void uint8_array_to_uint16(uint8_t input[], uint16_t *output) {
 	*output = ((uint16_t) input[1] << 8) | input[0];
 }
-
 
 /* USER CODE END 4 */
 
@@ -932,17 +989,18 @@ void Error_Handler(void) {
 
 #ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
-void assert_failed(uint8_t *file, uint32_t line) {
-	/* USER CODE BEGIN 6 */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
 	/* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-	/* USER CODE END 6 */
+  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
 
