@@ -189,7 +189,7 @@ uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
 // TODO (AH): Remove after test
-uint32_t TempcheckUsCounter;
+uint32_t timestamp;
 
 /* USER CODE END PV */
 
@@ -313,7 +313,7 @@ int main(void) {
 
 	HAL_TIM_Base_Init(&htim5);
 	HAL_TIM_Base_Start(&htim5);
-	TempcheckUsCounter = 0;
+	timestamp = 0;
 
 	/* USER CODE END 2 */
 
@@ -336,6 +336,8 @@ int main(void) {
 
 		if (new_sample_to_process && (n_added < n_average)) {
 			flag_fft_processing = 1;
+			timestamp = __HAL_TIM_GET_COUNTER(&htim5);
+
 			STOPCHRONO;
 
 			// Compute FFT
@@ -900,12 +902,9 @@ void fill_tx_buffer() {
 		i_array += 2;
 	}
 
-	// Fill with timestamps
-	TempcheckUsCounter = __HAL_TIM_GET_COUNTER(&htim5);
-	uint32_to_byte_array(__HAL_TIM_GET_COUNTER(&htim5), &spi_tx_buffer[i_array]);
+	// Fill with timestamp
+	uint32_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
 	i_array += 4;
-
-
 
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 }
