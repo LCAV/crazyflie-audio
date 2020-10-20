@@ -108,9 +108,7 @@ def get_lcmv_beamformer_fast(
     return H
 
 
-def get_das_beamformer(
-    azimuth, frequencies, mic_positions, elevation=None, verbose=False
-):
+def get_das_beamformer(azimuth, frequencies, mic_positions, elevation=None):
     """
     :param azimuth: azimuth angle in rad
     :param frequencies: frequencies in Hz. 
@@ -118,13 +116,6 @@ def get_das_beamformer(
     """
     delays = get_mic_delays(mic_positions, azimuth, elevation)
     gains = np.exp(-1j * 2 * np.pi * np.outer(frequencies, delays))
-    if verbose:
-        print("outer", np.outer(frequencies, delays))
-        print("delays", delays)
-        print("real, imaginary", np.real(gains), np.imag(gains))
-        print("mag, phase", np.abs(gains), np.angle(gains))
-        theo = np.unwrap(-2 * np.pi * np.outer(frequencies, delays))
-        np.testing.assert_allclose(np.angle(gains), theo)
     return gains / mic_positions.shape[0]
 
 
