@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import pdb
 import logging
 import time
 
@@ -59,6 +60,8 @@ N_BYTES_AUDIO = N_FLOATS * 4 # 4 is number of bytes per float32
 N_INTS = FFTSIZE 
 N_BYTES_FBINS = N_INTS * 2 # 2 number of bytes for int16
 
+N_BYTES_TIMESTAMP = 4
+
 def set_thrust(cf,thrust):
     thrust_str = f'{thrust}'
     cf.param.set_value('motorPowerSet.m4', thrust_str)
@@ -81,7 +84,7 @@ class ArrayCRTP(object):
         self.n_bytes = n_bytes
         self.n_packets_full, self.n_bytes_last = divmod(n_bytes, CRTP_PAYLOAD)
         self.array = np.zeros(n_bytes, dtype=np.uint8)
-        self.index = 0
+        self.packet_counter = 0
         self.dtype = dtype
         self.packet_start_time = time.time()
         self.data_dict = data_dict
@@ -94,43 +97,50 @@ class ArrayCRTP(object):
         :returns: True if the array was filled, False if it is not full yet.
         """
         if verbose and (self.name == "fbins"):
-            print(f"ReaderCRTP: filling fbins {self.index} (every second should be zero or one): {packet.datal}")
+            print(f"ReaderCRTP: filling fbins {self.packet_counter} (every second should be zero or one): {packet.datal}")
         elif verbose and (self.name == "audio"):
-            print(f"ReaderCRTP: filling audio {self.index} (first 6 floats): {packet.datal[:6*4]}")
+            print(f"ReaderCRTP: filling audio {self.packet_counter} (first 6 floats): {packet.datal[:6*4]}")
 
 
         # received all full packets, read remaining bytes
-        if self.index == self.n_packets_full:
+
+        if self.name == "fbins":
+            print(f'filling {self.packet_counter}/{self.n_packets_full}')
+
+        if self.packet_counter == self.n_packets_full:
             self.array[
-                self.index * CRTP_PAYLOAD:
-                self.index * CRTP_PAYLOAD + self.n_bytes_last
+                self.packet_counter * CRTP_PAYLOAD:
+                self.packet_counter * CRTP_PAYLOAD + self.n_bytes_last
             ] = packet.datal[:self.n_bytes_last] 
-            
+
             self.data_dict['data'] = np.frombuffer(self.array, dtype=self.dtype)
             self.data_dict['timestamp'] = timestamp 
             self.data_dict['published'] = False
 
-            self.index += 1
+            # increase the counter to test for package loss
+            self.packet_counter += 1
             return True
-        else:
-            if(self.index == 0):
+        elif self.packet_counter < self.n_packets_full:
+            if (self.packet_counter == 0):
                 self.packet_start_time = time.time()
 
-            assert (self.index + 1)*CRTP_PAYLOAD < len(self.array), \
-            f"{self.name}: index {self.index * CRTP_PAYLOAD} exceeds length {len(self.array)}"
+            assert (self.packet_counter + 1)*CRTP_PAYLOAD < len(self.array), \
+            f"{self.name}: index {self.packet_counter * CRTP_PAYLOAD} exceeds length {len(self.array)}"
 
             self.array[
-                self.index * CRTP_PAYLOAD: 
-                (self.index + 1) * CRTP_PAYLOAD
+                self.packet_counter * CRTP_PAYLOAD: 
+                (self.packet_counter + 1) * CRTP_PAYLOAD
             ] = packet.datal
 
-            self.index += 1
+            self.packet_counter += 1
             return False
+        else:
+            print("unexpected packet")
 
     def reset_array(self):
-        if (self.index != 0) and (self.index != self.n_packets_full + 1):
-            print(f"{self.name}: packets loss, received only {self.index}/{self.n_packets_full+1}")
-        self.index = 0
+        if (self.packet_counter != 0) and (self.packet_counter != self.n_packets_full + 1):
+            print(f"{self.name}: packets loss, received only {self.packet_counter}/{self.n_packets_full+1}")
+        self.packet_counter = 0
 
 
 class ReaderCRTP(object):
@@ -152,7 +162,7 @@ class ReaderCRTP(object):
     def __init__(self, crazyflie, verbose=False, log_motion=False):
 
         self.receivedChar = Caller()
-        self.start_audio = False
+        self.frame_started = False
         self.cf = crazyflie
         self.verbose = verbose
 
@@ -188,23 +198,35 @@ class ReaderCRTP(object):
     def callback_audio(self, packet):
         # We send the first package this channel to identify the start of new audio data.
         if packet.channel == 1:
-            self.start_audio = True
+            self.frame_started = True
             self.audio_array.reset_array()
             self.fbins_array.reset_array()
 
-        if self.start_audio and packet.channel != 2: # channel is either 0 or 1: read data
+        if self.frame_started and packet.channel != 2: # channel is either 0 or 1: read data
             filled = self.audio_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=False)
 
             if self.verbose and filled:
                 packet_time = time.time() - self.audio_array.packet_start_time
                 print(f"ReaderCRTP audio callback: time for all packets: {packet_time}s")
 
-        elif self.start_audio and packet.channel == 2: # channel is 2: read fbins
+        elif self.frame_started and packet.channel == 2: # channel is 2: read fbins
             filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=False)
 
-            if self.verbose and filled:
-                packet_time = time.time() - self.fbins_array.packet_start_time
-                print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s")
+            if filled: 
+                # read the timestamp from the last packet
+                timestamp_bytes = np.array(
+                        packet.datal[self.fbins_array.n_bytes_last:
+                        self.fbins_array.n_bytes_last + N_BYTES_TIMESTAMP], 
+                        dtype=np.uint8)
+
+                # TODO(FD): discard package if the timestamp is not valid. 
+                timestamp = np.frombuffer(timestamp_bytes, dtype=np.uint32)
+                assert len(timestamp) == 1
+                    
+                if self.verbose:
+                    packet_time = time.time() - self.fbins_array.packet_start_time
+
+                    print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s, current timestamp: {timestamp}")
 
     def callback_console(self, packet):
         message = ''.join(chr(n) for n in packet.datal)
@@ -222,7 +244,7 @@ class ReaderCRTP(object):
 
 if __name__ == "__main__":
     import argparse
-    verbose = False
+    verbose = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
     parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
@@ -243,3 +265,4 @@ if __name__ == "__main__":
         except:
             print("ReaderCRTP: unset audio.send_audio_enable")
             cf.param.set_value("audio.send_audio_enable", 0)
+            time.sleep(3)
