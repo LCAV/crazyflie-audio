@@ -413,12 +413,7 @@ int main(void) {
 		fill_tx_buffer();
 #endif
 
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
-
-		// TODO(FD): for some reason this pin is always LOW even when
-		// we set it to HIGH and keep it constant on the crazyflie.
-		state = HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin);
-		waiting_pin = 0; while(HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin)){waiting_pin += 1;}
+		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 
 #ifdef SYNCH_CHECK
 		//rx_synch = 0;
@@ -438,7 +433,7 @@ int main(void) {
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer,
 				SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
 		STOPCHRONO; // time_spi
 		if ((retval != HAL_OK)
@@ -735,7 +730,7 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : B1_Pin */
 	GPIO_InitStruct.Pin = B1_Pin;
