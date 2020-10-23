@@ -400,7 +400,7 @@ int main(void) {
 		//	waiting += 1;
 		//}
 
-		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 
 #ifdef SYNCH_CHECK
 		rx_synch = 0;
@@ -413,10 +413,13 @@ int main(void) {
 #endif
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		while(HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin)){
+
+		}
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer,
 				SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
-		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
 		STOPCHRONO;
 		if ((retval != HAL_OK)
