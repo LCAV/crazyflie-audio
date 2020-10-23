@@ -58,10 +58,9 @@ dkms.conf
 makefile
 *.list
 
-*.settings/
-*.cproject
-*.mxproject
-audio_shield_firmware/Core/.project
+#*.settings/
+#*.cproject
+#*.mxproject
 
 # below files are changed on ubuntu for some reason
 subdir.mk
