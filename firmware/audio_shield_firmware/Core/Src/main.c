@@ -57,6 +57,8 @@ volatile int32_t time_us;
 volatile int32_t time_process;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
+volatile int32_t time_freq;
+volatile int32_t time_fft;
 
 /* USER CODE END PTD */
 
@@ -124,8 +126,6 @@ uint8_t retval_synch = 0;
 #endif
 
 uint32_t ifft_flag = 0;
-uint32_t time_fft;
-volatile uint32_t time_bin_process;
 
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
@@ -151,6 +151,7 @@ arm_rfft_fast_instance_f32 rfft_instance;
 // DEBUGGING START
 uint8_t retval = 0;
 uint32_t waiting = 0;
+uint32_t waiting_pin = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
 // DEBUGGING END
@@ -178,6 +179,7 @@ TIM_HandleTypeDef htim5;
 #define CHECKSUM_VALUE 	0xAB
 #define CHECKSUM_LENGTH 1
 #define TIMESTAMP_LENGTH 4
+GPIO_PinState state;
 
 #ifdef DEBUG_SPI
 #define SPI_N_BYTES 100
@@ -333,11 +335,12 @@ int main(void) {
 		new_sample_to_process = 1;
 #endif
 
-		if (new_sample_to_process && (n_added < n_average)) {
+		// we have a new sample to process and want to add it to the buffer
+		if (new_sample_to_process) {
 			flag_fft_processing = 1;
 			timestamp = __HAL_TIM_GET_COUNTER(&htim5);
 
-			STOPCHRONO;
+			STOPCHRONO;  // time_fft
 
 			// Compute FFT
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -368,14 +371,18 @@ int main(void) {
 			}
 #endif
 
-			STOPCHRONO;
-			time_fft = time_us;
 
 			n_added += 1;
 			flag_fft_processing = 0;
 			new_sample_to_process = 0;
+
+			STOPCHRONO; // time_fft
+			time_fft = time_us;
+
 		} else if (!new_sample_to_process) {
-			// TODO(FD): Check if this helps, otherwise remove.
+			// This helps to keep the frequency at which we are doing SPI communication
+			// roughly contstant, weather we have a new sample to send or not.
+			// Effectively it does increase the SPI success rate significantly.
 			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
 
@@ -383,45 +390,55 @@ int main(void) {
 		// is big rather than small. We need to figure out why this is the case.
 		// Does calling the below loop too often somehow "hurt"? Why would that be the case?
 
+		// We have reached the desired number of samples to average, so we fill the new tx_buffer
+		// and then reset the average to zero.
 		if (n_added == n_average) {
+			STOPCHRONO; // time_freq
+
 			frequency_bin_selection(selected_indices);
-#ifndef DEBUG_SPI
-			// Fill the transmit buffer with the new data, for later sending.
-			fill_tx_buffer();
-#endif
+
 			// Reset Average buffer.
 			n_added = 0;
-			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // TODO (AH): *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
+			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
+
+			STOPCHRONO; // time_freq
+			time_freq = time_us;
 		}
 
-		// Currently we never enter this, but we leave it here because it doesn't hurt.
-		// waiting = 0
-		//while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY) {
-		//	waiting += 1;
-		//}
+		// Send the current audio data over SPI to the Crazyflie drone.
+		STOPCHRONO; // time_spi
 
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
+#ifndef DEBUG_SPI
+		// Fill the transmit buffer with the new data, for later sending.
+		fill_tx_buffer();
+#endif
+
+		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
+
+		//state = HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin);
+		//waiting_pin = 0; while(HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin)){waiting_pin += 1;}
 
 #ifdef SYNCH_CHECK
-		rx_synch = 0;
-		uint8_t tx_synch = 0;
-		while (rx_synch != 0xDF) {
-			retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
-			waiting += 1;
-		}
-		waiting = 0;
+		//rx_synch = 0;
+		//uint8_t tx_synch = 0;
+		//while (rx_synch != 0xDF) {
+		//	retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
+		//	waiting += 1;
+		//}
+		//waiting = 0;
+
+		uint8_t tx_synch = 0xDF;
+		uint8_t rx_synch = 0;
+		retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
 #endif
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		while(HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin)){
-
-		}
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer,
 				SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
-		STOPCHRONO;
+		STOPCHRONO; // time_spi
 		if ((retval != HAL_OK)
 				|| (spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
 			time_spi_error = time_us;
