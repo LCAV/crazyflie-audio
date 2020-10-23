@@ -60,6 +60,7 @@ FBINS_DTYPE = np.uint16
 
 # the timestamp is sent in the end of the fbins messages, as an uint32. 
 N_BYTES_TIMESTAMP = 4
+ALLOWED_DELTA_US = 1e6
 
 def set_thrust(cf,thrust):
     thrust_str = f'{thrust}'
@@ -71,7 +72,7 @@ def set_thrust(cf,thrust):
 
 
 class ArrayCRTP(object):
-    def __init__(self, dtype, n_frames, name="array"):
+    def __init__(self, dtype, n_frames, name="array", extra_bytes=0):
         """
         :param n_bytes: the number of bytes to form one array, we will read 
                         CRTP packets until we reach this number of bytes.
@@ -80,7 +81,7 @@ class ArrayCRTP(object):
         """
         self.name = name 
         self.n_frames = n_frames
-        self.n_bytes = n_frames * np.dtype(dtype).itemsize
+        self.n_bytes = n_frames * np.dtype(dtype).itemsize + extra_bytes
         self.n_packets_full, self.n_bytes_last = divmod(self.n_bytes, CRTP_PAYLOAD)
         print(f"{name}: waiting for {self.n_bytes} bytes.")
         self.packet_counter = 0
@@ -104,12 +105,12 @@ class ArrayCRTP(object):
 
         # received all full packets, read remaining bytes
         if self.packet_counter == self.n_packets_full:
-            self.array[
+            self.bytes_array[
                 self.packet_counter * CRTP_PAYLOAD:
                 self.packet_counter * CRTP_PAYLOAD + self.n_bytes_last
             ] = packet.datal[:self.n_bytes_last] 
 
-            self.array = np.frombuffer(self.array, dtype=self.dtype)
+            self.array = np.frombuffer(self.bytes_array, dtype=self.dtype)
 
             # increase the counter to test for package loss
             self.packet_counter += 1
@@ -118,10 +119,10 @@ class ArrayCRTP(object):
             if (self.packet_counter == 0):
                 self.packet_start_time = time.time()
 
-            assert (self.packet_counter + 1)*CRTP_PAYLOAD < len(self.array), \
+            assert (self.packet_counter + 1)*CRTP_PAYLOAD < len(self.bytes_array), \
             f"{self.name}: index {self.packet_counter * CRTP_PAYLOAD} exceeds length {len(self.array)}"
 
-            self.array[
+            self.bytes_array[
                 self.packet_counter * CRTP_PAYLOAD: 
                 (self.packet_counter + 1) * CRTP_PAYLOAD
             ] = packet.datal
@@ -177,7 +178,7 @@ class ReaderCRTP(object):
                 'timestamp': None, 
                 'audio_timestamp': None, 
                 'signals_f_vect': None, 
-                'frequencies': None,
+                'fbins': None,
                 'published': True
         }
         self.motion_dict = {'timestamp': None, 'data': None, 'published': True}
@@ -201,7 +202,6 @@ class ReaderCRTP(object):
             self.frame_started = True
             self.audio_array.reset_array()
             self.fbins_array.reset_array()
-            
 
         if self.frame_started and packet.channel != 2: # channel is either 0 or 1: read data
             filled = self.audio_array.fill_array_from_crtp(packet, verbose=False)
@@ -216,17 +216,16 @@ class ReaderCRTP(object):
                         self.fbins_array.n_bytes_last + N_BYTES_TIMESTAMP], 
                         dtype=np.uint8)
 
-                new_audio_timestamp = np.frombuffer(timestamp_bytes, dtype=np.uint32)
-                assert len(new_audio_timestamp) == 1
+                # below returns array of length 1
+                new_audio_timestamp = int(np.frombuffer(timestamp_bytes, dtype=np.uint32)[0])
 
                 if self.audio_timestamp and (new_audio_timestamp > self.audio_timestamp + ALLOWED_DELTA_US):
                     return 
-
                 self.audio_timestamp = new_audio_timestamp
 
                 self.audio_dict['published'] = False
                 self.audio_dict['signals_f_vect'] = self.audio_array.array
-                self.audio_dict['frequencies'] = self.fbins_array.array
+                self.audio_dict['fbins'] = self.fbins_array.array
                 self.audio_dict['audio_timestamp'] = self.audio_timestamp
                 self.audio_dict['timestamp'] = self.get_time_ms()
                     
