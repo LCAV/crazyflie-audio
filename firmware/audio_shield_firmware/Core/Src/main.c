@@ -59,6 +59,7 @@ volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
 volatile int32_t time_freq;
 volatile int32_t time_fft;
+volatile int32_t time_exti;
 volatile int32_t time_wait;
 
 /* USER CODE END PTD */
@@ -66,7 +67,7 @@ volatile int32_t time_wait;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-//#define DEBUG_SPI // set this define to use smaller, fixed buffers.
+#define DEBUG_SPI // set this define to use smaller, fixed buffers.
 #define N_ACTUAL_SAMPLES (2048)//32
 //#define N_ACTUAL_SAMPLES (4096)//32
 
@@ -177,13 +178,13 @@ TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
 
-#define CHECKSUM_VALUE 	0xAB
+#define CHECKSUM_VALUE 	0xAC
 #define CHECKSUM_LENGTH 1
 #define TIMESTAMP_LENGTH 4
 uint8_t state = 0;
 
 #ifdef DEBUG_SPI
-#define SPI_N_BYTES 100
+#define SPI_N_BYTES 12
 #else
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH + TIMESTAMP_LENGTH)
 #endif
@@ -261,6 +262,33 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 	UNUSED(hspi);
 }
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == GPIO_PIN_12) {
+		STOPCHRONO;
+		time_exti = time_us;
+
+		//HAL_SPI_Init(&hspi2);
+		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+
+		while( hspi2.State == HAL_SPI_STATE_BUSY );  // wait for xmission complete
+		//HAL_SPI_DeInit( &hspi2 );
+
+		if ((retval != HAL_OK)
+				|| (spi_rx_buffer[SPI_N_BYTES/2] != CHECKSUM_VALUE)) {
+			//time_spi_error = time_us;
+			counter_error++;
+		} else {
+			//time_spi_ok = time_us;
+			counter_ok++;
+#ifndef DEBUG_SPI
+			read_rx_buffer();
+#endif
+		}
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -304,11 +332,15 @@ int main(void)
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
 #ifdef DEBUG_SPI
-	for (int j = 0; j < SPI_N_BYTES - 1; j++) {
+
+	memset(spi_tx_buffer, 0x00, SPI_N_BYTES);
+
+	for (int j = 0; j < SPI_N_BYTES/2; j++) {
 		spi_tx_buffer[j] = j % 0xFF;
 	}
 	spi_tx_buffer[0] = 0xEF;
-	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
+	spi_tx_buffer[SPI_N_BYTES/2] = CHECKSUM_VALUE;
+	//spi_tx_buffer[SPI_N_BYTES - 1] = 0x00;
 #endif
 	//memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
 	memset(selected_indices, 0x00, FFTSIZE_SENT * 2);
@@ -342,7 +374,7 @@ int main(void)
 			flag_fft_processing = 1;
 			timestamp = __HAL_TIM_GET_COUNTER(&htim5);
 
-			STOPCHRONO;  // time_fft
+			//STOPCHRONO;  // time_fft
 
 			// Compute FFT
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -373,12 +405,11 @@ int main(void)
 			}
 #endif
 
-
 			n_added += 1;
 			flag_fft_processing = 0;
 			new_sample_to_process = 0;
 
-			STOPCHRONO; // time_fft
+			//STOPCHRONO; // time_fft
 			time_fft = time_us;
 
 		} else if (!new_sample_to_process) {
@@ -395,7 +426,8 @@ int main(void)
 		// We have reached the desired number of samples to average, so we fill the new tx_buffer
 		// and then reset the average to zero.
 		if (n_added == n_average) {
-			STOPCHRONO; // time_freq
+
+			//STOPCHRONO; // time_freq
 
 			frequency_bin_selection(selected_indices);
 
@@ -403,12 +435,12 @@ int main(void)
 			n_added = 0;
 			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
 
-			STOPCHRONO; // time_freq
+			//STOPCHRONO; // time_freq
 			time_freq = time_us;
 		}
 
 		// Send the current audio data over SPI to the Crazyflie drone.
-		STOPCHRONO; // time_spi
+		//STOPCHRONO; // time_spi
 
 #ifndef DEBUG_SPI
 		// Fill the transmit buffer with the new data, for later sending.
@@ -441,23 +473,22 @@ int main(void)
 #endif
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer,
-				SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		//retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 
 		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
-		STOPCHRONO; // time_spi
-		if ((retval != HAL_OK)
-				|| (spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
-			time_spi_error = time_us;
-			counter_error++;
-		} else {
-			time_spi_ok = time_us;
-			counter_ok++;
-#ifndef DEBUG_SPI
-			read_rx_buffer();
-#endif
-		}
+		//STOPCHRONO; // time_spi
+//		if ((retval != HAL_OK)
+//				|| (spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
+//			//time_spi_error = time_us;
+//			counter_error++;
+//		} else {
+//			//time_spi_ok = time_us;
+//			counter_ok++;
+//#ifndef DEBUG_SPI
+//			read_rx_buffer();
+//#endif
+//		}
 	}
   /* USER CODE END 3 */
 }
@@ -611,7 +642,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -777,6 +808,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PB12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -784,7 +825,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 	// Do not interrupt FFT processing in the middle.
 	if (flag_fft_processing == 0) {
-		STOPCHRONO;
+		//STOPCHRONO;
 		for (uint16_t i = 0; i < size; i += 2) {
 			// Copy memory into buffer and apply tukey window.
 			//*pOut1++ = (float) *pIn++ * tukey_window[i] / (float) MAXINT;
@@ -796,7 +837,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 			*pOut2++ = (float) *pIn++ / (float) MAXINT;
 
 		}
-		STOPCHRONO;
+		//STOPCHRONO;
 		time_process = time_us;
 		new_sample_to_process = 1;
 	}
@@ -955,7 +996,7 @@ void read_rx_buffer() {
 			|| (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
 		return;
 
-	memcpy(motor_power_array, param_array, N_MOTORS*INT16_PRECISION);
+	memcpy(motor_power_array, param_array, N_MOTORS * INT16_PRECISION);
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
 	delta_freq = param_array[N_MOTORS + 2];
