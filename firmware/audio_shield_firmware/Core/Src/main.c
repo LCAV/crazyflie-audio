@@ -249,41 +249,29 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 	STOPCHRONO;
-	time_fft = time_us;
+	time_spi_error = time_us;
 	counter_error += 1;
 
 	waiting = 0;
-	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1; };
+	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
 	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-	/* Prevent unused argument(s) compilation warning */
 	STOPCHRONO;
 	time_spi_ok = time_us;
 	counter_ok += 1;
 
 	waiting = 0;
-	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1; };
+	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
 	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-}
-
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-	/* Prevent unused argument(s) compilation warning */
-	UNUSED(hspi);
-}
-
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-	/* Prevent unused argument(s) compilation warning */
-	UNUSED(hspi);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_12) {
 		STOPCHRONO;
 		time_exti = time_us;
-		spi_tx_buffer[SPI_N_BYTES - 1] = 0x00;
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
@@ -348,15 +336,11 @@ int main(void)
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
 #ifdef DEBUG_SPI
-
-	memset(spi_tx_buffer, 0x00, SPI_N_BYTES);
-
-	for (int j = 0; j < SPI_N_BYTES/2; j++) {
+	for (int j = 0; j < SPI_N_BYTES; j++) {
 		spi_tx_buffer[j] = j % 0xFF;
 	}
 	spi_tx_buffer[0] = 0xEF;
-	spi_tx_buffer[SPI_N_BYTES/2] = CHECKSUM_VALUE;
-	//spi_tx_buffer[SPI_N_BYTES - 1] = 0x00;
+	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 #endif
 	//memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
 	memset(selected_indices, 0x00, FFTSIZE_SENT * 2);
