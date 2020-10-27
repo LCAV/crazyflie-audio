@@ -247,9 +247,26 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #endif
 }
 
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+	STOPCHRONO;
+	time_fft = time_us;
+	counter_error += 1;
+
+	waiting = 0;
+	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1; };
+	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+
+}
+
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 	/* Prevent unused argument(s) compilation warning */
-	UNUSED(hspi);
+	STOPCHRONO;
+	time_spi_ok = time_us;
+	counter_ok += 1;
+
+	waiting = 0;
+	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1; };
+	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -266,14 +283,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_12) {
 		STOPCHRONO;
 		time_exti = time_us;
-
-		//HAL_SPI_Init(&hspi2);
+		spi_tx_buffer[SPI_N_BYTES - 1] = 0x00;
 		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-
-		while( hspi2.State == HAL_SPI_STATE_BUSY );  // wait for xmission complete
-		//HAL_SPI_DeInit( &hspi2 );
+		while( hspi2.State == HAL_SPI_STATE_BUSY ) {};  // wait for xmission complete
 
 		if ((retval != HAL_OK)
 				|| (spi_rx_buffer[SPI_N_BYTES/2] != CHECKSUM_VALUE)) {
@@ -288,6 +302,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		}
 	}
 }
+
+
 
 /* USER CODE END 0 */
 
@@ -349,6 +365,8 @@ int main(void)
 	HAL_TIM_Base_Init(&htim5);
 	HAL_TIM_Base_Start(&htim5);
 	timestamp = 0;
+
+	retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 
   /* USER CODE END 2 */
 
@@ -436,7 +454,7 @@ int main(void)
 			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
 
 			//STOPCHRONO; // time_freq
-			time_freq = time_us;
+			//time_freq = time_us;
 		}
 
 		// Send the current audio data over SPI to the Crazyflie drone.
@@ -471,9 +489,12 @@ int main(void)
 		uint8_t rx_synch = 0;
 		retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
 #endif
+
 		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
 		//retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
+		//waiting = 0;
+		//while (hspi2.State != HAL_SPI_STATE_READY) {waiting += 1; };
 
 		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
 
@@ -642,7 +663,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -807,12 +828,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
