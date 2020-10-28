@@ -186,7 +186,7 @@ TIM_HandleTypeDef htim5;
 uint8_t state = 0;
 
 #ifdef DEBUG_SPI
-#define SPI_N_BYTES 300
+#define SPI_N_BYTES 1100
 #else
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH + TIMESTAMP_LENGTH)
 #endif
