@@ -247,7 +247,7 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #endif
 }
 
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+void error_handler(SPI_HandleTypeDef *hspi) {
 	STOPCHRONO;
 	time_spi_error = time_us;
 	counter_error += 1;
@@ -255,17 +255,26 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 	waiting = 0;
 	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
 	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+}
 
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+	error_handler(hspi);
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-	STOPCHRONO;
-	time_spi_ok = time_us;
-	counter_ok += 1;
 
-	waiting = 0;
-	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
-	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
+		error_handler(hspi);
+	}
+	else {
+		STOPCHRONO;
+		time_spi_ok = time_us;
+		counter_ok += 1;
+
+		waiting = 0;
+		while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
+		retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
