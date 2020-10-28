@@ -67,7 +67,7 @@ volatile int32_t time_wait;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DEBUG_SPI // set this define to use smaller, fixed buffers.
+//#define DEBUG_SPI // set this define to use smaller, fixed buffers.
 #define N_ACTUAL_SAMPLES (2048)//32
 //#define N_ACTUAL_SAMPLES (4096)//32
 
