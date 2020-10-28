@@ -184,7 +184,7 @@ TIM_HandleTypeDef htim5;
 uint8_t state = 0;
 
 #ifdef DEBUG_SPI
-#define SPI_N_BYTES 12
+#define SPI_N_BYTES 10
 #else
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH + TIMESTAMP_LENGTH)
 #endif
@@ -248,34 +248,64 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 }
 
 void error_handler(SPI_HandleTypeDef *hspi) {
+
+	}
+
+void transmit_receive(SPI_HandleTypeDef *hspi) {
+	//waiting = 0;
+	//while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
+	//if (hspi->State != HAL_SPI_STATE_BUSY_TX_RX) {
+	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+	//}
+}
+void receive(SPI_HandleTypeDef *hspi) {
+	//waiting = 0;
+	//while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
+	//if (hspi->State != HAL_SPI_STATE_BUSY_TX_RX) {
+	retval = HAL_SPI_Receive_IT(hspi, spi_rx_buffer, SPI_N_BYTES);
+	//}
+}
+
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 	STOPCHRONO;
 	time_spi_error = time_us;
 	counter_error += 1;
 
-	waiting = 0;
-	while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
-	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-}
-
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-	error_handler(hspi);
+	transmit_receive(hspi);
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-
 	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
-		error_handler(hspi);
+		STOPCHRONO;
+		time_spi_error = time_us;
+		counter_error += 1;
 	}
 	else {
 		STOPCHRONO;
 		time_spi_ok = time_us;
 		counter_ok += 1;
-
-		waiting = 0;
-		while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
-		retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 	}
+	transmit_receive(hspi);
 }
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+	STOPCHRONO;
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
+		STOPCHRONO;
+		time_spi_error = time_us;
+		counter_error += 1;
+	}
+	else {
+		STOPCHRONO;
+		time_spi_ok = time_us;
+		counter_ok += 1;
+	}
+	receive(hspi);
+}
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_12) {
@@ -360,6 +390,7 @@ int main(void)
 	timestamp = 0;
 
 	retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+	//retval = HAL_SPI_Receive_IT(&hspi2, spi_rx_buffer, SPI_N_BYTES);
 
   /* USER CODE END 2 */
 
@@ -457,6 +488,10 @@ int main(void)
 		// Fill the transmit buffer with the new data, for later sending.
 		fill_tx_buffer();
 #endif
+
+		//waiting = 0;
+		//while (hspi2.State != HAL_SPI_STATE_READY) {waiting += 1;};
+		//retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 
 		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
 
