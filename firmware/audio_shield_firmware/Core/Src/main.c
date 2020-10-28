@@ -172,6 +172,8 @@ DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi3_rx;
 
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim5;
@@ -184,7 +186,7 @@ TIM_HandleTypeDef htim5;
 uint8_t state = 0;
 
 #ifdef DEBUG_SPI
-#define SPI_N_BYTES 10
+#define SPI_N_BYTES 300
 #else
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + CHECKSUM_LENGTH + TIMESTAMP_LENGTH)
 #endif
@@ -285,7 +287,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 		time_spi_ok = time_us;
 		counter_ok += 1;
 	}
-	transmit_receive(hspi);
+	//transmit_receive(hspi);
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -389,7 +391,8 @@ int main(void)
 	HAL_TIM_Base_Start(&htim5);
 	timestamp = 0;
 
-	retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
+	//retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 	//retval = HAL_SPI_Receive_IT(&hspi2, spi_rx_buffer, SPI_N_BYTES);
 
   /* USER CODE END 2 */
@@ -810,6 +813,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
