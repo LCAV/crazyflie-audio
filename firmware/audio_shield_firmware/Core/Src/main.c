@@ -45,6 +45,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 // Timing tool using TIM2 in counter mode with uS timebase.
 #define STOPCHRONO ({\
@@ -314,7 +315,7 @@ int main(void)
 	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
 
-  /* USER CODE END 2 */
+	/* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -857,12 +858,13 @@ void fill_tx_buffer() {
 
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
-
+	i_array += sizeof(selected_indices);
 
 	// Fill with timestamp
-	variable_to_byte_array(&timestamp, &spi_tx_buffer[i_array]);
-	i_array += 4;
+	variable_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
+	i_array += sizeof(timestamp);
 
+	assert(i_array == SPI_N_BYTES - 1);
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 }
 
