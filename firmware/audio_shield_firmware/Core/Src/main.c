@@ -295,7 +295,7 @@ int main(void)
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
 #ifdef DEBUG_SPI
-	for (int j = 0; j < SPI_N_BYTES; j++) {
+	for (int j = 0; j < SPI_N_BYTES - 1; j++) {
 		spi_tx_buffer[j] = j % 0xFF;
 	}
 	spi_tx_buffer[0] = 0xEF;
@@ -333,7 +333,7 @@ int main(void)
 		new_sample_to_process = 1;
 #endif
 
-		// We have a new sample to process and add it to the buffer.
+		// we have a new sample to process and want to add it to the buffer
 		if (new_sample_to_process) {
 			flag_fft_processing = 1;
 			timestamp = __HAL_TIM_GET_COUNTER(&htim5);

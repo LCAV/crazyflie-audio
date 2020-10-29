@@ -53,14 +53,14 @@ N_MICS = 4
 CRTP_PAYLOAD = 29 # number of bytes per package
 
 # audio signals data
-N_FLOATS = FFTSIZE * N_MICS * 2  # *2 for complex numbers
-N_BYTES_AUDIO = N_FLOATS * 4 # 4 is number of bytes per float32
+N_FRAMES_AUDIO = FFTSIZE * N_MICS * 2  # *2 for complex numbers
+AUDIO_DTYPE = np.float32
+N_FRAMES_FBINS = FFTSIZE 
+FBINS_DTYPE = np.uint16
 
-# frequency bins data
-N_INTS = FFTSIZE 
-N_BYTES_FBINS = N_INTS * 2 # 2 number of bytes for int16
-
+# the timestamp is sent in the end of the fbins messages, as an uint32. 
 N_BYTES_TIMESTAMP = 4
+ALLOWED_DELTA_US = 1e6
 
 def set_thrust(cf,thrust):
     thrust_str = f'{thrust}'
@@ -72,24 +72,26 @@ def set_thrust(cf,thrust):
 
 
 class ArrayCRTP(object):
-    def __init__(self, data_dict, dtype, n_bytes, name="array"):
+    def __init__(self, dtype, n_frames, name="array", extra_bytes=0):
         """
-        :param data_dict: data dictionary containing snapshot of latest data 
-        :param dtype: the type of data to be read (np.float32/np.uint16/etc.)
         :param n_bytes: the number of bytes to form one array, we will read 
                         CRTP packets until we reach this number of bytes.
+        :param dtype: the type of data to be read (np.float32/np.uint16/etc.)
         :param name: name of this array (used for printing only)
         """
         self.name = name 
-        self.n_bytes = n_bytes
-        self.n_packets_full, self.n_bytes_last = divmod(n_bytes, CRTP_PAYLOAD)
-        self.array = np.zeros(n_bytes, dtype=np.uint8)
+        self.n_frames = n_frames
+        self.n_bytes = n_frames * np.dtype(dtype).itemsize + extra_bytes
+        self.n_packets_full, self.n_bytes_last = divmod(self.n_bytes, CRTP_PAYLOAD)
+        print(f"{name}: waiting for {self.n_bytes} bytes.")
         self.packet_counter = 0
         self.dtype = dtype
         self.packet_start_time = time.time()
-        self.data_dict = data_dict
 
-    def fill_array_from_crtp(self, packet, timestamp=0, verbose=False):
+        self.bytes_array = np.zeros(self.n_bytes, dtype=np.uint8)
+        self.array = np.zeros(n_frames, dtype=dtype)
+
+    def fill_array_from_crtp(self, packet, verbose=False):
         """
         :param packet: CRTP packet
         :param timestamp: current timestamp
@@ -103,14 +105,12 @@ class ArrayCRTP(object):
 
         # received all full packets, read remaining bytes
         if self.packet_counter == self.n_packets_full:
-            self.array[
+            self.bytes_array[
                 self.packet_counter * CRTP_PAYLOAD:
                 self.packet_counter * CRTP_PAYLOAD + self.n_bytes_last
             ] = packet.datal[:self.n_bytes_last] 
 
-            self.data_dict['data'] = np.frombuffer(self.array, dtype=self.dtype)
-            self.data_dict['timestamp'] = timestamp 
-            self.data_dict['published'] = False
+            self.array = np.frombuffer(self.bytes_array, dtype=self.dtype)
 
             # increase the counter to test for package loss
             self.packet_counter += 1
@@ -119,10 +119,10 @@ class ArrayCRTP(object):
             if (self.packet_counter == 0):
                 self.packet_start_time = time.time()
 
-            assert (self.packet_counter + 1)*CRTP_PAYLOAD < len(self.array), \
+            assert (self.packet_counter + 1)*CRTP_PAYLOAD < len(self.bytes_array), \
             f"{self.name}: index {self.packet_counter * CRTP_PAYLOAD} exceeds length {len(self.array)}"
 
-            self.array[
+            self.bytes_array[
                 self.packet_counter * CRTP_PAYLOAD: 
                 (self.packet_counter + 1) * CRTP_PAYLOAD
             ] = packet.datal
@@ -144,8 +144,8 @@ class ReaderCRTP(object):
     There are different schemes for different data types:
 
     - audio: 
-    The audio data (the FFT signals at N_FREQUENCY bins, recorded from N_MICS microphones) is sent in packets of CRTP_PAYLOAD bytes each.
-    The new data frame starts when the start condition is met(channel==1) and we count the incoming packets to make sure there is no packet loss.
+    The audio data (the FFT signals at N_FREQUENCY bins, recorded from N_MICS microphones, and the corresponding frequency bins) is sent in packets of CRTP_PAYLOAD bytes each.
+    A new data frame starts when the start condition is met(channel==1) and we count the incoming packets to make sure there is no packet loss. The frequency data is sent after the audio data on channel 2.
 
     - motion: 
     We read the current motion estimate through the standard logging framework provided by the Crazyflie, and then publish the estimate as a Pose.
@@ -174,12 +174,18 @@ class ReaderCRTP(object):
 
         # this data can be read and published by ROS nodes
         self.start_time = time.time()
-        self.audio_dict = {'timestamp': None, 'data': None, 'published': True}
-        self.fbins_dict = {'timestamp': None, 'data': None, 'published': True}
+        self.audio_dict = {
+                'timestamp': None, 
+                'audio_timestamp': None, 
+                'signals_f_vect': None, 
+                'fbins': None,
+                'published': True
+        }
         self.motion_dict = {'timestamp': None, 'data': None, 'published': True}
 
-        self.audio_array = ArrayCRTP(self.audio_dict, np.float32, N_BYTES_AUDIO, "audio")
-        self.fbins_array = ArrayCRTP(self.fbins_dict, np.uint16, N_BYTES_FBINS, "fbins")
+        self.audio_array = ArrayCRTP(AUDIO_DTYPE, N_FRAMES_AUDIO, "audio")
+        self.fbins_array = ArrayCRTP(FBINS_DTYPE, N_FRAMES_FBINS, "fbins")
+        self.audio_timestamp = 0
 
         # start sending audio data
         self.cf.param.set_value("audio.send_audio_enable", 1)
@@ -198,14 +204,10 @@ class ReaderCRTP(object):
             self.fbins_array.reset_array()
 
         if self.frame_started and packet.channel != 2: # channel is either 0 or 1: read data
-            filled = self.audio_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=False)
-
-            if self.verbose and filled:
-                packet_time = time.time() - self.audio_array.packet_start_time
-                print(f"ReaderCRTP audio callback: time for all packets: {packet_time}s")
+            filled = self.audio_array.fill_array_from_crtp(packet, verbose=False)
 
         elif self.frame_started and packet.channel == 2: # channel is 2: read fbins
-            filled = self.fbins_array.fill_array_from_crtp(packet, self.get_time_ms(), verbose=False)
+            filled = self.fbins_array.fill_array_from_crtp(packet, verbose=False)
 
             if filled: 
                 # read the timestamp from the last packet
@@ -214,14 +216,22 @@ class ReaderCRTP(object):
                         self.fbins_array.n_bytes_last + N_BYTES_TIMESTAMP], 
                         dtype=np.uint8)
 
-                # TODO(FD): discard package if the timestamp is not valid. 
-                timestamp = np.frombuffer(timestamp_bytes, dtype=np.uint32)
-                assert len(timestamp) == 1
+                # below returns array of length 1
+                new_audio_timestamp = int(np.frombuffer(timestamp_bytes, dtype=np.uint32)[0])
+
+                if self.audio_timestamp and (new_audio_timestamp > self.audio_timestamp + ALLOWED_DELTA_US):
+                    return 
+                self.audio_timestamp = new_audio_timestamp
+
+                self.audio_dict['published'] = False
+                self.audio_dict['signals_f_vect'] = self.audio_array.array
+                self.audio_dict['fbins'] = self.fbins_array.array
+                self.audio_dict['audio_timestamp'] = self.audio_timestamp
+                self.audio_dict['timestamp'] = self.get_time_ms()
                     
                 if self.verbose:
-                    packet_time = time.time() - self.fbins_array.packet_start_time
-
-                    print(f"ReaderCRTP fbins callback: time for all packets: {packet_time}s, current timestamp: {timestamp}")
+                    packet_time = time.time() - self.audio_dict['timestamp']
+                    print(f"ReaderCRTP callback: time for all packets: {packet_time}s, current timestamp: {new_audio_timestamp}")
 
     def callback_console(self, packet):
         message = ''.join(chr(n) for n in packet.datal)
