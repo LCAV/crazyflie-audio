@@ -181,11 +181,19 @@ class ReaderCRTP(object):
                 'fbins': None,
                 'published': True
         }
-        self.motion_dict = {'timestamp': None, 'data': None, 'published': True}
+        self.motion_dict = {
+                'timestamp': None, 
+                'data': None, 
+                'published': True
+        }
 
         self.audio_array = ArrayCRTP(AUDIO_DTYPE, N_FRAMES_AUDIO, "audio")
         self.fbins_array = ArrayCRTP(FBINS_DTYPE, N_FRAMES_FBINS, "fbins")
         self.audio_timestamp = 0
+
+        # for debugging only
+        self.update_rate = 0
+        self.last_packet_time = 0
 
         # start sending audio data
         self.cf.param.set_value("audio.send_audio_enable", 1)
@@ -198,6 +206,8 @@ class ReaderCRTP(object):
 
     def callback_audio(self, packet):
         # We send the first package this channel to identify the start of new audio data.
+        # Channel order:    1 | 0 0 ... 0 0 |  2 2 2
+        #         audio start |    audio    |  fbins
         if packet.channel == 1:
             self.frame_started = True
             self.audio_array.reset_array()
@@ -231,7 +241,9 @@ class ReaderCRTP(object):
                     
                 if self.verbose:
                     packet_time = time.time() - self.audio_dict['timestamp']
-                    print(f"ReaderCRTP callback: time for all packets: {packet_time}s, current timestamp: {new_audio_timestamp}")
+                    print(f"ReaderCRTP callback: time for all packets: {packet_time}s, current timestamp: {new_audio_timestamp}, update rate: {self.update_rate:.2f}")
+                    self.update_rate = 1/(time.time() - self.last_packet_time)
+                    self.last_packet_time = time.time()
 
     def callback_console(self, packet):
         message = ''.join(chr(n) for n in packet.datal)
