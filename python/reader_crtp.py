@@ -101,12 +101,7 @@ class ArrayCRTP(object):
         elif verbose and (self.name == "audio"):
             print(f"ReaderCRTP: filling audio {self.packet_counter} (first 6 floats): {packet.datal[:6*4]}")
 
-
         # received all full packets, read remaining bytes
-
-        if self.name == "fbins":
-            print(f'filling {self.packet_counter}/{self.n_packets_full}')
-
         if self.packet_counter == self.n_packets_full:
             self.array[
                 self.packet_counter * CRTP_PAYLOAD:

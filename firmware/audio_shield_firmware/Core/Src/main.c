@@ -121,12 +121,6 @@ uint16_t n_added = 0; // counter of how many samples were averaged.
 #define IIR_FILTERING
 #define ALPHA 0.9
 
-//#define SYNCH_CHECK
-#ifdef SYNCH_CHECK
-uint8_t rx_synch = 0;
-uint8_t retval_synch = 0;
-#endif
-
 uint32_t ifft_flag = 0;
 
 uint8_t flag_fft_processing = 0;
@@ -249,31 +243,10 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #endif
 }
 
-void error_handler(SPI_HandleTypeDef *hspi) {
-
-	}
-
-void transmit_receive(SPI_HandleTypeDef *hspi) {
-	//waiting = 0;
-	//while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
-	//if (hspi->State != HAL_SPI_STATE_BUSY_TX_RX) {
-	retval = HAL_SPI_TransmitReceive_IT(hspi, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-	//}
-}
-void receive(SPI_HandleTypeDef *hspi) {
-	//waiting = 0;
-	//while (hspi->State != HAL_SPI_STATE_READY) {waiting += 1;};
-	//if (hspi->State != HAL_SPI_STATE_BUSY_TX_RX) {
-	retval = HAL_SPI_Receive_IT(hspi, spi_rx_buffer, SPI_N_BYTES);
-	//}
-}
-
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 	STOPCHRONO;
 	time_spi_error = time_us;
 	counter_error += 1;
-
-	transmit_receive(hspi);
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -287,52 +260,9 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 		time_spi_ok = time_us;
 		counter_ok += 1;
 	}
-	//transmit_receive(hspi);
+	// Note that we do not need to restart the transmission by caling
+	// HAL_SPI_TransmitReceive_DMA again, because the buffer is circular.
 }
-
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-	STOPCHRONO;
-}
-
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
-		STOPCHRONO;
-		time_spi_error = time_us;
-		counter_error += 1;
-	}
-	else {
-		STOPCHRONO;
-		time_spi_ok = time_us;
-		counter_ok += 1;
-	}
-	receive(hspi);
-}
-
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == GPIO_PIN_12) {
-		STOPCHRONO;
-		time_exti = time_us;
-		retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		while( hspi2.State == HAL_SPI_STATE_BUSY ) {};  // wait for xmission complete
-
-		if ((retval != HAL_OK)
-				|| (spi_rx_buffer[SPI_N_BYTES/2] != CHECKSUM_VALUE)) {
-			//time_spi_error = time_us;
-			counter_error++;
-		} else {
-			//time_spi_ok = time_us;
-			counter_ok++;
-#ifndef DEBUG_SPI
-			read_rx_buffer();
-#endif
-		}
-	}
-}
-
-
 
 /* USER CODE END 0 */
 
@@ -395,8 +325,6 @@ int main(void)
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
 	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-	//retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-	//retval = HAL_SPI_Receive_IT(&hspi2, spi_rx_buffer, SPI_N_BYTES);
 
   /* USER CODE END 2 */
 
@@ -467,10 +395,6 @@ int main(void)
 			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
 
-		// TODO(FD) for some reason, we have a higher SPI success rate when n_average
-		// is big rather than small. We need to figure out why this is the case.
-		// Does calling the below loop too often somehow "hurt"? Why would that be the case?
-
 		// We have reached the desired number of samples to average, so we fill the new tx_buffer
 		// and then reset the average to zero.
 		if (n_added == n_average) {
@@ -485,65 +409,10 @@ int main(void)
 
 			//STOPCHRONO; // time_freq
 			//time_freq = time_us;
-		}
-
-		// Send the current audio data over SPI to the Crazyflie drone.
-		//STOPCHRONO; // time_spi
-
 #ifndef DEBUG_SPI
-		// Fill the transmit buffer with the new data, for later sending.
-		fill_tx_buffer();
+			fill_tx_buffer();
 #endif
-
-		//waiting = 0;
-		//while (hspi2.State != HAL_SPI_STATE_READY) {waiting += 1;};
-		//retval = HAL_SPI_TransmitReceive_IT(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES);
-
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_SET);
-
-		//state = HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin);
-		//waiting_pin = 0;
-		//STOPCHRONO;
-		// wait for falling edge
-		//while(!HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin)){waiting_pin += 1;}
-		//while(HAL_GPIO_ReadPin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin)){waiting_pin += 1;}
-		//STOPCHRONO;
-		//time_wait = time_us;
-
-#ifdef SYNCH_CHECK
-		//rx_synch = 0;
-		//uint8_t tx_synch = 0;
-		//while (rx_synch != 0xDF) {
-		//	retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
-		//	waiting += 1;
-		//}
-		//waiting = 0;
-
-		uint8_t tx_synch = 0xDF;
-		uint8_t rx_synch = 0;
-		retval_synch = HAL_SPI_TransmitReceive(&hspi2, &tx_synch, &rx_synch, 1, 10U);
-#endif
-
-		//retval = HAL_SPI_Receive(&hspi2, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		//retval = HAL_SPI_Transmit(&hspi2, spi_tx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		//retval = HAL_SPI_TransmitReceive(&hspi2, spi_tx_buffer, spi_rx_buffer, SPI_N_BYTES, SPI_DEFAULT_TIMEOUT);
-		//waiting = 0;
-		//while (hspi2.State != HAL_SPI_STATE_READY) {waiting += 1; };
-
-		//HAL_GPIO_WritePin(SYNCH_PIN_GPIO_Port, SYNCH_PIN_Pin, GPIO_PIN_RESET);
-
-		//STOPCHRONO; // time_spi
-//		if ((retval != HAL_OK)
-//				|| (spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
-//			//time_spi_error = time_us;
-//			counter_error++;
-//		} else {
-//			//time_spi_ok = time_us;
-//			counter_ok++;
-//#ifndef DEBUG_SPI
-//			read_rx_buffer();
-//#endif
-//		}
+		}
 	}
   /* USER CODE END 3 */
 }
