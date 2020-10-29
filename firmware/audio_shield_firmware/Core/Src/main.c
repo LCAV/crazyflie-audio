@@ -205,7 +205,8 @@ void fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
 float abs_value_squared(float real_imag[]);
-void variable_to_byte_array(void* input, uint8_t output[]);
+void uint32_to_byte_array(uint32_t input, uint8_t output[]);
+void float_to_byte_array(float input, uint8_t output[]);
 
 /* USER CODE END PFP */
 
@@ -381,6 +382,7 @@ int main(void)
 			memset(amplitude_avg, 0x00, sizeof(amplitude_avg)); 
 #ifndef DEBUG_SPI
 			fill_tx_buffer();
+			read_rx_buffer();
 #endif
 		}
 	}
@@ -828,8 +830,6 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 }
 
 void fill_tx_buffer() {
-	uint16_t i_array = 0;
-
 	// Fill with FFT content
 	// The spi_tx_buffer will be filled like
 	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
@@ -837,22 +837,24 @@ void fill_tx_buffer() {
 	//  ...
 	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
     //  where N is FFTSIZE_SENT-1
+
+	uint16_t i_array = 0;
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-		variable_to_byte_array(&left_1_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
+		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&left_3_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
+		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&right_1_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
+		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&right_3_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
+		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&left_1_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
+		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&left_3_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
+		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&right_1_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
+		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		variable_to_byte_array(&right_3_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
+		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
 	}
 
@@ -861,7 +863,7 @@ void fill_tx_buffer() {
 	i_array += sizeof(selected_indices);
 
 	// Fill with timestamp
-	variable_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
+	uint32_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
 	i_array += sizeof(timestamp);
 
 	assert(i_array == SPI_N_BYTES - 1);
@@ -900,10 +902,13 @@ float abs_value_squared(float real_imag[]) {
 	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
 
-// Convert a single varialbe to a byte array. Works for any types, such as
-// float or uint32_t. 
-void variable_to_byte_array(void* input_pointer, uint8_t* output) {
-	memcpy(output, &input_pointer, sizeof(input_pointer));
+void float_to_byte_array(float input, uint8_t output[]) {
+	uint32_t temp = *((uint32_t*) &input);
+	uint32_to_byte_array(temp, output);
+}
+
+void uint32_to_byte_array(uint32_t input, uint8_t output[]) {
+	memcpy(output, &input, sizeof(input));
 }
 
 /* USER CODE END 4 */

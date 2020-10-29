@@ -243,8 +243,8 @@ class ReaderCRTP(object):
         self.motion_dict['data'] = {
             key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
-        if self.verbose:
-            print('ReaderCRTP logging callback:', logconf.name)
+        #if self.verbose:
+        #    print('ReaderCRTP logging callback:', logconf.name)
 
 
 if __name__ == "__main__":
