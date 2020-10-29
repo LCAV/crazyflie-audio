@@ -54,13 +54,8 @@
 		HAL_TIM_Base_Start(&htim2);\
 })
 volatile int32_t time_us;
-volatile int32_t time_process;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
-volatile int32_t time_freq;
-volatile int32_t time_fft;
-volatile int32_t time_exti;
-volatile int32_t time_wait;
 
 /* USER CODE END PTD */
 
@@ -94,39 +89,34 @@ float amplitude_avg[N_ACTUAL_SAMPLES / 2];
 #define FFTSIZE N_ACTUAL_SAMPLES
 #define N_MIC 4
 #define FFTSIZE_SENT 32
-#define AUDIO_N_BYTES (N_MIC*FFTSIZE_SENT*4*2)
+#define FLOAT_PRECISION 4
+#define AUDIO_N_BYTES (N_MIC * FFTSIZE_SENT * FLOAT_PRECISION * 2)
 
 #define N_MOTORS 4
 #define INT16_PRECISION 2 // int16 = 2 bytes
-// in uint16, min_freq = 1, max_freq = 1, delta_freq = 1,
-// snr + propeller enable = 1, tot = 4
-#define PARAMS_N_INT16 (N_MOTORS + 5)
-#define PARAMS_N_BYTES (PARAMS_N_INT16 * INT16_PRECISION)
+// in uint16, min_freq, max_freq, n_average delta_freq, snr_enable, propeller_enable, tot = 6
+#define PARAMS_N_INT16 (N_MOTORS + 6)
 
 #define FBINS_N_BYTES (FFTSIZE_SENT * INT16_PRECISION)
 
-#define N_PROP_FACTORS 32
+#define N_PROP_FACTORS 30
 #define DF (32000.0/FFTSIZE)
 
+#define IIR_FILTERING
+#define ALPHA 0.9
+
 uint16_t param_array[PARAMS_N_INT16];
-uint16_t motor_power_array[N_MOTORS];
-uint8_t filter_props_enable = 1;
-uint8_t filter_snr_enable = 1;
+uint16_t filter_props_enable = 1;
+uint16_t filter_snr_enable = 1;
 uint16_t min_freq = 100;
 uint16_t max_freq = 10000;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 uint16_t n_added = 0; // counter of how many samples were averaged.
 
-#define IIR_FILTERING
-#define ALPHA 0.9
-
 uint32_t ifft_flag = 0;
-
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
-
-//
 float prop_freq;
 uint16_t selected_indices[FFTSIZE_SENT];
 
@@ -213,10 +203,8 @@ void frequency_bin_selection(uint16_t *selected_indices);
 void fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
-float abs_value_no_sqrt(float real_imag[]);
-void float_to_byte_array(float input, uint8_t output[]);
-void uint8_array_to_uint16(uint8_t input[], uint16_t *output);
-void int16_to_byte_array(uint16_t input, uint8_t output[]);
+float abs_value_squared(float real_imag[]);
+void variable_to_byte_array(void* input, uint8_t output[]);
 
 /* USER CODE END PFP */
 
@@ -330,27 +318,25 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+	// Note that below while loop takes ca. 40ms (fft processing) + 10ms (bin selection and tx-buffer filling).
 	while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
 #ifdef USE_TEST_SIGNALS
-		for (uint16_t i = 0; i < N_ACTUAL_SAMPLES; i++) {
-			left_1[i] = mic0[i];
-			left_3[i] = mic1[i];
-			right_1[i] = mic2[i];
-			right_3[i] = mic3[i];
-		}
+		memcpy(left_1, mic0, sizeof(mic0));
+		memcpy(left_3, mic1, sizeof(mic1));
+		memcpy(right_1, mic2, sizeof(mic2));
+		memcpy(right_3, mic3, sizeof(mic3));
 		new_sample_to_process = 1;
 #endif
 
-		// we have a new sample to process and want to add it to the buffer
+		// We have a new sample to process and add it to the buffer.
 		if (new_sample_to_process) {
 			flag_fft_processing = 1;
 			timestamp = __HAL_TIM_GET_COUNTER(&htim5);
-
-			//STOPCHRONO;  // time_fft
 
 			// Compute FFT
 			arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -364,51 +350,34 @@ int main(void)
 
 			// Sum into AVG buffer
 #ifndef IIR_FILTERING
-			for (int i = 0; i < N_ACTUAL_SAMPLES/2; i++) {
-				amplitude_avg[i] +=  (abs_value_no_sqrt(&left_1_f[i*2])
-									+ abs_value_no_sqrt(&left_3_f[i*2])
-									+ abs_value_no_sqrt(&right_1_f[i*2])
-									+ abs_value_no_sqrt(&right_3_f[i*2])) / N_MIC;
+			for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
+				amplitude_avg[i] +=  (abs_value_squared(&left_1_f[i*2])
+									+ abs_value_squared(&left_3_f[i*2])
+									+ abs_value_squared(&right_1_f[i*2])
+									+ abs_value_squared(&right_3_f[i*2])) / N_MIC;
 			}
 #else
 			for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 				amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
-						+ ALPHA
-								* (abs_value_no_sqrt(&left_1_f[i * 2])
-										+ abs_value_no_sqrt(&left_3_f[i * 2])
-										+ abs_value_no_sqrt(&right_1_f[i * 2])
-										+ abs_value_no_sqrt(&right_3_f[i * 2]));
+						 + ALPHA * (abs_value_squared(&left_1_f[i * 2])
+									  	+ abs_value_squared(&left_3_f[i * 2])
+									  	+ abs_value_squared(&right_1_f[i * 2])
+									  	+ abs_value_squared(&right_3_f[i * 2]));
 			}
 #endif
-
 			n_added += 1;
 			flag_fft_processing = 0;
 			new_sample_to_process = 0;
-
-			//STOPCHRONO; // time_fft
-			time_fft = time_us;
-
-		} else if (!new_sample_to_process) {
-			// This helps to keep the frequency at which we are doing SPI communication
-			// roughly contstant, weather we have a new sample to send or not.
-			// Effectively it does increase the SPI success rate significantly.
-			HAL_Delay((uint32_t) (time_fft / 1000.0));
 		}
 
 		// We have reached the desired number of samples to average, so we fill the new tx_buffer
 		// and then reset the average to zero.
 		if (n_added == n_average) {
-
-			//STOPCHRONO; // time_freq
-
 			frequency_bin_selection(selected_indices);
 
 			// Reset Average buffer.
 			n_added = 0;
-			memset(amplitude_avg, 0x00, N_ACTUAL_SAMPLES * 2); // *2 because of floats N_ACTUAL_SAMPLES/2 * 4 (float)
-
-			//STOPCHRONO; // time_freq
-			//time_freq = time_us;
+			memset(amplitude_avg, 0x00, sizeof(amplitude_avg)); 
 #ifndef DEBUG_SPI
 			fill_tx_buffer();
 #endif
@@ -749,7 +718,6 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 	// Do not interrupt FFT processing in the middle.
 	if (flag_fft_processing == 0) {
-		//STOPCHRONO;
 		for (uint16_t i = 0; i < size; i += 2) {
 			// Copy memory into buffer and apply tukey window.
 			//*pOut1++ = (float) *pIn++ * tukey_window[i] / (float) MAXINT;
@@ -761,22 +729,16 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 			*pOut2++ = (float) *pIn++ / (float) MAXINT;
 
 		}
-		//STOPCHRONO;
-		time_process = time_us;
 		new_sample_to_process = 1;
 	}
 
 #if 0
-	STOPCHRONO;
 	/* process the data through the CFFT/CIFFT module */
 	arm_cfft_f32(&arm_cfft_sR_f32_len1024, left_1, ifft_flag, do_bit_reverse);
 
 	/* process the data through the Complex Magnitude Module for
 	 calculating the magnitude at each bin */
 	arm_cmplx_mag_f32(left_1, test_output, FFTSIZE);
-
-	STOPCHRONO;
-	time_arm_cmplx_mag_f32 = time_us;
 
 	/* Calculates max_value and returns corresponding BIN value */
 	arm_max_f32(test_output, FFTSIZE, &max_value, &test_index);
@@ -792,7 +754,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7,
 			8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-			25, 26, 27, 28, 29, 30 };
+			25, 26, 27, 28};
 
 	// TODO(FD): for the moment we just use the average thrust here. We could
 	// also loop through all propeller frequencies and not use any of them,
@@ -800,7 +762,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	if (filter_props_enable) {
 		float average_thrust = 0;
 		for (int i = 0; i < N_MOTORS; i++) {
-			average_thrust += (float) motor_power_array[i] / N_MOTORS;
+			average_thrust += (float) param_array[i] / N_MOTORS;
 		}
 		prop_freq = 3.27258551 * sqrt(average_thrust) - 26.41814899;
 	}
@@ -868,65 +830,56 @@ void fill_tx_buffer() {
 	uint16_t i_array = 0;
 
 	// Fill with FFT content
+	// The spi_tx_buffer will be filled like
+	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+	//  ...
+	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+    //  where N is FFTSIZE_SENT-1
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&left_1_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&left_3_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&right_1_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&right_3_f[2 * selected_indices[i_fbin]], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_1_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&left_1_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(left_3_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&left_3_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_1_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&right_1_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
-		float_to_byte_array(right_3_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
+		variable_to_byte_array(&right_3_f[2 * selected_indices[i_fbin] + 1], &spi_tx_buffer[i_array]);
 		i_array += 4;
 	}
 
 	// Fill with bins indices
-	for (int i = 0; i < FFTSIZE_SENT; i++) {
-		int16_to_byte_array(selected_indices[i], &spi_tx_buffer[i_array]);
-		i_array += 2;
-	}
+	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
+
 
 	// Fill with timestamp
-	uint32_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
+	variable_to_byte_array(&timestamp, &spi_tx_buffer[i_array]);
 	i_array += 4;
 
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 }
 
 void read_rx_buffer() {
-	for (int i = 0; i < PARAMS_N_INT16; i++) {
-		uint8_array_to_uint16(&spi_rx_buffer[i * INT16_PRECISION],
-				&param_array[i]);
-	}
+	memcpy(param_array, spi_rx_buffer, PARAMS_N_INT16 * INT16_PRECISION);
 
 	// Sometimes, because of faulty communication, the packet is broken and we get
 	// impossible values for the parameters. In that case they should not be updated.
-	if ((param_array[N_MOTORS] == 0)
-			|| (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
+	if ((param_array[N_MOTORS] == 0) || (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
 		return;
 
-	memcpy(motor_power_array, param_array, N_MOTORS * INT16_PRECISION);
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
 	delta_freq = param_array[N_MOTORS + 2];
 	n_average = param_array[N_MOTORS + 3];
-	filter_props_enable = (param_array[N_MOTORS + 4] & 0x100) >> 8;
-	filter_snr_enable = param_array[N_MOTORS + 4] & 0x001;
+	filter_props_enable = param_array[N_MOTORS + 4];
+	filter_snr_enable = param_array[N_MOTORS + 5];
 }
 
 int compare_amplitudes(const void *a, const void *b) {
@@ -940,38 +893,15 @@ int compare_amplitudes(const void *a, const void *b) {
 		return 0;
 }
 
-// Wrong absolute value but should work faster without sqrt
-float abs_value_no_sqrt(float real_imag[]) {
+// Wrong absolute value but should work faster without sqrt.
+float abs_value_squared(float real_imag[]) {
 	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
 
-float abs_value(float real_imag[]) {
-	return sqrt(real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
-}
-
-void float_to_byte_array(float input, uint8_t output[]) {
-	uint32_t temp = *((uint32_t*) &input);
-	for (int i = 0; i < 4; i++) {
-		output[i] = temp & 0xFF;
-		temp >>= 8;
-	}
-}
-
-// TODO (AH): Change name to UINT?
-void int16_to_byte_array(uint16_t input, uint8_t output[]) {
-	output[0] = input & 0xFF; // get first byte
-	output[1] = input >> 8; // get second byte
-}
-
-void uint32_to_byte_array(uint32_t input, uint8_t output[]) {
-	output[0] = input & 0xFF; // get first byte
-	output[1] = (input >> 8) & 0xFF; // get second byte
-	output[2] = (input >> 16) & 0xFF; // get third byte
-	output[3] = (input >> 24) & 0xFF; // get fourth byte
-}
-
-void uint8_array_to_uint16(uint8_t input[], uint16_t *output) {
-	*output = ((uint16_t) input[1] << 8) | input[0];
+// Convert a single varialbe to a byte array. Works for any types, such as
+// float or uint32_t. 
+void variable_to_byte_array(void* input_pointer, uint8_t* output) {
+	memcpy(output, &input_pointer, sizeof(input_pointer));
 }
 
 /* USER CODE END 4 */
