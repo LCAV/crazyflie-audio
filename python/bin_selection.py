@@ -14,7 +14,7 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     min_index = int(min_freq * n_buffer / fs)
     max_index = int(max_freq * n_buffer / fs)
 
-    assert max_index < n_frequencies, f"{max_index, n_frequencies}"
+    assert max_index < n_frequencies, f"given max frequency {max_freq}Hz too high for sampling frequency {fs}Hz"
 
     potential_indices = []
 
