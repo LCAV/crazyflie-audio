@@ -63,28 +63,36 @@ def generate_signal_real(Fs, duration_sec, fname, **kwargs):
 
 def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, **kwargs):
     if signal_type == "mono":
-        return generate_signal_mono(Fs, duration_sec, **kwargs)
+        signal = generate_signal_mono(Fs, duration_sec, **kwargs)
+        signal = amplify_signal(signal, target_dB=max_dB)
 
     elif signal_type == "random":
-        return generate_signal_random(Fs, duration_sec, **kwargs)
+        signal = generate_signal_random(Fs, duration_sec, **kwargs)
+        signal = amplify_signal(signal, target_dB=max_dB)
 
     elif signal_type == "real":
-        return generate_signal_real(Fs, duration_sec, **kwargs)
+        signal = generate_signal_real(Fs, duration_sec, **kwargs)
+        signal = amplify_signal(signal, target_dB=max_dB)
 
     elif signal_type == "random_linear":
         signal = generate_signal_random(Fs, duration_sec, **kwargs)
-        return linear_increase(signal, min_dB, max_dB)
+        signal = linear_increase(signal, min_dB, max_dB)
 
     elif signal_type == "mono_linear":
         signal = generate_signal_mono(Fs, duration_sec, **kwargs)
-        return linear_increase(signal, min_dB, max_dB)
+        signal = linear_increase(signal, min_dB, max_dB)
 
     elif signal_type is None:
         num_samples = int(ceil(Fs * duration_sec))
-        return np.zeros(num_samples)
+        signal = np.zeros(num_samples)
 
     else:
         raise ValueError(signal_type)
+
+    if np.any(signal > 1.0): 
+        raise Warning("Signal is higher than 1.0. This could lead to clipping at the soundcard!")
+
+    return signal
 
 
 def get_power(signal, dB=True):

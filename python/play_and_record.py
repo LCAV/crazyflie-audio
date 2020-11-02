@@ -7,9 +7,9 @@ from scipy.io import wavfile
 
 from signals import generate_signal, amplify_signal
 
-FS = 44100
-N_CHANNELS = 1
-DURATION = 30 # seconds
+FS = 44100 # sampling frequency in Hz
+N_MICS = 1 # number of mics
+DURATION = 30 # duration of recording in seconds
 TARGET_DB = -30 # loudness, dB, set to None for now scaling
 IN_FILE = None
 FREQ = 800 #440 # Hz
@@ -20,14 +20,14 @@ SIGNAL_TYPE = "mono"
 #SIGNAL_TYPE = "real"; IN_FILE = "../data/propellers/44000.wav"
 
 
-def get_usb_soundcard_ubuntu(fs=FS, n_channels=N_CHANNELS):
+def get_usb_soundcard_ubuntu(fs=FS, n_mics=N_MICS):
     import sounddevice as sd
 
     # Sound card selection: input, output
     sd.default.device = 'USB Audio', 'USB Audio'  # os-specific
     sd.default.samplerate = fs 
     sd.default.dtype = np.float32
-    sd.default.channels = n_channels
+    sd.default.channels = n_mics, 1
     return sd
 
 
