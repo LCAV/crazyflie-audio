@@ -171,6 +171,7 @@ volatile int32_t time_us;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
 
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -280,6 +281,9 @@ int main(void)
   MX_SPI2_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
+
+    size_t length_tukey = sizeof(tukey_window)/sizeof(tukey_window[0]);
+    assert(length_tukey == N_ACTUAL_SAMPLES);
 
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
