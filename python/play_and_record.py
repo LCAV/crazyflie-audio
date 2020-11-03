@@ -9,14 +9,17 @@ from signals import generate_signal, amplify_signal
 
 FS = 44100 # sampling frequency in Hz
 N_MICS = 1 # number of mics
-DURATION = 30 # duration of recording in seconds
-TARGET_DB = -30 # loudness, dB, set to None for now scaling
+DURATION = 20 # duration of recording in seconds
+MIN_DB = -40 # loudness, dB
+MAX_DB = -10
 IN_FILE = None
 FREQ = 800 #440 # Hz
-SIGNAL_TYPE = "mono"
+#SIGNAL_TYPE = "mono"
+#SIGNAL_TYPE = "mono"
 #SIGNAL_TYPE = "random"
 #SIGNAL_TYPE = "random_linear"
-#SIGNAL_TYPE = "mono_linear"
+SIGNAL_TYPE = "mono_linear"
+#SIGNAL_TYPE = "sweep"
 #SIGNAL_TYPE = "real"; IN_FILE = "../data/propellers/44000.wav"
 
 
@@ -34,11 +37,8 @@ def get_usb_soundcard_ubuntu(fs=FS, n_mics=N_MICS):
 if __name__ == '__main__':
     np.random.seed(1)
 
-    signal = generate_signal(FS, duration_sec=DURATION, signal_type=SIGNAL_TYPE, frequency_hz=FREQ, fname=IN_FILE)
-    out_file = f"../data/test/{SIGNAL_TYPE}"
-
-    if TARGET_DB is not None:
-        signal = amplify_signal(signal, target_dB=TARGET_DB, verbose=True)
+    signal = generate_signal(FS, duration_sec=DURATION, signal_type=SIGNAL_TYPE, frequency_hz=FREQ, min_dB=MIN_DB, max_dB=MAX_DB, fname=IN_FILE)
+    out_file = f"{SIGNAL_TYPE}"
 
     sd = get_usb_soundcard_ubuntu()
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     wavfile.write(f'{out_file}_scipy.wav', FS, recording_float32)
 
     with wave.open(f'{out_file}.wav', 'w') as f:
-        f.setnchannels(N_CHANNELS)
+        f.setnchannels(N_MICS)
         f.setframerate(FS)
         f.setsampwidth(4) # number of bytes for int32
         recording_int32 = (recording_float32 * (2**31 - 1)).astype(np.int32)

@@ -5,13 +5,32 @@ signals.py: Functions to generate different sound signals.
 """
 
 from abc import ABC, abstractmethod
-from math import ceil
+from math import ceil, floor
 import os
 
 import matplotlib.pylab as plt
 import numpy as np
 
 from constants import AUDIO_SAMPLING_RATE
+
+MIN_FREQ = 200
+MAX_FREQ = 7000
+
+def generate_signal_sweep(Fs, duration_sec, min_freq=MIN_FREQ, max_freq=MAX_FREQ, step=False, **kwargs):
+    num_samples = int(ceil(Fs * duration_sec))
+
+    if step:
+        # stay at each frequency at least 10 buffers at audio_deck sampling rate.
+        duration_per_freq = 2048. * 5 / 32000 # seconds
+        max_samples_per_frequency = int(ceil(Fs * duration_per_freq))
+        num_frequencies = int(ceil(num_samples / max_samples_per_frequency))
+        frequencies = np.exp(np.linspace(np.log(min_freq), np.log(max_freq), num_frequencies))
+        frequencies_repeat = np.repeat(frequencies, max_samples_per_frequency)[:num_samples]
+        times = np.tile(np.linspace(0, duration_per_freq, max_samples_per_frequency), num_frequencies)[:num_samples]
+    else:
+        frequencies_repeat = np.exp(np.linspace(np.log(min_freq), np.log(max_freq), num_samples))
+        times = np.linspace(0, duration_sec, num_samples)
+    return np.sin(2 * np.pi * np.multiply(frequencies_repeat, times))
 
 
 def generate_signal_mono(Fs, duration_sec, frequency_hz=1000, **kwargs):
@@ -74,6 +93,11 @@ def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, 
         signal = generate_signal_real(Fs, duration_sec, **kwargs)
         signal = amplify_signal(signal, target_dB=max_dB)
 
+    elif signal_type == "sweep":
+        signal = generate_signal_sweep(Fs, duration_sec, **kwargs)
+        signal = amplify_signal(signal, target_dB=max_dB, verbose=True)
+
+
     elif signal_type == "random_linear":
         signal = generate_signal_random(Fs, duration_sec, **kwargs)
         signal = linear_increase(signal, min_dB, max_dB)
@@ -90,7 +114,7 @@ def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, 
         raise ValueError(signal_type)
 
     if np.any(signal > 1.0): 
-        raise Warning("Signal is higher than 1.0. This could lead to clipping at the soundcard!")
+        raise Warning(f"Signal is higher than 1.0. This could lead to clipping at the soundcard! Range: {np.min(signal)} to {np.max(signal)}")
 
     return signal
 
@@ -113,16 +137,14 @@ def amplify_signal(signal, change_dB=None, target_dB=None, verbose=False):
 
     if change_dB is not None:
         target_dB = power_dB + change_dB
-        if verbose:
-            print(f"target: {target_dB} dB")
 
     elif target_dB is not None:
         change_dB = target_dB - power_dB
-        if verbose:
-            print(f"changing by {change_dB} dB")
 
     ratio_amplitudes = np.sqrt(10**(change_dB / 10.0))
     if verbose:
+        print('current power', power_dB)
+        print('target power', target_dB)
         print("amplitudes ratio:", ratio_amplitudes)
     new_signal = ratio_amplitudes * signal
 
@@ -132,9 +154,10 @@ def amplify_signal(signal, change_dB=None, target_dB=None, verbose=False):
 
 
 def linear_increase(signal, min_dB=-50, max_dB=0):
-    powers = np.linspace(min_dB, max_dB, len(signal))
-    amplitudes = 10**(powers/20)
-    return np.multiply(amplitudes, signal)
+    curr_dB = get_power(signal)
+    gains_dB = np.linspace(min_dB, max_dB, len(signal)) - curr_dB 
+    gains = 10**(gains_dB/20)
+    return np.multiply(gains, signal)
 
 
 # TODO(FD) simplify below using above functions.
