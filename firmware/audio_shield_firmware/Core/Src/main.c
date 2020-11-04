@@ -160,6 +160,7 @@ uint32_t timestamp;
 uint32_t ifft_flag = 0;
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
+uint8_t init_stage_iir = 1;
 float prop_freq;
 arm_rfft_fast_instance_f32 rfft_instance;
 
@@ -344,19 +345,38 @@ int main(void)
 			// Sum into AVG buffer
 #ifndef IIR_FILTERING
 			for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
-				amplitude_avg[i] +=  (abs_value_squared(&mic0_f[i*2])
-									+ abs_value_squared(&mic1_f[i*2])
-									+ abs_value_squared(&mic2_f[i*2])
-									+ abs_value_squared(&mic3_f[i*2])) / N_MIC;
+				if (n_added == 0) {
+					amplitude_avg[i] = abs_value_squared(&mic0_f[i*2])
+									 + abs_value_squared(&mic1_f[i*2])
+									 + abs_value_squared(&mic2_f[i*2])
+									 + abs_value_squared(&mic3_f[i*2]);
+				}
+				else {
+					amplitude_avg[i] += abs_value_squared(&mic0_f[i*2])
+									  + abs_value_squared(&mic1_f[i*2])
+									  + abs_value_squared(&mic2_f[i*2])
+									  + abs_value_squared(&mic3_f[i*2]);
+				}
 			}
 			n_added += 1;
 #else
-			for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
-				amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
-						+ ALPHA * (abs_value_squared(&mic0_f[i * 2])
-								 + abs_value_squared(&mic1_f[i * 2])
-								 + abs_value_squared(&mic2_f[i * 2])
-								 + abs_value_squared(&mic3_f[i * 2]));
+			if (init_stage_iir) {
+				for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
+					amplitude_avg[i] = abs_value_squared(&mic0_f[i * 2])
+									 + abs_value_squared(&mic1_f[i * 2])
+									 + abs_value_squared(&mic2_f[i * 2])
+									 + abs_value_squared(&mic3_f[i * 2]);
+				}
+				init_stage_iir = 0;
+			}
+			else {
+				for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
+					amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
+							+ ALPHA * (abs_value_squared(&mic0_f[i * 2])
+									 + abs_value_squared(&mic1_f[i * 2])
+									 + abs_value_squared(&mic2_f[i * 2])
+									 + abs_value_squared(&mic3_f[i * 2]));
+				}
 			}
 #endif
 			flag_fft_processing = 0;
@@ -367,19 +387,18 @@ int main(void)
 		// We have reached the desired number of samples to average, so we fill the new tx_buffer
 		// and then reset the average to zero.
 		if (n_added == n_average) {
-#else
-		if (1) {
-#endif
 			frequency_bin_selection(selected_indices);
-
 			// Reset Average buffer.
 			n_added = 0;
-			memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
-#ifndef DEBUG_SPI
-			fill_tx_buffer();
-			read_rx_buffer();
-#endif
 		}
+#else
+		frequency_bin_selection(selected_indices);
+#endif // IIR_FILTERING
+
+#ifndef DEBUG_SPI
+		fill_tx_buffer();
+		read_rx_buffer();
+#endif // DEBUG_SPI
 	}
   /* USER CODE END 3 */
 }
