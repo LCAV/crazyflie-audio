@@ -208,9 +208,9 @@ void float_to_byte_array(float input, uint8_t output[]);
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 #ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(dma_1, mic0, mic2, N_ACTUAL_SAMPLES);
+		process(dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
-		process(dma_3, mic1, mic3, N_ACTUAL_SAMPLES);
+		process(dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
 	}
 #endif
 }
@@ -218,9 +218,9 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 #ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(&dma_1[HALF_BUFFER_SIZE], mic0, mic2, N_ACTUAL_SAMPLES);
+		process(&dma_1[HALF_BUFFER_SIZE], mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
-		process(&dma_3[HALF_BUFFER_SIZE], mic1, mic3, N_ACTUAL_SAMPLES);
+		process(&dma_3[HALF_BUFFER_SIZE], mic1, mic0, N_ACTUAL_SAMPLES);
 	}
 #endif
 }
@@ -283,7 +283,7 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
-    size_t length_tukey = sizeof(tukey_window)/sizeof(tukey_window[0]);
+
     assert(length_tukey == N_ACTUAL_SAMPLES);
 
 	// Start DMAs
