@@ -283,7 +283,7 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
-
+    size_t length_tukey = sizeof(tukey_window)/sizeof(tukey_window[0]);
     assert(length_tukey == N_ACTUAL_SAMPLES);
 
 	// Start DMAs

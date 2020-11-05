@@ -21,3 +21,17 @@ In alphabetical order:
 ## License
 
 All material in this repo is provided with the MIT license.
+
+## EEPROM
+
+Parameters to set in `crazyflie-lib-python/examples/write_ow.py`: 
+
+```
+mems[0].vid = 0xBC
+mems[0].pid = 0xFF
+board_name_id = OWElement.element_mapping[1]
+board_rev_id = OWElement.element_mapping[2]
+mems[0].elements[board_name_id] = 'Audio Shield'
+mems[0].elements[board_rev_id] = 'V2'
+```
+
