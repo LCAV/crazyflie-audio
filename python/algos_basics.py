@@ -11,6 +11,16 @@ import numpy as np
 from constants import SPEED_OF_SOUND
 
 
+def low_rank_inverse(low_rank_matrix, rank=1):
+    u, s, vt = np.linalg.svd(low_rank_matrix, full_matrices=True)
+    #np.testing.assert_allclose(u.dot(np.diag(s)).dot(vt), low_rank_matrix)
+    s[rank:] = 0 
+    s[:rank] = 1/s[:rank]
+    s_mat = np.diag(s)
+    inverse = vt.T @ s_mat @ u.T
+    return inverse
+
+
 def get_mic_delays(mic_positions, azimuth, elevation=None):
     r0 = mic_positions[0]
     return np.array([get_mic_delta(r0, r1, azimuth, elevation) / SPEED_OF_SOUND for r1 in mic_positions])

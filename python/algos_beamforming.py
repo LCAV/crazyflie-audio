@@ -5,8 +5,11 @@ algos_beamforming.py: algorithms for beamforming
 """
 import numpy as np
 
-from algos_basics import get_autocorrelation, get_mic_delays
+from algos_basics import get_autocorrelation, get_mic_delays, low_rank_inverse
 from constants import SPEED_OF_SOUND
+
+INVERSE = 'pinv'
+#INVERSE = 'low-rank'
 
 def get_lcmv_beamformer(
     Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None
@@ -69,9 +72,10 @@ def get_lcmv_beamformer(
 
 
 def get_lcmv_beamformer_fast(
-    Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None
+    Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None, inverse=INVERSE
 ):
     """
+
     Solves the problem: h = min E(|y(t)|**2)
     under the given constraints
 
@@ -97,12 +101,18 @@ def get_lcmv_beamformer_fast(
         C = np.concatenate([C, C_row[:, :, None]], axis=2) # n_freq x n_mics x n_constr
 
     # solve the optimization problem
-    Rx_inv = np.linalg.pinv(Rx + lamda * np.eye(Rx.shape[1])[None, :, :], rcond=rcond) # n_freq x n_mics x n_mics
+    if inverse == 'pinv':
+        Rx_inv = np.linalg.pinv(Rx + lamda * np.eye(Rx.shape[1])[None, :, :], rcond=rcond) # n_freq x n_mics x n_mics
+
+    elif inverse == 'low-rank':
+        Rx_inv = np.empty(Rx.shape, dtype=np.complex)
+        for i in range(Rx.shape[0]):
+            Rx_inv[i,...] = low_rank_inverse(Rx[i,...], rank=1)
     # big_mat should have dimension n_freq x n_constr x n_constr
     # (n_freq x n_constr x n_mics) (n_freq x n_mics x n_mics) = n_freq x n_constr x n_mics 
     # @ n_freq x n_mics x n_constr = n_freq x n_constr x n_constr
     big_mat = np.transpose(C.conj(), (0, 2, 1)) @ Rx_inv @ C  # 
-    big_inv = np.linalg.pinv(big_mat, rcond=rcond)
+    big_inv = np.linalg.inv(big_mat)
     # n_freq x n_mics x n_mics @ # n_freq x n_mics x n_constr = n_freq x n_mics x n_constr
     H = Rx_inv @ C @ big_inv @ c
     return H
