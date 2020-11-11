@@ -756,6 +756,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		return;
 	}
 
+	memset(selected_indices, 0x00, FFTSIZE_SENT*INT16_PRECISION);
+
 	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7,
 			8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 			25, 26, 27, 28 };
@@ -802,8 +804,27 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		}
 	}
 
-	// TODO(FD): Come up with a better strategy.
-	if (potential_count < FFTSIZE_SENT) {
+	// if we have less candidates than required, we simply send all candidates
+	if (potential_count <= FFTSIZE_SENT) {
+		if (!filter_snr_enable) {
+			memcpy(selected_indices, potential_indices, potential_count * INT16_PRECISION);
+		}
+		// we still do the sorting for consistency (for instance, if down the line
+		// we rely on the first index to be the strongest)
+		else {
+			struct index_amplitude sort_this[potential_count];
+			for (int i = 0; i < potential_count; i++) {
+				sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
+				sort_this[i].index = potential_indices[i];
+			}
+			qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
+			for (int i = 0; i < potential_count; i++) {
+				selected_indices[i] = sort_this[i].index;
+			}
+		}
+
+		// fill the remaining indices with zeroes
+		memset(&selected_indices[potential_count], 0x00, INT16_PRECISION * (FFTSIZE_SENT - potential_count));
 		return;
 	}
 
