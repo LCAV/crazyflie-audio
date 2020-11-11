@@ -114,7 +114,7 @@ def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, 
         raise ValueError(signal_type)
 
     if np.any(signal > 1.0): 
-        raise Warning(f"Signal is higher than 1.0. This could lead to clipping at the soundcard! Range: {np.min(signal)} to {np.max(signal)}")
+        print(f"Warning: signal is higher than 1.0. This could lead to clipping at the soundcard! Range: {np.min(signal)} to {np.max(signal)}")
 
     return signal
 
