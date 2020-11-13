@@ -9,16 +9,16 @@ from signals import generate_signal, amplify_signal
 
 FS = 44100 # sampling frequency in Hz
 N_MICS = 1 # number of mics
-DURATION = 20 # duration of recording in seconds
-MIN_DB = -40 # loudness, dB
+DURATION = 10 # duration of recording in seconds
+MIN_DB = -60 # loudness, dB
 MAX_DB = -10
 IN_FILE = None
-FREQ = 800 #440 # Hz
+FREQ = 4100 #440 # Hz
 #SIGNAL_TYPE = "mono"
-#SIGNAL_TYPE = "mono"
+SIGNAL_TYPE = "mono"
 #SIGNAL_TYPE = "random"
 #SIGNAL_TYPE = "random_linear"
-SIGNAL_TYPE = "mono_linear"
+#SIGNAL_TYPE = "mono_linear"
 #SIGNAL_TYPE = "sweep"
 #SIGNAL_TYPE = "real"; IN_FILE = "../data/propellers/44000.wav"
 
@@ -48,12 +48,12 @@ if __name__ == '__main__':
 
     try:
         print('start recording')
-        recording = sd.playrec(signal, blocking=False)
+        recording = sd.playrec(signal, blocking=True)
     except:
         raise
 
-    print('sleeping...')
-    time.sleep(DURATION)
+    #print('sleeping...')
+    #time.sleep(DURATION)
     print('status (empty is ok):', sd.get_status())
 
     # convert 64 to 32 float

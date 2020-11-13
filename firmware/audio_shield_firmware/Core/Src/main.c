@@ -149,8 +149,8 @@ uint16_t selected_indices[FFTSIZE_SENT];
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t filter_prop_enable = 1;
 uint16_t filter_snr_enable = 1;
-uint16_t min_freq = 100;
-uint16_t max_freq = 10000;
+uint16_t min_freq = 0;
+uint16_t max_freq = 0;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 uint16_t n_added = 0; // counter of how many samples were averaged.
@@ -297,8 +297,8 @@ int main(void)
 	spi_tx_buffer[0] = 0xEF;
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 #endif
-	//memset(spi_tx_buffer, 0x02, SPI_N_BYTES);
-	memset(selected_indices, 0x00, FFTSIZE_SENT * 2);
+
+	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
 
 	HAL_TIM_Base_Init(&htim5);
@@ -307,8 +307,7 @@ int main(void)
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 			SPI_N_BYTES);
 
@@ -751,12 +750,11 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 void frequency_bin_selection(uint16_t *selected_indices) {
 
-	// This should never happen:
+	// This happens in the beginning only, afterwards it only happens if there
+	// was faulty communication between the Crazyflie and Audio deck.
 	if (min_freq >= max_freq) {
 		return;
 	}
-
-	memset(selected_indices, 0x00, FFTSIZE_SENT*INT16_PRECISION);
 
 	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7,
 			8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
