@@ -36,7 +36,8 @@ def generate_signal_sweep(Fs, duration_sec, min_freq=MIN_FREQ, max_freq=MAX_FREQ
 def generate_signal_mono(Fs, duration_sec, frequency_hz=1000, **kwargs):
     num_samples = int(ceil(Fs * duration_sec))
     times = np.linspace(0, duration_sec, num_samples)
-    return np.sin(2 * np.pi * frequency_hz * times)
+    phase_offset = kwargs.get('phase_offset', 0)
+    return np.sin(2 * np.pi * frequency_hz * times + phase_offset)
 
 
 def generate_signal_random(Fs, duration_sec, **kwargs):
