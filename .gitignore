@@ -4,7 +4,7 @@ __pycache__
 data/simulated/*
 python/.idea/
 *.pyc
-*/fp-info-cache
+**/fp-info-cache
 
 *.sch-bak
 
