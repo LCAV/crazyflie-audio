@@ -76,25 +76,25 @@ if __name__ == '__main__':
  
         
         simple_param_async(scf, 'sound', 'effect', 12)
-        simple_param_async(scf, 'sound', 'freq', 300)
+        simple_param_async(scf, 'sound', 'freq', 2000)
         simple_param_async(scf, 'sound', 'ratio', 1)
         time.sleep(5)
 
         simple_param_async(scf, 'sound', 'effect', 12)
         simple_param_async(scf, 'sound', 'freq', 600)
-        simple_param_async(scf, 'sound', 'ratio', 1)
+        simple_param_async(scf, 'sound', 'ratio', 0)
         time.sleep(5)
         simple_param_async(scf, 'sound', 'effect', 0)
         time.sleep(2)
 
         simple_param_async(scf, 'sound', 'effect', 12)
-        simple_param_async(scf, 'sound', 'freq', 300)
-        simple_param_async(scf, 'sound', 'ratio', 1)
+        simple_param_async(scf, 'sound', 'freq', 600)
+        simple_param_async(scf, 'sound', 'ratio', 10)
         time.sleep(5)
 
         simple_param_async(scf, 'sound', 'effect', 12)
         simple_param_async(scf, 'sound', 'freq', 600)
-        simple_param_async(scf, 'sound', 'ratio', 1)
+        simple_param_async(scf, 'sound', 'ratio', 0)
         time.sleep(5)
         simple_param_async(scf, 'sound', 'effect', 0)
         time.sleep(2)
