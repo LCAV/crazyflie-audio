@@ -1,0 +1,13 @@
+Write one wire memory:
+
+git clone https://github.com/bitcraze/crazyflie2-nrf-firmware
+
+cd crazyflie2-nrf-firmware
+
+make BLE=0
+
+make BLE=0 cload
+
+- Modify the write-ow.py example to fit your data, run it
+- You can read back the memory with the read-ow.py example
+- If you want bluetooth back you can compile again the nrf firmware (make clean all) or flash the latest released firmware package.
