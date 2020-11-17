@@ -43,6 +43,7 @@ logging.basicConfig(level=logging.ERROR)
 # - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
 CHOSEN_LOGGERS = {
     'yaw': 'stabilizer.yaw', 
+    'yaw_rate': 'gyro.z', 
     'dx': 'motion.deltaX',
     'dy': 'motion.deltaY',
     'z': 'range.zrange'
@@ -229,9 +230,10 @@ class ReaderCRTP(object):
                         self.fbins_array.n_bytes_last + N_BYTES_TIMESTAMP], 
                         dtype=np.uint8)
 
-                # below returns array of length 1
+                # frombuffer returns array of length 1
                 new_audio_timestamp = int(np.frombuffer(timestamp_bytes, dtype=np.uint32)[0])
 
+                # reject faulty packages
                 if self.audio_timestamp and (new_audio_timestamp > self.audio_timestamp + ALLOWED_DELTA_US):
                     return 
                 self.audio_timestamp = new_audio_timestamp
