@@ -27,7 +27,7 @@ def get_usb_soundcard_ubuntu(fs=FS, n_mics=N_MICS):
     import sounddevice as sd
 
     # Sound card selection: input, output
-    name = 'UAC-2: USB Audio' 
+    name = 'UAC-2' 
     sd.default.device = name, name  # os-specific
     sd.default.samplerate = fs 
     sd.default.dtype = np.float32
