@@ -103,7 +103,7 @@ def simple_param_async(scf, groupstr, namestr, value):
 
 
 if __name__ == "__main__":
-    id = "radio://0/80/2M"
+    id = "radio://0/70/2M"
     # Initialize the low-level drivers (don't list the debug drivers)
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
