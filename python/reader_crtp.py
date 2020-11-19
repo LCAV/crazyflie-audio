@@ -64,15 +64,6 @@ FBINS_DTYPE = np.uint16
 N_BYTES_TIMESTAMP = 4
 ALLOWED_DELTA_US = 1e6
 
-def set_thrust(cf,thrust):
-    thrust_str = f'{thrust}'
-    cf.param.set_value('motorPowerSet.m4', thrust_str)
-    cf.param.set_value('motorPowerSet.m1', thrust_str)
-    cf.param.set_value('motorPowerSet.m2', thrust_str)
-    cf.param.set_value('motorPowerSet.m3', thrust_str)
-    cf.param.set_value('motorPowerSet.enable', '1')
-
-
 class ArrayCRTP(object):
     def __init__(self, dtype, n_frames, name="array", extra_bytes=0):
         """
@@ -283,6 +274,12 @@ class ReaderCRTP(object):
         time.sleep(1)
         self.mc.stop()
 
+    def send_buzzer_effect(self, effect):
+        self.cf.param.set_value("sound.effect", effect)
+
+    def send_buzzer_freq(self, freq):
+        self.cf.param.set_value("sound.freq", freq)
+
 
 if __name__ == "__main__":
     import argparse
@@ -298,8 +295,6 @@ if __name__ == "__main__":
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
-
-        #set_thrust(cf, 43000)
 
         reader_crtp = ReaderCRTP(cf, verbose=verbose)
 
