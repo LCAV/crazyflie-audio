@@ -10,6 +10,7 @@ from cflib.utils.callbacks import Caller
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.crazyflie.syncLogger import SyncLogger
+from cflib.positioning.motion_commander import MotionCommander
 import cflib.crtp
 
 from cflib.crtp.crtpstack import CRTPPort
@@ -42,6 +43,7 @@ logging.basicConfig(level=logging.ERROR)
 # - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
 CHOSEN_LOGGERS = {
     'yaw': 'stabilizer.yaw', 
+    'yaw_rate': 'gyro.z', 
     'dx': 'motion.deltaX',
     'dy': 'motion.deltaY',
     'z': 'range.zrange'
@@ -161,6 +163,8 @@ class ReaderCRTP(object):
         self.cf = crazyflie
         self.verbose = verbose
 
+        self.mc = MotionCommander(self.cf)
+
         if log_motion:
             lg_motion = LogConfig(name='Motion2D', period_in_ms=LOGGING_PERIOD_MS)
             for log_value in CHOSEN_LOGGERS.values():
@@ -226,9 +230,10 @@ class ReaderCRTP(object):
                         self.fbins_array.n_bytes_last + N_BYTES_TIMESTAMP], 
                         dtype=np.uint8)
 
-                # below returns array of length 1
+                # frombuffer returns array of length 1
                 new_audio_timestamp = int(np.frombuffer(timestamp_bytes, dtype=np.uint32)[0])
 
+                # reject faulty packages
                 if self.audio_timestamp and (new_audio_timestamp > self.audio_timestamp + ALLOWED_DELTA_US):
                     return 
                 self.audio_timestamp = new_audio_timestamp
@@ -258,6 +263,26 @@ class ReaderCRTP(object):
         #if self.verbose:
         #    print('ReaderCRTP logging callback:', logconf.name)
 
+    def send_hover_command(self, height):
+        self.mc.take_off(height)
+        time.sleep(1)
+
+    def send_turn_command(self, angle_deg):
+        if angle_deg > 0:
+            self.mc.turn_left(angle_deg)
+        else:
+            self.mc.turn_right(-angle_deg)
+        # do not need this because  it is part of turn_*
+        # time.sleep(1)
+
+    def send_land_command(self, velocity=0):
+        if velocity > 0:
+            print('Warning: using default velocity')
+
+        self.mc.land()
+        time.sleep(1)
+        self.mc.stop()
+
 
 if __name__ == "__main__":
     import argparse
@@ -273,7 +298,9 @@ if __name__ == "__main__":
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
+
         #set_thrust(cf, 43000)
+
         reader_crtp = ReaderCRTP(cf, verbose=verbose)
 
         try:
