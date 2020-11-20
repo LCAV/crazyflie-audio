@@ -11,7 +11,7 @@ import time
 # to find serial port, run python -m serial.tools.list_ports
 SERIAL_PORT = "/dev/ttyACM0"
 
-TIME_FOR_10_CM = 13. # seconds
+TIME_FOR_10_CM = 15. # seconds
 TIME_FOR_90_DEG = 5. # seconds (4)
 TIME_FOR_27_DEG = 3 # seconds (2) 
 TIME_FOR_360_DEG = 17. # seconds (16)
@@ -47,31 +47,31 @@ class SerialMotors(object):
                 time.sleep(4) # wait for turning to be done
 
     def move(self, delta_cm):
-        # command q moves 10 centimeters in 25 seconds.
         if delta_cm > 0:
             for i in range(delta_cm // 10):
                 self.serial.write(b"q")
                 time.sleep(TIME_FOR_10_CM) # wait for linear movement to be done
 
     def move_back(self, delta_cm):
-        # command a moves -10 centimeters in 25 seconds.
         for i in range(delta_cm // 10):
             self.serial.write(b"a")
+            print('moving 10cm, waiting for', TIME_FOR_10_CM)
             time.sleep(TIME_FOR_10_CM) # wait for linear movement to be done
+            print('done')
 
 
 if __name__ == "__main__":
     sm = SerialMotors()
 
-    sm.turn(360)
-    time.sleep(TIME_FOR_360_DEG)
-    sm.turn_back(360)
+    #sm.turn(360)
+    #time.sleep(TIME_FOR_360_DEG)
+    #sm.turn_back(360)
 
-    sm.turn(90)
-    sm.turn_back(90)
+    #sm.turn(90)
+    #sm.turn_back(90)
 
-    sm.turn(27)
-    sm.turn_back(27)
+    #sm.turn(27)
+    #sm.turn_back(27)
 
-    #sm.move(20)
-    #sm.move_back(20)
+    #sm.move(10)
+    sm.move_back(10)
