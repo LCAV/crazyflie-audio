@@ -37,9 +37,10 @@ turn = {
 }
 
 class SerialMotors(object):
-    def __init__(self, port=SERIAL_PORT, baudrate=115200):
+    def __init__(self, port=SERIAL_PORT, baudrate=115200, verbose=False):
         self.port = SERIAL_PORT
         self.serial = serial.Serial(port, baudrate)
+        self.verbose = verbose
 
     # turn is by default non-blocking because when we do the 360 degrees we 
     # want to recording DURING, not after, as for the others.
@@ -61,14 +62,17 @@ class SerialMotors(object):
         for partial, command, time_s in commands_decreasing:
             num_commands = leftover // partial
 
-            print(f'moving {leftover} in chunks of {partial}')
+            if self.verbose:
+                print(f'moving {leftover} in chunks of {partial}')
 
             if (num_commands > 1) and not blocking:
-                print(f'cannot move by {leftover} in non-blocking mode.')
+                if self.verbose:
+                    print(f'cannot move by {leftover} in non-blocking mode.')
                 blocking = True
 
             for i in range(num_commands):
-                print(f'running command {i+1}/{num_commands}')
+                if self.verbose:
+                    print(f'running command {i+1}/{num_commands}')
                 self.serial.write(command)
 
                 if blocking:
@@ -81,7 +85,7 @@ class SerialMotors(object):
 
 
 if __name__ == "__main__":
-    sm = SerialMotors()
+    sm = SerialMotors(verbose=True)
     #sm.turn(360)
-    sm.turn_back(360)
-    #sm.move_back(5)
+    #sm.turn_back(360)
+    sm.move_back(30)

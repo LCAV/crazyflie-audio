@@ -50,6 +50,8 @@ CHOSEN_LOGGERS = {
 }
 LOGGING_PERIOD_MS = 10 # logging period in ms
 
+BATTERY_PERIOD_MS = 1000 # logging period of battery in ms (set to 0 for none) 
+
 FFTSIZE = 32
 N_MICS = 4
 CRTP_PAYLOAD = 29 # number of bytes per package
@@ -147,7 +149,7 @@ class ReaderCRTP(object):
     We read whatever is published using DEBUG_PRINT in the firmware and print it out. 
 
     """
-    def __init__(self, crazyflie, verbose=False, log_motion=False):
+    def __init__(self, crazyflie, verbose=False, log_motion=False, log_battery=True):
 
         self.receivedChar = Caller()
         self.frame_started = False
@@ -163,6 +165,13 @@ class ReaderCRTP(object):
             self.cf.log.add_config(lg_motion)
             lg_motion.data_received_cb.add_callback(self.callback_logging)
             lg_motion.start()
+
+        if log_battery:
+            lg_battery = LogConfig(name='Battery', period_in_ms=BATTERY_PERIOD_MS)
+            lg_battery.add_variable('pm.vbat', 'float')
+            self.cf.log.add_config(lg_battery)
+            lg_battery.data_received_cb.add_callback(self.callback_battery)
+            lg_battery.start()
 
         self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
         self.cf.add_port_callback(CRTPPort.CONSOLE, self.callback_console)
@@ -185,6 +194,8 @@ class ReaderCRTP(object):
         self.audio_array = ArrayCRTP(AUDIO_DTYPE, N_FRAMES_AUDIO, "audio")
         self.fbins_array = ArrayCRTP(FBINS_DTYPE, N_FRAMES_FBINS, "fbins")
         self.audio_timestamp = 0
+
+        self.battery = None
 
         # for debugging only
         self.update_rate = 0
@@ -251,18 +262,44 @@ class ReaderCRTP(object):
         self.motion_dict['data'] = {
             key: data[val] for key, val in CHOSEN_LOGGERS.items()
         }
-        #if self.verbose:
-        #    print('ReaderCRTP logging callback:', logconf.name)
+
+    def callback_battery(self, timestamp, data, logconf):
+        self.battery = data['pm.vbat']
+        if self.verbose:
+            print('ReaderCRTP battery callback:', self.battery)
+
+    def battery_ok(self):
+        if self.battery is None:
+            return True
+        elif self.battery <= 3.83: # corresponds to 20 %
+            print(f"Warning: battery only at {self.battery}, not executing command")
+            return False
+        return True
+
+    def send_thrust_command(self, value, motor='all'):
+        if (value > 0) and not self.battery_ok():
+            return False
+        if motor == 'all':
+            [self.cf.param.set_value(f"motorPowerSet.m{i}", value) for i in range(1, 5)]
+        else:
+            self.cf.param.set_value(f"motorPowerSet.{motor}", value)
+        if value > 0:
+            self.cf.param.set_value("motorPowerSet.enable", 1)
+        return True
 
     def send_hover_command(self, height):
+        if not self.battery_ok():
+            return False
         self.mc.take_off(height)
         time.sleep(1)
+        return True
 
     def send_turn_command(self, angle_deg):
         if angle_deg > 0:
             self.mc.turn_left(angle_deg)
         else:
             self.mc.turn_right(-angle_deg)
+        return True
         # do not need this because  it is part of turn_*
         # time.sleep(1)
 
@@ -273,6 +310,7 @@ class ReaderCRTP(object):
         self.mc.land()
         time.sleep(1)
         self.mc.stop()
+        return True
 
     def send_buzzer_effect(self, effect):
         self.cf.param.set_value("sound.effect", effect)
