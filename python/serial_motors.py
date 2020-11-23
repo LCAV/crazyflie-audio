@@ -4,6 +4,7 @@
 """
 serial_motors.py: Class to control serial motors (linear and rotational)
 """
+
 import serial
 import time
 
@@ -11,67 +12,76 @@ import time
 # to find serial port, run python -m serial.tools.list_ports
 SERIAL_PORT = "/dev/ttyACM0"
 
-TIME_FOR_10_CM = 15. # seconds
-TIME_FOR_90_DEG = 5. # seconds (4)
-TIME_FOR_27_DEG = 3 # seconds (2) 
-TIME_FOR_360_DEG = 17. # seconds (16)
+# (distance (cm), command, time (s))
+move = {
+    'forward': [
+        (5,  b"q", 15),
+        (10, b"w", 27)
+    ],
+    'backward': [
+        (5,  b"a", 15),
+        (10, b"s", 27)
+    ]
+}
+turn = {
+    'forward': [
+        (27,  b"p", 3),
+        (90, b"o", 5),
+        (360, b"i", 17)
+    ],
+    'backward': [
+        (27,  b"l", 3),
+        (90, b"k", 5),
+        (360, b"j", 17)
+    ]
+}
 
 class SerialMotors(object):
     def __init__(self, port=SERIAL_PORT, baudrate=115200):
         self.port = SERIAL_PORT
         self.serial = serial.Serial(port, baudrate)
 
-    def turn(self, angle_deg):
-        if angle_deg == 360:
-            # start rotating and continue immediately
-            self.serial.write(b"i")
-        elif angle_deg == 90:
-            # wait until rotation is one
-            self.serial.write(b"o")
-            time.sleep(TIME_FOR_90_DEG)
-        elif angle_deg in [27, 54, 81]:
-            for i in range(angle_deg // 27):
-                self.serial.write(b"p")
-                time.sleep(TIME_FOR_27_DEG) # wait for turning to be done
+    # turn is by default non-blocking because when we do the 360 degrees we 
+    # want to recording DURING, not after, as for the others.
+    def turn(self, angle_deg, blocking=False):
+        self.move_in_chunks(turn['forward'], angle_deg, blocking=blocking)
 
-    def turn_back(self, angle_deg):
-        if angle_deg == 360:
-            self.serial.write(b"j")
-            time.sleep(TIME_FOR_360_DEG)
-        elif angle_deg == 90:
-            self.serial.write(b"k")
-            time.sleep(TIME_FOR_90_DEG) # wait for turning to be done
-        elif angle_deg in [27, 54, 81]:
-            for i in range(angle_deg // 27):
-                self.serial.write(b"l")
-                time.sleep(4) # wait for turning to be done
+    def turn_back(self, angle_deg, blocking=True):
+        self.move_in_chunks(turn['backward'], angle_deg, blocking=blocking)
 
-    def move(self, delta_cm):
-        if delta_cm > 0:
-            for i in range(delta_cm // 10):
-                self.serial.write(b"q")
-                time.sleep(TIME_FOR_10_CM) # wait for linear movement to be done
+    def move(self, delta_cm, blocking=True):
+        self.move_in_chunks(move['forward'], delta_cm, blocking=blocking)
 
-    def move_back(self, delta_cm):
-        for i in range(delta_cm // 10):
-            self.serial.write(b"a")
-            print('moving 10cm, waiting for', TIME_FOR_10_CM)
-            time.sleep(TIME_FOR_10_CM) # wait for linear movement to be done
-            print('done')
+    def move_back(self, delta_cm, blocking=True):
+        self.move_in_chunks(move['backward'], delta_cm, blocking=blocking)
+
+    def move_in_chunks(self, commands, total, blocking=True):
+        leftover = total
+        commands_decreasing = sorted(commands, key=lambda tuple_: tuple_[0])[::-1]
+        for partial, command, time_s in commands_decreasing:
+            num_commands = leftover // partial
+
+            print(f'moving {leftover} in chunks of {partial}')
+
+            if (num_commands > 1) and not blocking:
+                print(f'cannot move by {leftover} in non-blocking mode.')
+                blocking = True
+
+            for i in range(num_commands):
+                print(f'running command {i+1}/{num_commands}')
+                self.serial.write(command)
+
+                if blocking:
+                    time.sleep(time_s) # wait for linear movement to be done
+
+            leftover = leftover % partial
+
+        if leftover != 0:
+            print(f'Warning: not moving by last {leftover} cm.')
 
 
 if __name__ == "__main__":
     sm = SerialMotors()
-
     #sm.turn(360)
-    #time.sleep(TIME_FOR_360_DEG)
-    #sm.turn_back(360)
-
-    #sm.turn(90)
-    #sm.turn_back(90)
-
-    #sm.turn(27)
-    #sm.turn_back(27)
-
-    #sm.move(10)
-    sm.move_back(10)
+    sm.turn_back(360)
+    #sm.move_back(5)
