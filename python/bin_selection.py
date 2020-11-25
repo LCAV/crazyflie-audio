@@ -3,7 +3,7 @@
 
 import numpy as np
 
-N_BUFFER = 1024
+N_BUFFER = 2048
 
 FFTSIZE_SENT = 32
 
@@ -104,6 +104,7 @@ if __name__ == "__main__":
 
     buffer_f = np.fft.rfft(signals_props[:, :N_BUFFER])
     freq = np.fft.rfftfreq(N_BUFFER, d=1/Fs)
+    print('available bins:', N_BUFFER, len(freq), buffer_f.shape)
 
     fig, ax = plt.subplots()
 
