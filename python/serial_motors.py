@@ -15,12 +15,14 @@ SERIAL_PORT = "/dev/ttyACM0"
 # (distance (cm), command, time (s))
 move = {
     'forward': [
-        (5,  b"q", 15),
-        (10, b"w", 27)
+        (0.1,  b"q", 2),
+        (10, b"w", 5),
+        (100, b"w", 34)
     ],
     'backward': [
-        (5,  b"a", 15),
-        (10, b"s", 27)
+        (0.1,  b"a", 2),
+        (10, b"s", 5),
+        (100, b"d", 34)
     ]
 }
 turn = {
