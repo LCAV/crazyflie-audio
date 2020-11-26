@@ -15,14 +15,14 @@ SERIAL_PORT = "/dev/ttyACM0"
 # (distance (cm), command, time (s))
 move = {
     'forward': [
-        (0.1,  b"q", 2),
-        (1, b"w", 5),
-        (10, b"e", 34)
+        (0.1,  b"q", 2.0),
+        (1, b"w", 5.0),
+        (10, b"e", 34.0)
     ],
     'backward': [
-        (0.1,  b"a", 2),
-        (1, b"s", 5),
-        (10, b"d", 34)
+        (0.1,  b"a", 2.0),
+        (1, b"s", 5.0),
+        (10, b"d", 34.0)
     ]
 }
 turn = {
@@ -62,7 +62,7 @@ class SerialMotors(object):
         leftover = total
         commands_decreasing = sorted(commands, key=lambda tuple_: tuple_[0])[::-1]
         for partial, command, time_s in commands_decreasing:
-            num_commands = leftover // partial
+            num_commands = int(leftover // partial)
 
             if self.verbose:
                 print(f'moving {leftover} in chunks of {partial}')
@@ -89,5 +89,5 @@ class SerialMotors(object):
 if __name__ == "__main__":
     sm = SerialMotors(verbose=True)
     #sm.turn(360)
-    sm.turn_back(360)
-    #sm.move_back(30)
+    #sm.turn_back(360)
+    sm.move(1)
