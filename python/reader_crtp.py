@@ -149,6 +149,10 @@ class ReaderCRTP(object):
     We read whatever is published using DEBUG_PRINT in the firmware and print it out. 
 
     """
+
+    # TODO(FD) potentially replace with constant
+    BATTERY_OK = 3.83
+
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_battery=True):
 
         self.receivedChar = Caller()
@@ -271,7 +275,7 @@ class ReaderCRTP(object):
     def battery_ok(self):
         if self.battery is None:
             return True
-        elif self.battery <= 3.83: # corresponds to 20 %
+        elif self.battery <= self.BATTERY_OK: # corresponds to 20 %
             print(f"Warning: battery only at {self.battery}, not executing command")
             return False
         return True
