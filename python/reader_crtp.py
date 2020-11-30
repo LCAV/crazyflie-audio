@@ -125,7 +125,7 @@ class ArrayCRTP(object):
             self.packet_counter += 1
             return False
         else:
-            print("unexpected packet")
+            print(f"unexpected packet: {self.packet_counter} > {self.n_packets_full}")
 
     def reset_array(self):
         if (self.packet_counter != 0) and (self.packet_counter != self.n_packets_full + 1):
@@ -223,8 +223,8 @@ class ReaderCRTP(object):
             self.audio_array.reset_array()
             self.fbins_array.reset_array()
 
-        if self.frame_started and packet.channel != 2: # channel is either 0 or 1: read data
-            filled = self.audio_array.fill_array_from_crtp(packet, verbose=False)
+        if self.frame_started and (packet.channel in [0, 1]): # channel is either 0 or 1: read audio data
+            self.audio_array.fill_array_from_crtp(packet, verbose=False)
 
         elif self.frame_started and packet.channel == 2: # channel is 2: read fbins
             filled = self.fbins_array.fill_array_from_crtp(packet, verbose=False)
@@ -329,11 +329,11 @@ if __name__ == "__main__":
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
     parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
-    parser.add_argument('id', metavar='ID', type=int, help='number of Crazyflie ("radio://0/ID/2M")',
-                        default=69)
+    parser.add_argument('id', metavar='ID', type=int, help='number of Crazyflie ("radio://0/[ID]0/2M")',
+                        default=8)
     args = parser.parse_args()
-    id = f"radio://0/{args.id}/2M"
 
+    id = f"radio://0/{args.id}0/2M/E7E7E7E7E{args.id}"
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
