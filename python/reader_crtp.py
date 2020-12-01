@@ -42,15 +42,28 @@ logging.basicConfig(level=logging.ERROR)
 #   goes negative sometimes which is impossible. 
 # - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
 CHOSEN_LOGGERS = {
-    'yaw': 'stabilizer.yaw', 
-    'yaw_rate': 'gyro.z', 
-    'dx': 'motion.deltaX',
-    'dy': 'motion.deltaY',
-    'z': 'range.zrange'
+    'motion': {
+        'yaw': 'stabilizer.yaw', 
+        'yaw_rate': 'gyro.z', 
+        'dx': 'motion.deltaX',
+        'dy': 'motion.deltaY',
+        'z': 'range.zrange'
+    },
+    'status': {
+        'vbat':'pm.vbat'
+    },
+    'motors': {
+        'm1_pwm': 'pwm.m1_pwm',
+        'm2_pwm': 'pwm.m2_pwm',
+        'm3_pwm': 'pwm.m3_pwm',
+        'm4_pwm': 'pwm.m4_pwm',
+    }
 }
-LOGGING_PERIOD_MS = 10 # logging period in ms
-
-BATTERY_PERIOD_MS = 1000 # logging period of battery in ms (set to 0 for none) 
+LOGGING_PERIODS_MS = {
+    'motion': 10,
+    'status': 1000,
+    'motors': 100,
+}
 
 FFTSIZE = 32
 N_MICS = 4
@@ -153,7 +166,9 @@ class ReaderCRTP(object):
     # TODO(FD) potentially replace with constant read in ROS
     BATTERY_OK = 4.1 #3.83
 
-    def __init__(self, crazyflie, verbose=False, log_motion=False, log_battery=True):
+    def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
+
+        self.start_time = time.time()
 
         self.receivedChar = Caller()
         self.frame_started = False
@@ -162,26 +177,24 @@ class ReaderCRTP(object):
 
         self.mc = MotionCommander(self.cf)
 
+        self.logging_dicts = {
+                key: {
+                   'timestamp': None, 
+                   'data': None, 
+                   'published': True
+                } for key in ['motion', 'status', 'motors']
+        }
         if log_motion:
-            lg_motion = LogConfig(name='Motion2D', period_in_ms=LOGGING_PERIOD_MS)
-            for log_value in CHOSEN_LOGGERS.values():
-                lg_motion.add_variable(log_value, 'float')
-            self.cf.log.add_config(lg_motion)
-            lg_motion.data_received_cb.add_callback(self.callback_logging)
-            lg_motion.start()
-
-        if log_battery:
-            lg_battery = LogConfig(name='Battery', period_in_ms=BATTERY_PERIOD_MS)
-            lg_battery.add_variable('pm.vbat', 'float')
-            self.cf.log.add_config(lg_battery)
-            lg_battery.data_received_cb.add_callback(self.callback_battery)
-            lg_battery.start()
+            self.init_log_config('motion')
+        if log_status:
+            self.init_log_config('status')
+        if log_motors: 
+            self.init_log_config('motors')
 
         self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
         self.cf.add_port_callback(CRTPPort.CONSOLE, self.callback_console)
 
         # this data can be read and published by ROS nodes
-        self.start_time = time.time()
         self.audio_dict = {
                 'timestamp': None, 
                 'audio_timestamp': None, 
@@ -189,17 +202,10 @@ class ReaderCRTP(object):
                 'fbins': None,
                 'published': True
         }
-        self.motion_dict = {
-                'timestamp': None, 
-                'data': None, 
-                'published': True
-        }
 
         self.audio_array = ArrayCRTP(AUDIO_DTYPE, N_FRAMES_AUDIO, "audio")
         self.fbins_array = ArrayCRTP(FBINS_DTYPE, N_FRAMES_FBINS, "fbins")
         self.audio_timestamp = 0
-
-        self.battery = None
 
         # for debugging only
         self.update_rate = 0
@@ -210,9 +216,16 @@ class ReaderCRTP(object):
         if self.verbose:
             print("ReaderCRTP: set audio.send_audio_enable")
 
+    def init_log_config(self, name):
+        lg_config = LogConfig(name=name, period_in_ms=LOGGING_PERIODS_MS[name])
+        for log_value in CHOSEN_LOGGERS[name].values():
+            lg_config.add_variable(log_value, 'float')
+        self.cf.log.add_config(lg_config)
+        lg_config.data_received_cb.add_callback(self.callback_logging)
+        lg_config.start()
+
     def get_time_ms(self):
         return int((time.time() - self.start_time) * 1000)
-
 
     def callback_audio(self, packet):
         # We send the first package this channel to identify the start of new audio data.
@@ -261,22 +274,21 @@ class ReaderCRTP(object):
         print(message, end='')
 
     def callback_logging(self, timestamp, data, logconf):
-        self.motion_dict['timestamp'] = self.get_time_ms()
-        self.motion_dict['published'] = False
-        self.motion_dict['data'] = {
-            key: data[val] for key, val in CHOSEN_LOGGERS.items()
+        dict_to_fill = self.logging_dicts[logconf.name]
+        dict_to_fill['timestamp'] = self.get_time_ms()
+        dict_to_fill['published'] = False
+        dict_to_fill['data'] = {
+            key: data[val] for key, val in CHOSEN_LOGGERS[logconf.name].items()
         }
-
-    def callback_battery(self, timestamp, data, logconf):
-        self.battery = data['pm.vbat']
         if self.verbose:
-            print('ReaderCRTP battery callback:', self.battery)
+            print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
 
     def battery_ok(self):
-        if self.battery is None:
+        battery = self.status_dict['data']['vbat']
+        if battery is None:
             return True
-        elif self.battery <= self.BATTERY_OK: # corresponds to 20 %
-            print(f"Warning: battery only at {self.battery}, not executing command")
+        elif battery <= self.BATTERY_OK: 
+            print(f"Warning: battery only at {battery}, not executing command")
             return False
         return True
 
@@ -326,6 +338,9 @@ class ReaderCRTP(object):
 if __name__ == "__main__":
     import argparse
     verbose = True
+    log_motors = True
+    log_motion = True
+    log_status = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
     parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
@@ -338,7 +353,7 @@ if __name__ == "__main__":
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
 
-        reader_crtp = ReaderCRTP(cf, verbose=verbose)
+        reader_crtp = ReaderCRTP(cf, verbose=verbose, log_motion=log_motion, log_motors=log_motors, log_status=log_status)
 
         try:
             while True:
