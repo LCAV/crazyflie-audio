@@ -164,7 +164,7 @@ class ReaderCRTP(object):
     """
 
     # TODO(FD) potentially replace with constant read in ROS
-    BATTERY_OK = 4.1 #3.83
+    BATTERY_OK = 3.5 #4.1 #3.83
 
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
 
@@ -284,7 +284,7 @@ class ReaderCRTP(object):
             print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
 
     def battery_ok(self):
-        battery = self.status_dict['data']['vbat']
+        battery = self.logging_dicts['status']['data']['vbat']
         if battery is None:
             return True
         elif battery <= self.BATTERY_OK: 
