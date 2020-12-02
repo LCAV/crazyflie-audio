@@ -307,7 +307,6 @@ class ReaderCRTP(object):
         if not self.battery_ok():
             return False
         self.mc.take_off(height)
-        time.sleep(1)
         return True
 
     def send_turn_command(self, angle_deg):
@@ -319,13 +318,19 @@ class ReaderCRTP(object):
         # do not need this because  it is part of turn_*
         # time.sleep(1)
 
+    def send_move_command(self, distance_m):
+        if distance_m > 0:
+            self.mc.forward(distance_m)
+        else:
+            self.mc.back(-distance_m)
+        return True
+
     def send_land_command(self, velocity=0):
         if velocity > 0:
-            print('Warning: using default velocity')
-
-        self.mc.land()
-        time.sleep(1)
-        self.mc.stop()
+            self.mc.land(velocity)
+        else:
+            self.mc.land()
+        # wait one more second after landing
         return True
 
     def send_buzzer_effect(self, effect):
