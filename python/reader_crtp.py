@@ -43,20 +43,24 @@ logging.basicConfig(level=logging.ERROR)
 # - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
 CHOSEN_LOGGERS = {
     'motion': {
-        'yaw': 'stabilizer.yaw', 
-        'yaw_rate': 'gyro.z', 
-        'dx': 'motion.deltaX',
-        'dy': 'motion.deltaY',
-        'z': 'range.zrange'
+        'yaw': ('stabilizer.yaw', 'float'),
+        'yaw_rate': ('gyro.z', 'float'),
+        'dx': ('motion.deltaX', 'int16_t'),
+        'dy': ('motion.deltaY', 'int16_t'),
+        'z': ('range.zrange', 'uint16_t'),
     },
     'status': {
-        'vbat':'pm.vbat'
+        'vbat': ('pm.vbat', 'float'),
     },
     'motors': {
-        'm1_pwm': 'pwm.m1_pwm',
-        'm2_pwm': 'pwm.m2_pwm',
-        'm3_pwm': 'pwm.m3_pwm',
-        'm4_pwm': 'pwm.m4_pwm',
+        'm1_pwm': ('pwm.m1_pwm', 'uint32_t'),
+        'm2_pwm': ('pwm.m2_pwm', 'uint32_t'),
+        'm3_pwm': ('pwm.m3_pwm', 'uint32_t'),
+        'm4_pwm': ('pwm.m4_pwm', 'uint32_t'),
+        'm1_thrust': ('audio.m1_thrust', 'uint16_t'), 
+        'm2_thrust': ('audio.m2_thrust', 'uint16_t'),
+        'm3_thrust': ('audio.m3_thrust', 'uint16_t'),
+        'm4_thrust': ('audio.m4_thrust', 'uint16_t'),
     }
 }
 LOGGING_PERIODS_MS = {
@@ -219,7 +223,7 @@ class ReaderCRTP(object):
     def init_log_config(self, name):
         lg_config = LogConfig(name=name, period_in_ms=LOGGING_PERIODS_MS[name])
         for log_value in CHOSEN_LOGGERS[name].values():
-            lg_config.add_variable(log_value, 'float')
+            lg_config.add_variable(log_value[0], log_value[1] )
         self.cf.log.add_config(lg_config)
         lg_config.data_received_cb.add_callback(self.callback_logging)
         lg_config.start()
@@ -278,7 +282,7 @@ class ReaderCRTP(object):
         dict_to_fill['timestamp'] = self.get_time_ms()
         dict_to_fill['published'] = False
         dict_to_fill['data'] = {
-            key: data[val] for key, val in CHOSEN_LOGGERS[logconf.name].items()
+            key: data[val[0]] for key, val in CHOSEN_LOGGERS[logconf.name].items()
         }
         if self.verbose:
             print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
