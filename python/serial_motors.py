@@ -59,6 +59,7 @@ class SerialMotors(object):
         self.move_in_chunks(move['backward'], delta_cm, blocking=blocking)
 
     def move_in_chunks(self, commands, total, blocking=True):
+        assert total >= 0
         leftover = total
         commands_decreasing = sorted(commands, key=lambda tuple_: tuple_[0])[::-1]
         for partial, command, time_s in commands_decreasing:

@@ -297,6 +297,7 @@ class ReaderCRTP(object):
         return True
 
     def send_thrust_command(self, value, motor='all'):
+        # current_value = np.mean([self.cf.param.values['motorPowerSet.m{i}'] for i in range(1, 5)])
         if (value > 0) and not self.battery_ok():
             return False
         if motor == 'all':
