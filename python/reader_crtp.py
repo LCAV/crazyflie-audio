@@ -168,7 +168,7 @@ class ReaderCRTP(object):
     """
 
     # TODO(FD) potentially replace with constant read in ROS
-    BATTERY_OK = 3.5 #4.1 #3.83
+    BATTERY_OK = 3.2 #4.1 #3.83
 
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
 
@@ -300,10 +300,12 @@ class ReaderCRTP(object):
         # current_value = np.mean([self.cf.param.values['motorPowerSet.m{i}'] for i in range(1, 5)])
         if (value > 0) and not self.battery_ok():
             return False
+
         if motor == 'all':
             [self.cf.param.set_value(f"motorPowerSet.m{i}", value) for i in range(1, 5)]
         else:
             self.cf.param.set_value(f"motorPowerSet.{motor}", value)
+
         if value > 0:
             self.cf.param.set_value("motorPowerSet.enable", 1)
         return True

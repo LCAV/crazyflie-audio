@@ -17,12 +17,14 @@ move = {
     'forward': [
         (0.1,  b"q", 2.0),
         (1, b"w", 5.0),
-        (10, b"e", 34.0)
+        (10, b"e", 34.0),
+        (50, b"r", 165.0)
     ],
     'backward': [
         (0.1,  b"a", 2.0),
         (1, b"s", 5.0),
-        (10, b"d", 34.0)
+        (10, b"d", 34.0),
+        (50, b"f", 165.0)
     ]
 }
 turn = {
@@ -91,4 +93,4 @@ if __name__ == "__main__":
     sm = SerialMotors(verbose=True)
     #sm.turn(360)
     #sm.turn_back(360)
-    sm.move_back(19)
+    sm.move_back(10)
