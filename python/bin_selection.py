@@ -46,10 +46,13 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     # Select indices based on snr or uniformly. 
     selected_indices = []
     if not filter_snr: # choose uniformly every k-th bin
-        decimation = len(potential_indices) / FFTSIZE_SENT
-        for i in range(FFTSIZE_SENT):
-            idx = round(i * decimation)
-            selected_indices += potential_indices[idx:idx+1]
+        if len(potential_indices) > FFTSIZE_SENT:
+            decimation = len(potential_indices) / FFTSIZE_SENT
+            for i in range(FFTSIZE_SENT):
+                idx = round(i * decimation)
+                selected_indices += potential_indices[idx:idx+1]
+        else:
+            selected_indices = potential_indices
 
     else: # choose the highest K amplitude bins. 
         # C-like structure to be used in qsort.
@@ -70,8 +73,8 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
             selected_indices += [e['index'] for e in elements]
 
     if len(selected_indices) < FFTSIZE_SENT:
-        print("Warning: selected less indices than required. Duplicating fbins")
-        selected_indices += selected_indices[:1] * (FFTSIZE_SENT - len(selected_indices))
+        print("Warning: selected less indices than required. Filling with zeros")
+        selected_indices = np.r_[selected_indices, [0] * (FFTSIZE_SENT - len(selected_indices))]
 
     assert len(selected_indices) == FFTSIZE_SENT, len(selected_indices)
 

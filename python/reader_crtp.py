@@ -42,15 +42,32 @@ logging.basicConfig(level=logging.ERROR)
 #   goes negative sometimes which is impossible. 
 # - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
 CHOSEN_LOGGERS = {
-    'yaw': 'stabilizer.yaw', 
-    'yaw_rate': 'gyro.z', 
-    'dx': 'motion.deltaX',
-    'dy': 'motion.deltaY',
-    'z': 'range.zrange'
+    'motion': {
+        'yaw': ('stabilizer.yaw', 'float'),
+        'yaw_rate': ('gyro.z', 'float'),
+        'dx': ('motion.deltaX', 'int16_t'),
+        'dy': ('motion.deltaY', 'int16_t'),
+        'z': ('range.zrange', 'uint16_t'),
+    },
+    'status': {
+        'vbat': ('pm.vbat', 'float'),
+    },
+    'motors': {
+        'm1_pwm': ('pwm.m1_pwm', 'uint32_t'),
+        'm2_pwm': ('pwm.m2_pwm', 'uint32_t'),
+        'm3_pwm': ('pwm.m3_pwm', 'uint32_t'),
+        'm4_pwm': ('pwm.m4_pwm', 'uint32_t'),
+        'm1_thrust': ('audio.m1_thrust', 'uint16_t'), 
+        'm2_thrust': ('audio.m2_thrust', 'uint16_t'),
+        'm3_thrust': ('audio.m3_thrust', 'uint16_t'),
+        'm4_thrust': ('audio.m4_thrust', 'uint16_t'),
+    }
 }
-LOGGING_PERIOD_MS = 10 # logging period in ms
-
-BATTERY_PERIOD_MS = 1000 # logging period of battery in ms (set to 0 for none) 
+LOGGING_PERIODS_MS = {
+    'motion': 10,
+    'status': 1000,
+    'motors': 100,
+}
 
 FFTSIZE = 32
 N_MICS = 4
@@ -125,7 +142,7 @@ class ArrayCRTP(object):
             self.packet_counter += 1
             return False
         else:
-            print("unexpected packet")
+            print(f"unexpected packet: {self.packet_counter} > {self.n_packets_full}")
 
     def reset_array(self):
         if (self.packet_counter != 0) and (self.packet_counter != self.n_packets_full + 1):
@@ -149,7 +166,13 @@ class ReaderCRTP(object):
     We read whatever is published using DEBUG_PRINT in the firmware and print it out. 
 
     """
-    def __init__(self, crazyflie, verbose=False, log_motion=False, log_battery=True):
+
+    # TODO(FD) potentially replace with constant read in ROS
+    BATTERY_OK = 3.2 #4.1 #3.83
+
+    def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
+
+        self.start_time = time.time()
 
         self.receivedChar = Caller()
         self.frame_started = False
@@ -158,26 +181,24 @@ class ReaderCRTP(object):
 
         self.mc = MotionCommander(self.cf)
 
+        self.logging_dicts = {
+                key: {
+                   'timestamp': None, 
+                   'data': None, 
+                   'published': True
+                } for key in ['motion', 'status', 'motors']
+        }
         if log_motion:
-            lg_motion = LogConfig(name='Motion2D', period_in_ms=LOGGING_PERIOD_MS)
-            for log_value in CHOSEN_LOGGERS.values():
-                lg_motion.add_variable(log_value, 'float')
-            self.cf.log.add_config(lg_motion)
-            lg_motion.data_received_cb.add_callback(self.callback_logging)
-            lg_motion.start()
-
-        if log_battery:
-            lg_battery = LogConfig(name='Battery', period_in_ms=BATTERY_PERIOD_MS)
-            lg_battery.add_variable('pm.vbat', 'float')
-            self.cf.log.add_config(lg_battery)
-            lg_battery.data_received_cb.add_callback(self.callback_battery)
-            lg_battery.start()
+            self.init_log_config('motion')
+        if log_status:
+            self.init_log_config('status')
+        if log_motors: 
+            self.init_log_config('motors')
 
         self.cf.add_port_callback(CRTP_PORT_AUDIO, self.callback_audio)
         self.cf.add_port_callback(CRTPPort.CONSOLE, self.callback_console)
 
         # this data can be read and published by ROS nodes
-        self.start_time = time.time()
         self.audio_dict = {
                 'timestamp': None, 
                 'audio_timestamp': None, 
@@ -185,17 +206,10 @@ class ReaderCRTP(object):
                 'fbins': None,
                 'published': True
         }
-        self.motion_dict = {
-                'timestamp': None, 
-                'data': None, 
-                'published': True
-        }
 
         self.audio_array = ArrayCRTP(AUDIO_DTYPE, N_FRAMES_AUDIO, "audio")
         self.fbins_array = ArrayCRTP(FBINS_DTYPE, N_FRAMES_FBINS, "fbins")
         self.audio_timestamp = 0
-
-        self.battery = None
 
         # for debugging only
         self.update_rate = 0
@@ -206,9 +220,16 @@ class ReaderCRTP(object):
         if self.verbose:
             print("ReaderCRTP: set audio.send_audio_enable")
 
+    def init_log_config(self, name):
+        lg_config = LogConfig(name=name, period_in_ms=LOGGING_PERIODS_MS[name])
+        for log_value in CHOSEN_LOGGERS[name].values():
+            lg_config.add_variable(log_value[0], log_value[1] )
+        self.cf.log.add_config(lg_config)
+        lg_config.data_received_cb.add_callback(self.callback_logging)
+        lg_config.start()
+
     def get_time_ms(self):
         return int((time.time() - self.start_time) * 1000)
-
 
     def callback_audio(self, packet):
         # We send the first package this channel to identify the start of new audio data.
@@ -219,8 +240,8 @@ class ReaderCRTP(object):
             self.audio_array.reset_array()
             self.fbins_array.reset_array()
 
-        if self.frame_started and packet.channel != 2: # channel is either 0 or 1: read data
-            filled = self.audio_array.fill_array_from_crtp(packet, verbose=False)
+        if self.frame_started and (packet.channel in [0, 1]): # channel is either 0 or 1: read audio data
+            self.audio_array.fill_array_from_crtp(packet, verbose=False)
 
         elif self.frame_started and packet.channel == 2: # channel is 2: read fbins
             filled = self.fbins_array.fill_array_from_crtp(packet, verbose=False)
@@ -257,32 +278,34 @@ class ReaderCRTP(object):
         print(message, end='')
 
     def callback_logging(self, timestamp, data, logconf):
-        self.motion_dict['timestamp'] = self.get_time_ms()
-        self.motion_dict['published'] = False
-        self.motion_dict['data'] = {
-            key: data[val] for key, val in CHOSEN_LOGGERS.items()
+        dict_to_fill = self.logging_dicts[logconf.name]
+        dict_to_fill['timestamp'] = self.get_time_ms()
+        dict_to_fill['published'] = False
+        dict_to_fill['data'] = {
+            key: data[val[0]] for key, val in CHOSEN_LOGGERS[logconf.name].items()
         }
-
-    def callback_battery(self, timestamp, data, logconf):
-        self.battery = data['pm.vbat']
         if self.verbose:
-            print('ReaderCRTP battery callback:', self.battery)
+            print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
 
     def battery_ok(self):
-        if self.battery is None:
+        battery = self.logging_dicts['status']['data']['vbat']
+        if battery is None:
             return True
-        elif self.battery <= 3.83: # corresponds to 20 %
-            print(f"Warning: battery only at {self.battery}, not executing command")
+        elif battery <= self.BATTERY_OK: 
+            print(f"Warning: battery only at {battery}, not executing command")
             return False
         return True
 
     def send_thrust_command(self, value, motor='all'):
+        # current_value = np.mean([self.cf.param.values['motorPowerSet.m{i}'] for i in range(1, 5)])
         if (value > 0) and not self.battery_ok():
             return False
+
         if motor == 'all':
             [self.cf.param.set_value(f"motorPowerSet.m{i}", value) for i in range(1, 5)]
         else:
             self.cf.param.set_value(f"motorPowerSet.{motor}", value)
+
         if value > 0:
             self.cf.param.set_value("motorPowerSet.enable", 1)
         return True
@@ -291,7 +314,6 @@ class ReaderCRTP(object):
         if not self.battery_ok():
             return False
         self.mc.take_off(height)
-        time.sleep(1)
         return True
 
     def send_turn_command(self, angle_deg):
@@ -303,13 +325,19 @@ class ReaderCRTP(object):
         # do not need this because  it is part of turn_*
         # time.sleep(1)
 
+    def send_move_command(self, distance_m):
+        if distance_m > 0:
+            self.mc.forward(distance_m)
+        else:
+            self.mc.back(-distance_m)
+        return True
+
     def send_land_command(self, velocity=0):
         if velocity > 0:
-            print('Warning: using default velocity')
-
-        self.mc.land()
-        time.sleep(1)
-        self.mc.stop()
+            self.mc.land(velocity)
+        else:
+            self.mc.land()
+        # wait one more second after landing
         return True
 
     def send_buzzer_effect(self, effect):
@@ -322,19 +350,22 @@ class ReaderCRTP(object):
 if __name__ == "__main__":
     import argparse
     verbose = True
+    log_motors = True
+    log_motion = True
+    log_status = True
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
     parser = argparse.ArgumentParser(description='Read CRTP data from Crazyflie.')
-    parser.add_argument('id', metavar='ID', type=int, help='number of Crazyflie ("radio://0/ID/2M")',
-                        default=69)
+    parser.add_argument('id', metavar='ID', type=int, help='number of Crazyflie ("radio://0/[ID]0/2M")',
+                        default=8)
     args = parser.parse_args()
-    id = f"radio://0/{args.id}/2M"
 
+    id = f"radio://0/{args.id}0/2M/E7E7E7E7E{args.id}"
 
     with SyncCrazyflie(id) as scf:
         cf = scf.cf
 
-        reader_crtp = ReaderCRTP(cf, verbose=verbose)
+        reader_crtp = ReaderCRTP(cf, verbose=verbose, log_motion=log_motion, log_motors=log_motors, log_status=log_status)
 
         try:
             while True:
