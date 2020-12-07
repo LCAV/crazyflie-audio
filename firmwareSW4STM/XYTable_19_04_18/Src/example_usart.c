@@ -847,7 +847,7 @@ void USART_CheckAppCmd(void) {
 			case 'Q':
 			case 'q':
 				/*
-				 20*128
+				 1mm
 				 * */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -862,10 +862,10 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[10] = 'D';
 				UsartTextString[11] = '.';
 				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
+				UsartTextString[13] = '6';
+				UsartTextString[14] = '0';
 				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
+				UsartTextString[16] = '\0';
 				UsartTextString[17] = '\0';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
@@ -875,7 +875,7 @@ void USART_CheckAppCmd(void) {
 			case 'A':
 			case 'a':
 				/*
-				 * -20*128
+				 * 1mm
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -890,10 +890,10 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[10] = 'V';
 				UsartTextString[11] = '.';
 				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
+				UsartTextString[13] = '6';
+				UsartTextString[14] = '0';
 				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
+				UsartTextString[16] = '\0';
 				UsartTextString[17] = '\0';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
@@ -904,7 +904,7 @@ void USART_CheckAppCmd(void) {
 			case 'W':
 			case 'w':
 				/*
-				 * 200*128
+				 * 1cm
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -919,11 +919,11 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[10] = 'D';
 				UsartTextString[11] = '.';
 				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
+				UsartTextString[13] = '6';
+				UsartTextString[14] = '0';
 				UsartTextString[15] = '0';
 				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
+				UsartTextString[17] = '\0';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
@@ -933,7 +933,7 @@ void USART_CheckAppCmd(void) {
 			case 'S':
 			case 's':
 				/*
-				 * -200*128
+				 * 1cm
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -948,11 +948,11 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[10] = 'V';
 				UsartTextString[11] = '.';
 				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
+				UsartTextString[13] = '6';
+				UsartTextString[14] = '0';
 				UsartTextString[15] = '0';
 				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
+				UsartTextString[17] = '\0';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
@@ -962,7 +962,7 @@ void USART_CheckAppCmd(void) {
 			case 'E':
 			case 'e':
 				/*
-				 * 2000*128
+				 * 10cm
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -977,12 +977,12 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[10] = 'D';
 				UsartTextString[11] = '.';
 				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
+				UsartTextString[13] = '6';
+				UsartTextString[14] = '0';
 				UsartTextString[15] = '0';
 				UsartTextString[16] = '0';
 				UsartTextString[17] = '0';
-				UsartTextString[18] = '0';
+				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
 				counter_X += 640000;
@@ -990,7 +990,7 @@ void USART_CheckAppCmd(void) {
 			case 'D':
 			case 'd':
 				/*
-				 * -2000*128
+				 * 10cm
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -1005,12 +1005,68 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[10] = 'V';
 				UsartTextString[11] = '.';
 				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
+				UsartTextString[13] = '6';
+				UsartTextString[14] = '0';
 				UsartTextString[15] = '0';
 				UsartTextString[16] = '0';
 				UsartTextString[17] = '0';
-				UsartTextString[18] = '0';
+				UsartTextString[18] = '\0';
+				UsartTextString[19] = '\0';
+				UsartTextString[20] = '\0';
+				counter_X -= 640000;
+				break;
+			case 'R':
+			case 'r':
+				/*
+				 * 50cm
+				 */
+				UsartTextString[0] = 'M';
+				UsartTextString[1] = '1';
+				UsartTextString[2] = '.';
+				UsartTextString[3] = 'M';
+				UsartTextString[4] = 'O';
+				UsartTextString[5] = 'V';
+				UsartTextString[6] = 'E';
+				UsartTextString[7] = '.';
+				UsartTextString[8] = 'F';
+				UsartTextString[9] = 'W';
+				UsartTextString[10] = 'D';
+				UsartTextString[11] = '.';
+				UsartTextString[12] = '8';
+				UsartTextString[13] = '0';
+				UsartTextString[14] = '0';
+				UsartTextString[15] = '0';
+				UsartTextString[16] = '0';
+				UsartTextString[17] = '0';
+				UsartTextString[18] = '\0';
+				UsartTextString[19] = '\0';
+				UsartTextString[20] = '\0';
+				counter_X += 640000;
+				break;
+			case 'F':
+			case 'f':
+				/*
+				 * 50cm
+				 */
+				UsartTextString[0] = 'M';
+				UsartTextString[1] = '1';
+				UsartTextString[2] = '.';
+				UsartTextString[3] = 'M';
+				UsartTextString[4] = 'O';
+				UsartTextString[5] = 'V';
+				UsartTextString[6] = 'E';
+				UsartTextString[7] = '.';
+				UsartTextString[8] = 'R';
+				UsartTextString[9] = 'E';
+				UsartTextString[10] = 'V';
+				UsartTextString[11] = '.';
+				UsartTextString[12] = '8';
+				UsartTextString[13] = '0';
+				UsartTextString[14] = '0';
+				UsartTextString[15] = '0';
+				UsartTextString[16] = '0';
+				UsartTextString[17] = '0';
+				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
 				counter_X -= 640000;
