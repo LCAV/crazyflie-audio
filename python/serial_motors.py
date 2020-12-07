@@ -92,6 +92,6 @@ class SerialMotors(object):
 if __name__ == "__main__":
     sm = SerialMotors(verbose=True)
     #sm.turn(27)
-    sm.turn_back(27)
+    #sm.turn_back(27)
     #sm.turn_back(360)
-    #sm.move_back(10)
+    sm.move_back(10)
