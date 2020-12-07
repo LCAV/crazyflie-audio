@@ -806,8 +806,8 @@ void USART_TxWelcomeMessage(void) {
 	USART_Transmit(&huart2, " \n\r");
 	USART_Transmit(&huart2, " X-CUBE-SPN2 v1.0.0\n\r");
 	USART_Transmit(&huart2, " STMicroelectronics, 2015, Edited by Adrien Hoffet, 12.2017\n\r");
-	USART_Transmit(&huart2, " Xmotor: Q,W,E/A,S,D (FORWARD/BACKWARD), (50mm, 10mm, 0.5mm)\n\r");
-	USART_Transmit(&huart2, " Ymotor: P,O,I/L,K,J (FORWARD/BACKWARD), (360, 90, 27deg)\n\r");
+	USART_Transmit(&huart2, " Xmotor: Q,W,E,R/A,S,D,F (FORWARD/BACKWARD), (1mm, 1cm, 10cm, 50cm)\n\r");
+	USART_Transmit(&huart2, " Ymotor: P,O,I/L,K,J (FORWARD/BACKWARD), (27deg, 90deg, 360deg)\n\r");
 	USART_Transmit(&huart2, " ZERO: Z (SOFTSTOP, ZERO COUNTER)\n\r\n\r");
 }
 
@@ -1074,9 +1074,9 @@ void USART_CheckAppCmd(void) {
 			case 'P':
 			case 'p':
 				/*
-				 * 50*128
+				 * 27 deg
 				 */
-				UsartTextString[0] = 'M'; // 27deg
+				UsartTextString[0] = 'M';
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1102,7 +1102,7 @@ void USART_CheckAppCmd(void) {
 			case 'L':
 			case 'l':
 				/*
-				 * 50*128
+				 * 27 deg
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '0';
@@ -1130,7 +1130,7 @@ void USART_CheckAppCmd(void) {
 			case 'O':
 			case 'o':
 				/*
-				 * 10*50*128
+				 * 90 deg
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '0';
@@ -1158,7 +1158,7 @@ void USART_CheckAppCmd(void) {
 			case 'K':
 			case 'k':
 				/*
-				 * 10*50*128
+				 * 90 deg
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '0';
@@ -1186,7 +1186,7 @@ void USART_CheckAppCmd(void) {
 			case 'I':
 			case 'i':
 				/*
-				 * 100*50*128 modified
+				 * 360deg
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '0';
@@ -1214,7 +1214,7 @@ void USART_CheckAppCmd(void) {
 			case 'J':
 			case 'j':
 				/*
-				 * 100*50*128
+				 * 360deg
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '0';

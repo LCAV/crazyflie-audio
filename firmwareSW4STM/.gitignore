@@ -61,6 +61,8 @@ makefile
 #*.settings/
 #*.cproject
 #*.mxproject
+*.launch
+*.log
 
 # below files are changed on ubuntu for some reason
 subdir.mk
