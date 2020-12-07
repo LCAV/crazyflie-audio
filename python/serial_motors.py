@@ -48,7 +48,7 @@ class SerialMotors(object):
 
     # turn is by default non-blocking because when we do the 360 degrees we 
     # want to recording DURING, not after, as for the others.
-    def turn(self, angle_deg, blocking=False):
+    def turn(self, angle_deg, blocking=True):
         self.move_in_chunks(turn['forward'], angle_deg, blocking=blocking)
 
     def turn_back(self, angle_deg, blocking=True):
@@ -91,6 +91,7 @@ class SerialMotors(object):
 
 if __name__ == "__main__":
     sm = SerialMotors(verbose=True)
-    #sm.turn(360)
+    #sm.turn(27)
+    sm.turn_back(27)
     #sm.turn_back(360)
-    sm.move_back(10)
+    #sm.move_back(10)
