@@ -651,7 +651,7 @@ uint32_t* USART_DecodeTextString(uint8_t *pTextString, sL6470_TextCommandBundle 
 #ifdef NUCLEO_USE_USART
 		char string[60] = "";
 		/* counter_X /(40*128) ; counter_Y / (100*128) */
-		sprintf(string, "Wait end of movement..., current position: x = %d [mm*10], y = %d[mm*10]", (int)((float)counter_X * 10 / (100.0*128)), (int)((float)counter_Y * 10 / (100.0*128)));
+		sprintf(string, "Do movement... current position: x = %d [mm], rot = %d [deg]", counter_X, counter_Y);
 
 		USART_Transmit(&huart2, string);
 #endif
@@ -843,6 +843,7 @@ void USART_CheckAppCmd(void) {
 			/* Decode the entered command string */
 
 #if DECODE_KEYBOARD_REMOTE
+
 			switch (UsartTextString_1[0]) {
 			case 'Q':
 			case 'q':
@@ -870,7 +871,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 6400;
+				counter_X += 1;
 				break;
 			case 'A':
 			case 'a':
@@ -898,7 +899,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 6400;
+				counter_X -= 1;
 
 				break;
 			case 'W':
@@ -927,7 +928,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 64000;
+				counter_X += 10;
 
 				break;
 			case 'S':
@@ -956,7 +957,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 64000;
+				counter_X -= 10;
 
 				break;
 			case 'E':
@@ -985,7 +986,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 640000;
+				counter_X += 100;
 				break;
 			case 'D':
 			case 'd':
@@ -1013,7 +1014,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 640000;
+				counter_X -= 100;
 				break;
 			case 'R':
 			case 'r':
@@ -1041,7 +1042,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 640000;
+				counter_X += 500;
 				break;
 			case 'F':
 			case 'f':
@@ -1069,7 +1070,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 640000;
+				counter_X -= 500;
 				break;
 			case 'P':
 			case 'p':
@@ -1097,7 +1098,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y += 6400;
+				counter_Y += 27;
 				break;
 			case 'L':
 			case 'l':
@@ -1125,7 +1126,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y -= 6400;
+				counter_Y -= 27;
 				break;
 			case 'O':
 			case 'o':
@@ -1153,7 +1154,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y += 2*64000;
+				counter_Y += 90;
 				break;
 			case 'K':
 			case 'k':
@@ -1181,7 +1182,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y -= 2*64000;
+				counter_Y -= 90;
 				break;
 			case 'I':
 			case 'i':
@@ -1209,7 +1210,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y += 640000;
+				counter_Y += 360;
 				break;
 			case 'J':
 			case 'j':
@@ -1237,7 +1238,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y -= 640000;
+				counter_Y -= 360;
 				break;
 			case 'Z':
 			case 'z':

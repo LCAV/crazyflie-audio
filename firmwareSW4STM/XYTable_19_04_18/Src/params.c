@@ -62,14 +62,15 @@
 /**
   * @brief  This array contains the initial parameters for the motors that are
   *         linked with each L6470 mounted on each stacked X-NUCLEO-IHM02A1.
+  *
+  * First motor is rotational motor (right connectors on nucleo)
+  * Second motor is linear motor (left connectors on nucleo)
   */
 const MotorParameterData_t MotorParameterInitData[EXPBRD_MOUNTED_NR_MAX][L6470DAISYCHAINSIZE] = {
   {
-    // rotational motor
 	{12.0, 400, 10, 12, 200.0, 1300.0, 1300.0, 600.0, 0.0, 602.7, 3.06, 3.06,\
 	  3.06, 3.06, 61.52, 392.1569e-6, 643.1372e-6, 643.1372e-6, 0,\
 		3.06*1000*1.10, 3.06*1000*1.00, MICROSTEP_1_128, 0xFF, 0x2E88},
-	// linear motor
 	{12.0, 200, 4.6, 2.5, 300, 200.0, 200.0, 300.0, 0.0, 602.7, 3.06, 11,\
 		7, 7, 50, 392.1569e-6, 643.1372e-6, 643.1372e-6, 0,\
 		6000, 4000, MICROSTEP_1_16, 0xFF, 0x2E88},
