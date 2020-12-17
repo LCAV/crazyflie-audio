@@ -168,7 +168,7 @@ class ReaderCRTP(object):
     """
 
     # TODO(FD) potentially replace with constant read in ROS
-    BATTERY_OK = 3.8 #4.1 #3.83
+    BATTERY_OK = 3 #4.1 #3.83
 
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
 
