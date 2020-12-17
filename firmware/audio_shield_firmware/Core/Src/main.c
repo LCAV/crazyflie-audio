@@ -19,12 +19,12 @@
  * Microphone designations:
  *
  * for location: front is where sign points, looking from above
- * old     | main.c/ROS  | color  | location    | motor  |
+ * old     | main.c/ROS  | location    | motor  |
  * =================================================
- * left_1  |    mic0     | blue   | front right | m1     |
- * left_3  |    mic1     | yellow | back right  | m2     |
- * right_1 |    mic2     | green  | front left  | m4     |
- * right_3 |    mic3     | red    | back left   | m3     |
+ * left_1  |    mic0     | back left   | m2     |
+ * left_3  |    mic1     | back right  | m1     |
+ * right_1 |    mic2     | front left  | m3     |
+ * right_3 |    mic3     | front right | m4     |
  * =================================================
  *
  */
