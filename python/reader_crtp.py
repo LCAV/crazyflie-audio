@@ -328,9 +328,9 @@ class ReaderCRTP(object):
 
     def send_move_command(self, distance_m):
         if distance_m > 0:
-            self.mc.forward(distance_m, velocity=VELOCITY)
+            self.mc.forward(distance_m, velocity=self.VELOCITY)
         else:
-            self.mc.back(-distance_m, velocity=VELOCITY)
+            self.mc.back(-distance_m, velocity=self.VELOCITY)
         return True
 
     def send_land_command(self, velocity=0):
