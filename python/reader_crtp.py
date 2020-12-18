@@ -168,6 +168,7 @@ class ReaderCRTP(object):
     """
 
     # TODO(FD) potentially replace with constant read in ROS
+    VELOCITY = 0.05 # 3 seconds for 15cm
     BATTERY_OK = 3 #4.1 #3.83
 
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
@@ -327,9 +328,9 @@ class ReaderCRTP(object):
 
     def send_move_command(self, distance_m):
         if distance_m > 0:
-            self.mc.forward(distance_m)
+            self.mc.forward(distance_m, velocity=VELOCITY)
         else:
-            self.mc.back(-distance_m)
+            self.mc.back(-distance_m, velocity=VELOCITY)
         return True
 
     def send_land_command(self, velocity=0):
