@@ -333,6 +333,13 @@ class ReaderCRTP(object):
             self.mc.back(-distance_m, velocity=self.VELOCITY)
         return True
 
+    def send_forward_command(self, velocity=None):
+        if velocity is None:
+            self.mc.start_forward(self.VELOCITY)
+        else:
+            self.mc.start_forward(velocity)
+        return True
+
     def send_land_command(self, velocity=0):
         if velocity > 0:
             self.mc.land(velocity)
