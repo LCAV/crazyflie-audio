@@ -146,8 +146,13 @@ class ArrayCRTP(object):
 
     def reset_array(self):
         if (self.packet_counter != 0) and (self.packet_counter != self.n_packets_full + 1):
-            print(f"{self.name}: packets loss, received only {self.packet_counter}/{self.n_packets_full+1}")
+            print(f"{self.name}: packet loss, received only {self.packet_counter}/{self.n_packets_full+1}.")
+            success = False
+        else: 
+            success = True
+
         self.packet_counter = 0
+        return success
 
 
 class ReaderCRTP(object):
@@ -285,8 +290,8 @@ class ReaderCRTP(object):
         dict_to_fill['data'] = {
             key: data[val[0]] for key, val in CHOSEN_LOGGERS[logconf.name].items()
         }
-        if self.verbose:
-            print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
+        #if self.verbose:
+        #    print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
 
     def battery_ok(self):
         battery = self.logging_dicts['status']['data']['vbat']
@@ -353,6 +358,11 @@ class ReaderCRTP(object):
 
     def send_buzzer_freq(self, freq):
         self.cf.param.set_value("sound.freq", freq)
+
+    def send_audio_enable(self, value):
+        self.audio_array.reset_array()
+        self.fbins_array.reset_array()
+        self.cf.param.set_value("audio.send_audio_enable", value)
 
 
 if __name__ == "__main__":
