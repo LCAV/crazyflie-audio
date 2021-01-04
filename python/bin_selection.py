@@ -24,7 +24,7 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
         prop_indices = np.append([0.5, 1, 1.5], np.arange(2, 27, 1))
 
     # Remove propeller sound +- delta f
-    for i in np.arange(min_index, max_index):
+    for i in np.arange(min_index, max_index + 1): # if min_index == max_index we want to add min_index!
         use_this = True
         # if this frequency is not in propellers, add it to potential bins.
         if thrust > 0:
@@ -73,7 +73,8 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
             selected_indices += [e['index'] for e in elements]
 
     if len(selected_indices) < FFTSIZE_SENT:
-        print("Warning: selected less indices than required. Filling with zeros")
+        if verbose:
+            print("Warning: selected less indices than required. Filling with zeros")
         selected_indices = np.r_[selected_indices, [0] * (FFTSIZE_SENT - len(selected_indices))]
 
     assert len(selected_indices) == FFTSIZE_SENT, len(selected_indices)
