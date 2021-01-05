@@ -19,12 +19,12 @@
  * Microphone designations:
  *
  * for location: front is where sign points, looking from above
- * old     | main.c/ROS  | color  | location    | motor  |
+ * old     | main.c/ROS  | location    | motor  |
  * =================================================
- * left_1  |    mic0     | blue   | front right | m1     |
- * left_3  |    mic1     | yellow | back right  | m2     |
- * right_1 |    mic2     | green  | front left  | m4     |
- * right_3 |    mic3     | red    | back left   | m3     |
+ * left_1  |    mic0     | back left   | m2     |
+ * left_3  |    mic1     | back right  | m1     |
+ * right_1 |    mic2     | front left  | m3     |
+ * right_3 |    mic3     | front right | m4     |
  * =================================================
  *
  */
@@ -79,8 +79,8 @@
 //#define DEBUG_SPI // set this define to use smaller, fixed buffers.
 
 // communication
-// in uint16, min_freq, max_freq, n_average, delta_freq, snr_enable, propeller_enable, tot = 6
-#define PARAMS_N_INT16 (N_MOTORS + 6)
+// in uint16, min_freq, max_freq, buzzer_freq_idx, n_average, delta_freq, snr_enable, propeller_enable, tot = 7
+#define PARAMS_N_INT16 (N_MOTORS + 7)
 #define CHECKSUM_VALUE (0xAC)
 
 #ifdef DEBUG_SPI
@@ -152,6 +152,7 @@ uint16_t filter_prop_enable = 1;
 uint16_t filter_snr_enable = 1;
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
+uint16_t buzzer_freq_idx = 0;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 uint16_t n_added = 0; // counter of how many samples were averaged.
@@ -162,7 +163,7 @@ uint32_t ifft_flag = 0;
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
 uint8_t init_stage_iir = 1;
-float prop_freq;
+float prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
 
 // debugging
@@ -771,10 +772,29 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	// that would be more appropriate if the thrust values vary a lot between motors.
 	if (filter_prop_enable) {
 		float average_thrust = 0;
+		int counter = 0; // used to average only non-zero motors (e.g. for 1-motor experiments)
+
+		// make sure to reset, otherwise we keep filtering out propellers noise
+		// even when they are not turning anymore.
+		prop_freq = 0;
 		for (int i = 0; i < N_MOTORS; i++) {
-			average_thrust += (float) param_array[i] / N_MOTORS;
+			if (param_array[i] > 0) {
+				average_thrust += (float) param_array[i];
+				counter ++;
+			}
 		}
-		prop_freq = 3.27258551 * sqrt(average_thrust) - 26.41814899;
+		// this was the old and potentially more average formula in general,
+		// however it can be simplified for the range of thrust values of interest,
+		// which is between 45000 and 55000.
+		// prop_freq = 3.27258551 * sqrt(average_thrust) - 26.41814899;
+		// f(45000) = 671, f(55000) = 750
+		// prop_freq = (750 - 671) / (55000 - 45000) * (thrust - 45000) + 671
+		// 0.0079 = (750 - 671) / (55000 - 45000), 315.5 = 671 - 0.0079 * 45000
+		if (counter > 0) {
+			average_thrust /= counter;
+			prop_freq = 315.5 + 0.0079 * average_thrust;
+
+		}
 	}
 
 	int min_freq_idx = (int) min_freq / DF;
@@ -832,14 +852,24 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		return;
 	}
 
-	if (!filter_snr_enable) {
-		// Samples uniformly among remaining candidates.
+	if (filter_snr_enable == 0) {
+		// sample uniformly among remaining candidates
 		float decimation = (float) potential_count / FFTSIZE_SENT;
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
 			selected_indices[i] =
 					potential_indices[(int) round(i * decimation)];
 		}
-	} else {
+	}
+
+	int start_idx = 0;
+
+	// put the buzzer frequency in the first bin, if requested
+	if (filter_snr_enable == 2) {
+		selected_indices[0] = buzzer_freq_idx;
+		start_idx = 1;
+	}
+	// put the sorted frequencies in the next bins
+	if (filter_snr_enable >= 1) {
 		struct index_amplitude sort_this[potential_count];
 
 		for (int i = 0; i < potential_count; i++) {
@@ -849,10 +879,11 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 		qsort(sort_this, potential_count, sizeof(sort_this[0]),
 				compare_amplitudes);
-		for (int i = 0; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] = sort_this[i].index;
+		for (int i = start_idx; i < FFTSIZE_SENT; i++) {
+			selected_indices[i] = sort_this[i - start_idx].index;
 		}
 	}
+
 }
 
 void fill_tx_buffer() {
@@ -915,10 +946,11 @@ void read_rx_buffer() {
 
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
-	delta_freq = param_array[N_MOTORS + 2];
-	n_average = param_array[N_MOTORS + 3];
-	filter_prop_enable = param_array[N_MOTORS + 4];
-	filter_snr_enable = param_array[N_MOTORS + 5];
+	buzzer_freq_idx = param_array[N_MOTORS + 2];
+	delta_freq = param_array[N_MOTORS + 3];
+	n_average = param_array[N_MOTORS + 4];
+	filter_prop_enable = param_array[N_MOTORS + 5];
+	filter_snr_enable = param_array[N_MOTORS + 6];
 }
 
 int compare_amplitudes(const void *a, const void *b) {
