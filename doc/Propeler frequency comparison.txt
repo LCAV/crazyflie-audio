@@ -1,0 +1,35 @@
+Propeler frequency comparison
+
+Drone 7
+
+Set 43000
+Read from topic plotter audio 		 1400, 2075, 2200, 2775, 2925, 	3475,
+From formula 					652, 1304, 1956, 2608, 				3260, 3913, 4565, 5217, 5869
+From Analyser					689, 1378, 2045, 2750, 				3380, 4177, 4866, 5426 
+
+Drone 7
+
+M1			
+
+Set 43000
+Read from topic plotter			
+Analyzer							 	667 	1020	1400			2000
+	
+M2			
+
+Set 43000
+Read from topic plotter			
+Analyzer						344 	667 	1012	1400			2000
+	
+M3			
+
+Set 43000
+Read from topic plotter			
+Analyzer						366 	732 			1500			2110
+	
+	
+M4		
+
+Set 43000
+Read from topic plotter			
+Analyzer						323 	667 	1012	1300			2000
