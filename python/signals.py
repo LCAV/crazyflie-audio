@@ -81,6 +81,11 @@ def generate_signal_real(Fs, duration_sec, fname, **kwargs):
     return real_signal
 
 
+def generate_signal_zero(Fs, duration_sec, **kwargs):
+    num_samples = int(ceil(Fs * duration_sec))
+    return np.zeros(num_samples)
+
+
 def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, **kwargs):
     if signal_type == "mono":
         signal = generate_signal_mono(Fs, duration_sec, **kwargs)
@@ -107,9 +112,8 @@ def generate_signal(Fs, duration_sec, signal_type="mono", min_dB=-50, max_dB=0, 
         signal = generate_signal_mono(Fs, duration_sec, **kwargs)
         signal = linear_increase(signal, min_dB, max_dB)
 
-    elif signal_type is None:
-        num_samples = int(ceil(Fs * duration_sec))
-        signal = np.zeros(num_samples)
+    elif signal_type in [None, "none"]:
+        signal = generate_signal_zero(Fs, duration_sec, **kwargs)
 
     else:
         raise ValueError(signal_type)
