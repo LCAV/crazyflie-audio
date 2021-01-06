@@ -21,8 +21,8 @@ CRTP_PORT_AUDIO = 0x09
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
 
-
 # TODO(FD): figure out if below changes when the Crazyflie actually flies.
+#
 # Tests have shown that when the flowdeck is attached to the Crazyflie and 
 # it is moved around (without flying), then 
 # yaw:
@@ -33,21 +33,37 @@ logging.basicConfig(level=logging.ERROR)
 # - gyro.z gives the raw yaw rate (or acceleration?).
 # dx/dy: 
 # - motion.deltaX and motion.deltaY are in milimeters can be very noisy, especially when 
-#   the ground is not textured. 
-# - stabilizer.vx and stabilizer.vy are in m/s (not 100% sure) and more stable 
+#   the ground is not textured. motion.deltaY points in "wrong" direction. 
+# - stateEstimateZ.vx and stateEstimateZ.vy are in mm/s and more stable 
 #  but of course would need to be integrated for a position estimate.
+# - stateEstimate.vx and stateEstimate.vy are in m/s and more stable 
+#  but of course would need to be integrated for a position estimate. Note that they use a different 
+#  reference frame than motion.deltaX, so they are inverted in the logger.
+# - kalman.PX is in m/s and almost the same as stateEstimate.vx 
+# - kalman.X is in m and quite a smooth position estimate 
 # z:
 # - range.zrange gives the raw data in milimeters (uint16), which is quite accurate.
 # - stateEstimateZ.z in milimeters (uint16), is more smooth but also overshoots a little bit, and even 
 #   goes negative sometimes which is impossible. 
 # - stateEstimate.z in meters (float), from barometer. Surprisingly accurate. 
+# 
+# Format: 
+# <name-for-ROS>: (<log name from Crazyflie>, <type>, <scaling>)
+# 
+# Note that all parameters are scaled so that they are given in degrees or meters. 
+# Also note that we change the coordinate systems so that the "front" on Crazyflie 
+# points in positive y direction, and the x points to the right. 
 CHOSEN_LOGGERS = {
     'motion': {
         'yaw': ('stabilizer.yaw', 'float'),
-        'yaw_rate': ('gyro.z', 'float'),
-        'dx': ('motion.deltaX', 'int16_t'),
-        'dy': ('motion.deltaY', 'int16_t'),
-        'z': ('range.zrange', 'uint16_t'),
+        #'yaw_rate': ('gyro.z', 'float'), # one too many to respect size
+        'dx': ('motion.deltaX', 'int16_t', 1000),
+        'dy': ('motion.deltaY', 'int16_t', -1000),
+        'vx': ('stateEstimate.vy', 'float', -1),
+        'vy': ('stateEstimate.vx', 'float'),
+        'x': ('kalman.stateY', 'float', -1),
+        'y': ('kalman.stateX', 'float'),
+        'z': ('range.zrange', 'uint16_t', 1000),
     },
     'status': {
         'vbat': ('pm.vbat', 'float'),
@@ -63,6 +79,7 @@ CHOSEN_LOGGERS = {
         'm4_thrust': ('audio.m4_thrust', 'uint16_t'),
     }
 }
+
 LOGGING_PERIODS_MS = {
     'motion': 10,
     'status': 1000,
@@ -82,6 +99,24 @@ FBINS_DTYPE = np.uint16
 # the timestamp is sent in the end of the fbins messages, as an uint32. 
 N_BYTES_TIMESTAMP = 4
 ALLOWED_DELTA_US = 1e6
+
+def test_logging_size(max_size=26): 
+    sizes = {
+        'float': 4,
+        'uint32_t': 4,
+        'uint16_t': 2,
+        'uint8_t': 1,
+        'int32_t': 4,
+        'int16_t': 2,
+        'int8_t': 1,
+    }
+    for logger, log_dict in CHOSEN_LOGGERS.items():
+        size = 0
+        for key, vals in log_dict.items():
+            size += sizes[vals[1]]
+        if size > max_size:
+            raise RuntimeError(f'logging config {logger} too big: {size}>{max_size}')
+
 
 class ArrayCRTP(object):
     def __init__(self, dtype, n_frames, name="array", extra_bytes=0):
@@ -178,6 +213,7 @@ class ReaderCRTP(object):
 
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
 
+        test_logging_size()
         self.start_time = time.time()
 
         self.receivedChar = Caller()
@@ -229,7 +265,7 @@ class ReaderCRTP(object):
     def init_log_config(self, name):
         lg_config = LogConfig(name=name, period_in_ms=LOGGING_PERIODS_MS[name])
         for log_value in CHOSEN_LOGGERS[name].values():
-            lg_config.add_variable(log_value[0], log_value[1] )
+            lg_config.add_variable(log_value[0], log_value[1])
         self.cf.log.add_config(lg_config)
         lg_config.data_received_cb.add_callback(self.callback_logging)
         lg_config.start()
@@ -287,9 +323,12 @@ class ReaderCRTP(object):
         dict_to_fill = self.logging_dicts[logconf.name]
         dict_to_fill['timestamp'] = self.get_time_ms()
         dict_to_fill['published'] = False
-        dict_to_fill['data'] = {
-            key: data[val[0]] for key, val in CHOSEN_LOGGERS[logconf.name].items()
-        }
+        dict_to_fill['data'] = {}
+        for key, vals in CHOSEN_LOGGERS[logconf.name].items():
+            value = data[vals[0]]
+            if len(vals) == 3:
+                value /= vals[2]
+            dict_to_fill['data'][key] = value
         #if self.verbose:
         #    print(f'ReaderCRTP {logconf.name} callback: {dict_to_fill["data"]}')
 
