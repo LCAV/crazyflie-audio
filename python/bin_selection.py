@@ -4,10 +4,9 @@
 import numpy as np
 
 N_BUFFER = 2048
-
 FFTSIZE_SENT = 32
 
-def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False):
+def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False, n_freqs=FFTSIZE_SENT):
     freq = np.fft.rfftfreq(n_buffer, 1 / fs)
     n_frequencies = len(freq)
 
@@ -38,7 +37,7 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
             potential_indices.append(i)
 
     if verbose:
-        print(f'selecting {FFTSIZE_SENT} from {len(potential_indices)}')
+        print(f'selecting {n_freqs} from {len(potential_indices)}')
     if not potential_indices:
         print(f"Warning: did not find any potential indices. using min_freq={min_freq}")
         potential_indices = [min_index]
@@ -46,9 +45,9 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     # Select indices based on snr or uniformly. 
     selected_indices = []
     if not filter_snr: # choose uniformly every k-th bin
-        if len(potential_indices) > FFTSIZE_SENT:
-            decimation = len(potential_indices) / FFTSIZE_SENT
-            for i in range(FFTSIZE_SENT):
+        if len(potential_indices) > n_freqs:
+            decimation = len(potential_indices) / n_freqs
+            for i in range(n_freqs):
                 idx = round(i * decimation)
                 selected_indices += potential_indices[idx:idx+1]
         else:
@@ -67,17 +66,17 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
         # below would be replaced by qsort
         sorted_signals_amp_list = sorted(signals_amp_list, key=lambda elem: elem['amplitude'])[::-1]
 
-        for i in range(FFTSIZE_SENT):
+        for i in range(n_freqs):
             # thanks to 
             elements = sorted_signals_amp_list[i:i+1]
             selected_indices += [e['index'] for e in elements]
 
-    if len(selected_indices) < FFTSIZE_SENT:
+    if len(selected_indices) < n_freqs:
         if verbose:
-            print("Warning: selected less indices than required. Filling with zeros")
-        selected_indices = np.r_[selected_indices, [0] * (FFTSIZE_SENT - len(selected_indices))]
+            print("Warning: found less indices than asked for. Filling with zeros")
+        selected_indices = np.r_[selected_indices, [0] * (n_freqs - len(selected_indices))]
 
-    assert len(selected_indices) == FFTSIZE_SENT, len(selected_indices)
+    assert len(selected_indices) == n_freqs, len(selected_indices)
 
     return selected_indices
 
@@ -123,8 +122,8 @@ if __name__ == "__main__":
     max_amp = np.max(np.abs(buffer_f[:, (freq<max_freq) & (freq>min_freq)]))
     for i, buffer_f_i in enumerate(buffer_f):
         ax.plot(freq, np.abs(buffer_f_i), label = f"mic{i}")
-    ax.scatter(freq[bin_uniform_avoid_props], [0.3 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props')
-    ax.scatter(freq[bin_uniform_avoid_props_snr], [0.6 * max_amp] * FFTSIZE_SENT, label = 'bins_avoid_props_snr')
+    ax.scatter(freq[bin_uniform_avoid_props], [0.3 * max_amp] * n_freqs, label = 'bins_avoid_props')
+    ax.scatter(freq[bin_uniform_avoid_props_snr], [0.6 * max_amp] * n_freqs, label = 'bins_avoid_props_snr')
     ax.set_xlim(0.5*min_freq, 1.5*max_freq)
     ax.set_ylim(-1, max_amp)
     ax.legend()
