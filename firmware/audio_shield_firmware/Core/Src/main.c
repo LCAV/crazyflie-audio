@@ -55,6 +55,7 @@
 /* USER CODE BEGIN PD */
 
 #define DCNotchActivated 1
+//#define WINDOWINGActivated 1
 
 #define N_ACTUAL_SAMPLES (2048)//32
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
@@ -746,15 +747,30 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 		for (uint16_t i = 0; i < size; i += 1) {
 #ifdef DCNotchActivated
 			if(pIn == dma_1){
+#ifdef WINDOWINGActivated
 				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT * tukey_window[i];
 				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT * tukey_window[i];
-			}else{
+#else
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT;
+#endif
+			}else{ // pIn == dma_3
+#ifdef WINDOWINGActivated
 				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT * tukey_window[i];
 				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT * tukey_window[i];
-			};
 #else
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT;
+#endif
+			};
+#else // not DCNotchActivated
+#ifdef WINDOWINGActivated
 			*pOut1++ = (float) *pIn++ / (float) MAXINT * tukey_window[i];
 			*pOut2++ = (float) *pIn++ / (float) MAXINT * tukey_window[i];
+#else
+			*pOut1++ = (float) *pIn++ / (float) MAXINT;
+			*pOut2++ = (float) *pIn++ / (float) MAXINT;
+#endif
 #endif
 		}
 		new_sample_to_process = 1;
