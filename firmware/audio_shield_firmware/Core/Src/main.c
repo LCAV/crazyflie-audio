@@ -963,8 +963,7 @@ void read_rx_buffer() {
 
 	// Sometimes, because of faulty communication, the packet is broken and we get
 	// impossible values for the parameters. In that case they should not be updated.
-	if ((param_array[N_MOTORS] == 0)
-			|| (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
+	if (param_array[N_MOTORS] >= param_array[N_MOTORS + 1])
 		return;
 
 	min_freq = param_array[N_MOTORS];
