@@ -54,6 +54,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define DCNotchActivated 1
+//#define WINDOWINGActivated 1
+
 #define N_ACTUAL_SAMPLES (2048)//32
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
@@ -722,6 +725,16 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+#ifdef DCNotchActivated
+static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
+  static int16_t x_prev[4] = {0, 0, 0, 0};
+  static int16_t y_prev[4] = {0, 0, 0, 0};
+  y_prev[filter_index] = (((int32_t)y_prev[filter_index] * 0x00007999) >> 16) - x_prev[filter_index] + x;
+  x_prev[filter_index] = x;
+  return y_prev[filter_index];
+}
+#endif
+
 void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 	// size is N_ACTUAL_SAMPLES.
@@ -730,9 +743,35 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 	// Do not interrupt FFT processing.
 	if (flag_fft_processing == 0) {
+
 		for (uint16_t i = 0; i < size; i += 1) {
+#ifdef DCNotchActivated
+			if(pIn == dma_1){
+#ifdef WINDOWINGActivated
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT * tukey_window[i];
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT * tukey_window[i];
+#else
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT;
+#endif
+			}else{ // pIn == dma_3
+#ifdef WINDOWINGActivated
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT * tukey_window[i];
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT * tukey_window[i];
+#else
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT;
+#endif
+			};
+#else // not DCNotchActivated
+#ifdef WINDOWINGActivated
 			*pOut1++ = (float) *pIn++ / (float) MAXINT * tukey_window[i];
 			*pOut2++ = (float) *pIn++ / (float) MAXINT * tukey_window[i];
+#else
+			*pOut1++ = (float) *pIn++ / (float) MAXINT;
+			*pOut2++ = (float) *pIn++ / (float) MAXINT;
+#endif
+#endif
 		}
 		new_sample_to_process = 1;
 	}
@@ -940,8 +979,7 @@ void read_rx_buffer() {
 
 	// Sometimes, because of faulty communication, the packet is broken and we get
 	// impossible values for the parameters. In that case they should not be updated.
-	if ((param_array[N_MOTORS] == 0)
-			|| (param_array[N_MOTORS] >= param_array[N_MOTORS + 1]))
+	if (param_array[N_MOTORS] >= param_array[N_MOTORS + 1])
 		return;
 
 	min_freq = param_array[N_MOTORS];
