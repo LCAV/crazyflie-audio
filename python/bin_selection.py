@@ -9,9 +9,17 @@ from crazyflie_description_py.parameters import N_BUFFER, FS, FFTSIZE
 def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False, n_freqs=FFTSIZE):
     freq = np.fft.rfftfreq(n_buffer, 1 / fs)
     n_frequencies = len(freq)
+    df = fs / n_buffer
+    np.testing.assert_allclose(freq, df*np.arange(n_buffer//2 + 1))
 
     min_index = int(min_freq * n_buffer / fs)
     max_index = int(max_freq * n_buffer / fs)
+    min_idx = np.argmin(np.abs(freq - min_freq))
+    max_idx = np.argmin(np.abs(freq - max_freq))
+    assert min_index == min_idx, (min_idx, min_index, min_index * df, freq[min_idx]) 
+    assert max_index == max_idx, (max_idx, max_index, max_index * df, freq[max_idx]) 
+    print(freq[min_idx], df * min_index)
+    print(freq[max_idx], df * max_index)
 
     assert max_index < n_frequencies, f"given max frequency {max_freq}Hz too high for sampling frequency {fs}Hz"
 
@@ -28,7 +36,7 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
         # if this frequency is not in propellers, add it to potential bins.
         if thrust > 0:
             for prop_i in prop_indices:
-                if (abs(freq[i] - (prop_i * prop_freq)) < delta_freq):
+                if (abs((i * df) - (prop_i * prop_freq)) < delta_freq):
                     if ax is not None:
                         ax.scatter(freq[i], 0, color='red')
                     use_this = False
@@ -37,7 +45,7 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
             potential_indices.append(i)
 
     if verbose:
-        print(f'selecting {n_freqs} from {len(potential_indices)}')
+        print(f'selecting {FFTSIZE} from {len(potential_indices)}')
     if not potential_indices:
         print(f"Warning: did not find any potential indices. using min_freq={min_freq}")
         potential_indices = [min_index]
@@ -49,7 +57,7 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
             decimation = len(potential_indices) / n_freqs
             for i in range(n_freqs):
                 idx = round(i * decimation)
-                selected_indices += potential_indices[idx:idx+1]
+                selected_indices += [potential_indices[idx]]
         else:
             selected_indices = potential_indices
 
@@ -118,6 +126,7 @@ def generate_sweep(key):
 if __name__ == "__main__":
     import matplotlib.pylab as plt
     from file_parser import read_recordings, parameters
+    n_freqs = FFTSIZE
 
     dir_names = [
         "recordings_9_7_20",  # audio shield measurements with buffer length 256, only 200Hz source
@@ -163,5 +172,3 @@ if __name__ == "__main__":
     ax.set_ylim(-1, max_amp)
     ax.legend()
     plt.show()
-
-
