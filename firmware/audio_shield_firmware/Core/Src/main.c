@@ -70,6 +70,8 @@
 
 #define FFTSIZE N_ACTUAL_SAMPLES // size of FFT (effectively we will have half samples because of symmetry)
 #define FFTSIZE_SENT 32 // number of frequency bins to select
+#define FFTSIZE_HALF 16 // for filter_snr = 3, number of bins to send before buzzer bin
+
 
 // processing
 #define N_PROP_FACTORS 30
@@ -791,6 +793,18 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 void frequency_bin_selection(uint16_t *selected_indices) {
 
+	// return fixed frequency bins
+	if (filter_snr_enable == 3) {
+		int start_i = 0;
+		if (buzzer_freq_idx >= FFTSIZE_HALF) {
+			start_i = buzzer_freq_idx - FFTSIZE_HALF;
+		}
+		for (int i = start_i ; i < start_i + FFTSIZE_SENT + 1; i++)  {
+			selected_indices[i - start_i] = i;
+		}
+		return;
+	}
+
 	// This happens in the beginning only, afterwards it only happens if there
 	// was faulty communication between the Crazyflie and Audio deck.
 	if (min_freq >= max_freq) {
@@ -846,7 +860,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 	// Fill bin candidates with the available ones, after removing propeller frequencies.
 	uint8_t min_fac = 0;
-	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
+	for (uint16_t i = min_freq_idx; i <= max_freq_idx; i++) {
 		uint8_t use_this = 1;
 		if (filter_prop_enable) {
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
@@ -898,6 +912,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 			selected_indices[i] =
 					potential_indices[(int) round(i * decimation)];
 		}
+		return;
 	}
 
 	int start_idx = 0;
