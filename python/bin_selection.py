@@ -12,8 +12,8 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     df = fs / n_buffer
     np.testing.assert_allclose(freq, df*np.arange(n_buffer//2 + 1))
 
-    min_index = int(min_freq * n_buffer / fs)
-    max_index = int(max_freq * n_buffer / fs)
+    min_index = int(round(min_freq * n_buffer / fs))
+    max_index = int(round(max_freq * n_buffer / fs))
     min_idx = np.argmin(np.abs(freq - min_freq))
     max_idx = np.argmin(np.abs(freq - max_freq))
     assert min_index == min_idx, (min_idx, min_index, min_index * df, freq[min_idx]) 

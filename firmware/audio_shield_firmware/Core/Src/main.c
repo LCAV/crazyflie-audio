@@ -36,7 +36,6 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "arm_const_structs.h"
-#include "tapering_window.h"
 #include "sweep_hard_bins.h"
 
 /* USER CODE END Includes */
@@ -78,6 +77,8 @@
 #define DF (32000.0/FFTSIZE)
 #define IIR_FILTERING
 #define ALPHA 0.5
+//#define TUKEY_WINDOW //
+#define FLATTOP_WINDOW
 
 // cannot use both below flags at the same time
 //#define USE_TEST_SIGNALS // set this to use test signals instead of real audio data. make sure SPI_N_BYTES MATCHES!
@@ -138,6 +139,13 @@ float mic3[N_ACTUAL_SAMPLES];
 //#include "real_data_1024.h"
 #include "simulated_data_1024.h"
 //#include "real_data_32.h"
+#endif
+
+#ifdef TUKEY_WINDOW
+	#include "tukey_window.h"
+#endif
+#ifdef FLATTOP_WINDOW
+	#include "flattop_window.h"
 #endif
 
 float mic0_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
@@ -290,7 +298,7 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
-    size_t length_tukey = sizeof(tukey_window)/sizeof(tukey_window[0]);
+    size_t length_tukey = sizeof(tapering_window)/sizeof(tapering_window[0]);
     assert(length_tukey == N_ACTUAL_SAMPLES);
 
 	// Start DMAs
