@@ -54,7 +54,7 @@ class SerialMotors(object):
     # want to recording DURING, not after, as for the others.
     def turn(self, angle_deg, blocking=True):
         if angle_deg > 0:
-            self.turn_foward(angle_deg, blocking)
+            self.turn_forward(angle_deg, blocking)
         elif angle_deg < 0:
             self.turn_back(-angle_deg, blocking)
 
@@ -66,7 +66,7 @@ class SerialMotors(object):
 
     def move(self, delta_cm, blocking=True):
         if delta_cm > 0:
-            self.move_foward(delta_cm, blocking)
+            self.move_forward(delta_cm, blocking)
         elif delta_cm < 0:
             self.move_back(-delta_cm, blocking)
 
