@@ -45,10 +45,13 @@ turn = {
 }
 
 class SerialMotors(object):
-    def __init__(self, port=SERIAL_PORT, baudrate=115200, verbose=False):
+    def __init__(self, port=SERIAL_PORT, baudrate=115200, verbose=False, current_angle=0, current_distance=0):
         self.port = SERIAL_PORT
         self.serial = serial.Serial(port, baudrate)
         self.verbose = verbose
+
+        self.current_angle = current_angle
+        self.current_distance = current_distance
 
     # turn is by default non-blocking because when we do the 360 degrees we 
     # want to recording DURING, not after, as for the others.
@@ -58,11 +61,17 @@ class SerialMotors(object):
         elif angle_deg < 0:
             self.turn_back(-angle_deg, blocking)
 
+    def turn_to(self, angle_deg, blocking=True):
+        delta = angle_deg - self.current_angle
+        self.turn(delta, blocking)
+
     def turn_forward(self, angle_deg, blocking=True):
         self.move_in_chunks(turn['forward'], angle_deg, blocking=blocking)
+        self.current_angle += angle_deg
 
     def turn_back(self, angle_deg, blocking=True):
         self.move_in_chunks(turn['backward'], angle_deg, blocking=blocking)
+        self.current_angle -= angle_deg
 
     def move(self, delta_cm, blocking=True):
         if delta_cm > 0:
@@ -70,11 +79,17 @@ class SerialMotors(object):
         elif delta_cm < 0:
             self.move_back(-delta_cm, blocking)
 
+    def move_to(self, distance_cm, blocking=True):
+        delta = distance_cm - self.current_distance
+        self.move(delta, blocking)
+
     def move_forward(self, delta_cm, blocking=True):
         self.move_in_chunks(move['forward'], delta_cm, blocking=blocking)
+        self.current_distance += delta_cm
 
     def move_back(self, delta_cm, blocking=True):
         self.move_in_chunks(move['backward'], delta_cm, blocking=blocking)
+        self.current_distance -= delta_cm
 
     def move_in_chunks(self, commands, total, blocking=True):
         assert total >= 0

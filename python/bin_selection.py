@@ -3,7 +3,6 @@
 
 import numpy as np
 
-# TODO(FD) import from crazyflie_description? 
 from crazyflie_description_py.parameters import N_BUFFER, FS, FFTSIZE
 
 def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False, n_freqs=FFTSIZE):
@@ -18,8 +17,8 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     max_idx = np.argmin(np.abs(freq - max_freq))
     assert min_index == min_idx, (min_idx, min_index, min_index * df, freq[min_idx]) 
     assert max_index == max_idx, (max_idx, max_index, max_index * df, freq[max_idx]) 
-    print(freq[min_idx], df * min_index)
-    print(freq[max_idx], df * max_index)
+    assert freq[min_idx] == df * min_index
+    assert freq[max_idx] == df * max_index
 
     assert max_index < n_frequencies, f"given max frequency {max_freq}Hz too high for sampling frequency {fs}Hz"
 
@@ -28,17 +27,17 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     # Calculate propeller sound bins
     if thrust > 0:
         prop_freq = 3.27258551 * np.sqrt(thrust) - 26.41814899
-        prop_indices = np.append([0.5, 1, 1.5], np.arange(2, 27, 1))
+        prop_factors = np.append([0.5, 1, 1.5], np.arange(2, 27, 1))
 
     # Remove propeller sound +- delta f
-    for i in np.arange(min_index, max_index + 1): # if min_index == max_index we want to add min_index!
+    for i in range(min_index, max_index):
         use_this = True
         # if this frequency is not in propellers, add it to potential bins.
         if thrust > 0:
-            for prop_i in prop_indices:
-                if (abs((i * df) - (prop_i * prop_freq)) < delta_freq):
+            for j in range(len(prop_factors)):
+                if (abs((i * df) - (prop_factors[j] * prop_freq)) < delta_freq):
                     if ax is not None:
-                        ax.scatter(freq[i], 0, color='red')
+                        ax.scatter(i * df, 0, color='red')
                     use_this = False
                     break
         if use_this:
@@ -54,9 +53,9 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
     selected_indices = []
     if not filter_snr: # choose uniformly every k-th bin
         if len(potential_indices) > n_freqs:
-            decimation = len(potential_indices) / n_freqs
+            decimation = float(len(potential_indices) / n_freqs)
             for i in range(n_freqs):
-                idx = round(i * decimation)
+                idx = int(round(i * decimation))
                 selected_indices += [potential_indices[idx]]
         else:
             selected_indices = potential_indices
@@ -119,7 +118,7 @@ def generate_sweep(key):
         t_sec = 1.0 # duration of each note in seconds
         min_freq, max_freq = SOUND_EFFECTS[key][1] 
         bins = select_frequencies(n_buffer=N_BUFFER, fs=FS, 
-                                  min_freq=min_freq, max_freq=max_freq)
+                min_freq=min_freq, max_freq=max_freq)
     return bins, t_sec
 
 

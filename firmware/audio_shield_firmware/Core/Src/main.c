@@ -77,8 +77,8 @@
 #define DF (32000.0/FFTSIZE)
 #define IIR_FILTERING
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
-//#define TUKEY_WINDOW //
-#define FLATTOP_WINDOW
+#define TUKEY_WINDOW
+//#define FLATTOP_WINDOW
 
 // cannot use both below flags at the same time
 //#define USE_TEST_SIGNALS // set this to use test signals instead of real audio data. make sure SPI_N_BYTES MATCHES!
@@ -858,8 +858,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		}
 	}
 
-	int min_freq_idx = (int) min_freq / DF;
-	int max_freq_idx = (int) max_freq / DF;
+	int min_freq_idx = (int) round(min_freq / DF);
+	int max_freq_idx = (int) round(max_freq / DF);
 
 	// Will only be partially filled. Could implement this with
 	// a dynamic list if it is necessary in terms of memory.
@@ -868,7 +868,9 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 	// Fill bin candidates with the available ones, after removing propeller frequencies.
 	uint8_t min_fac = 0;
-	for (uint16_t i = min_freq_idx; i <= max_freq_idx; i++) {
+
+	// ideally, below should be i <= max_freq_idx, but we leave it like this for consistency with previous measurements.
+	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
 		uint8_t use_this = 1;
 		if (filter_prop_enable) {
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
