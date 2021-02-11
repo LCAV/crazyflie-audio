@@ -76,7 +76,7 @@
 #define N_PROP_FACTORS 30
 #define DF (32000.0/FFTSIZE)
 #define IIR_FILTERING
-#define ALPHA 0.5
+#define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
 //#define TUKEY_WINDOW //
 #define FLATTOP_WINDOW
 
@@ -385,8 +385,8 @@ int main(void)
 			}
 			else {
 				for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
-					amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
-							+ ALPHA * (abs_value_squared(&mic0_f[i * 2])
+					amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
+						+ IIR_ALPHA * (abs_value_squared(&mic0_f[i * 2])
 									 + abs_value_squared(&mic1_f[i * 2])
 									 + abs_value_squared(&mic2_f[i * 2])
 									 + abs_value_squared(&mic3_f[i * 2]));
