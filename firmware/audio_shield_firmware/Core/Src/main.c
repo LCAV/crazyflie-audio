@@ -63,7 +63,8 @@
 // constants
 #define N_MOTORS 4 // number of motors
 #define N_MIC 4 // number of microphones
-#define MAXINT 65535 // max for int16 (2**15)
+#define MAX_UINT16 65535.0 // max for uint16 (2**16-1)
+#define MAX_INT16 32767.0 // max for int16 (2**15-1)
 #define FLOAT_PRECISION 4 // float = 4 bytes
 #define INT16_PRECISION 2 // int16 = 2 bytes
 
@@ -77,16 +78,14 @@
 #define DF (32000.0/FFTSIZE)
 #define IIR_FILTERING
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
-#define TUKEY_WINDOW
-//#define FLATTOP_WINDOW
 
 // cannot use both below flags at the same time
 //#define USE_TEST_SIGNALS // set this to use test signals instead of real audio data. make sure SPI_N_BYTES MATCHES!
 //#define DEBUG_SPI // set this define to use smaller, fixed buffers.
 
 // communication
-// in uint16, min_freq, max_freq, buzzer_freq_idx, n_average, delta_freq, snr_enable, propeller_enable, tot = 7
-#define PARAMS_N_INT16 (N_MOTORS + 7)
+// in uint16, min_freq, max_freq, buzzer_freq_idx, n_average, delta_freq, snr_enable, propeller_enable, window, tot = 8
+#define PARAMS_N_INT16 (N_MOTORS + 8)
 #define CHECKSUM_VALUE (0xAC)
 
 #ifdef DEBUG_SPI
@@ -141,12 +140,10 @@ float mic3[N_ACTUAL_SAMPLES];
 //#include "real_data_32.h"
 #endif
 
-#ifdef TUKEY_WINDOW
-	#include "tukey_window.h"
-#endif
-#ifdef FLATTOP_WINDOW
-	#include "flattop_window.h"
-#endif
+#include "hann_window.h"
+#include "tukey_window.h"
+#include "flattop_window.h"
+
 
 float mic0_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
 float mic2_f[N_ACTUAL_SAMPLES];
@@ -163,12 +160,12 @@ uint16_t selected_indices[FFTSIZE_SENT];
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t filter_prop_enable = 1;
 uint16_t filter_snr_enable = 1;
+uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
 uint16_t buzzer_freq_idx = 0;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
-uint16_t n_added = 0; // counter of how many samples were averaged.
 
 // audio processing
 uint32_t timestamp;
@@ -176,8 +173,10 @@ uint32_t ifft_flag = 0;
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
 uint8_t init_stage_iir = 1;
+uint16_t n_added = 0; // counter of how many samples were averaged.
 float prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
+int16_t * tapering_window;
 
 // debugging
 uint8_t retval = 0;
@@ -298,9 +297,6 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
-    size_t length_tukey = sizeof(tapering_window)/sizeof(tapering_window[0]);
-    assert(length_tukey == N_ACTUAL_SAMPLES);
-
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
@@ -315,6 +311,20 @@ int main(void)
 
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
+
+	switch (window_type) {
+		case 1:
+			tapering_window = hann_window;
+			break;
+		case 2:
+			tapering_window = flattop_window;
+			break;
+		case 3:
+			tapering_window = tukey_window;
+			break;
+		default:
+			break;
+	}
 
 	HAL_TIM_Base_Init(&htim5);
 	HAL_TIM_Base_Start(&htim5);
@@ -739,6 +749,11 @@ static void MX_GPIO_Init(void)
 static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
   static int16_t x_prev[4] = {0, 0, 0, 0};
   static int16_t y_prev[4] = {0, 0, 0, 0};
+  if (filter_index == 10) {
+	  memset(x_prev, 0x00, sizeof(x_prev));
+	  memset(y_prev, 0x00, sizeof(y_prev));
+  }
+
   y_prev[filter_index] = (((int32_t)y_prev[filter_index] * 0x00007999) >> 16) - x_prev[filter_index] + x;
   x_prev[filter_index] = x;
   return y_prev[filter_index];
@@ -754,33 +769,22 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 	// Do not interrupt FFT processing.
 	if (flag_fft_processing == 0) {
 
+		float window_value = 1.0;
 		for (uint16_t i = 0; i < size; i += 1) {
+			if (window_type > 0)
+				window_value = (float) tapering_window[i] / MAX_INT16;
+
 #ifdef DCNotchActivated
 			if(pIn == dma_1){
-#ifdef WINDOWINGActivated
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT * tukey_window[i];
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT * tukey_window[i];
-#else
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT;
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT;
-#endif
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_UINT16 * window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_UINT16 * window_value;
 			}else{ // pIn == dma_3
-#ifdef WINDOWINGActivated
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT * tukey_window[i];
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT * tukey_window[i];
-#else
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT;
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT;
-#endif
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_UINT16 * window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_UINT16 * window_value;
 			};
 #else // not DCNotchActivated
-#ifdef WINDOWINGActivated
-			*pOut1++ = (float) *pIn++ / (float) MAXINT * tukey_window[i];
-			*pOut2++ = (float) *pIn++ / (float) MAXINT * tukey_window[i];
-#else
-			*pOut1++ = (float) *pIn++ / (float) MAXINT;
-			*pOut2++ = (float) *pIn++ / (float) MAXINT;
-#endif
+			*pOut1++ = (float) *pIn++ / MAX_UINT16 * window_value;
+			*pOut2++ = (float) *pIn++ / MAX_UINT16 * window_value;
 #endif
 		}
 		new_sample_to_process = 1;
@@ -1014,6 +1018,23 @@ void read_rx_buffer() {
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
 	filter_snr_enable = param_array[N_MOTORS + 6];
+	window_type = param_array[N_MOTORS + 7];
+
+	switch (window_type) {
+		case 1:
+			tapering_window = hann_window;
+			break;
+		case 2:
+			tapering_window = flattop_window;
+			break;
+		case 3:
+			tapering_window = tukey_window;
+			break;
+		default:
+			break;
+	}
+	// reset the DC notch filter
+	DCNotch(0, 10);
 }
 
 int compare_amplitudes(const void *a, const void *b) {
