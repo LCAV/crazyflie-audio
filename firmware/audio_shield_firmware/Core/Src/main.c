@@ -761,6 +761,7 @@ static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
 #endif
 
 void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
+	float window_value;
 
 	// size is N_ACTUAL_SAMPLES.
 	// pIn is of size 2 * N_ACTUAL_SAMPLES, because we have left and right mic.
@@ -769,10 +770,13 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 	// Do not interrupt FFT processing.
 	if (flag_fft_processing == 0) {
 
-		float window_value = 1.0;
 		for (uint16_t i = 0; i < size; i += 1) {
-			if (window_type > 0)
+			if (window_type > 0) {
 				window_value = (float) tapering_window[i] / MAX_INT16;
+			}
+			else {
+				window_value = 1.0;
+			}
 
 #ifdef DCNotchActivated
 			if(pIn == dma_1){
