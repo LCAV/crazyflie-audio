@@ -53,8 +53,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DCNotchActivated 1
-//#define WINDOWINGActivated 1
+#define DCNotchActivated
 
 #define N_ACTUAL_SAMPLES (2048)//32
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
@@ -160,7 +159,7 @@ uint16_t selected_indices[FFTSIZE_SENT];
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t filter_prop_enable = 1;
 uint16_t filter_snr_enable = 1;
-uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
+uint16_t window_type = 1; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
 uint16_t buzzer_freq_idx = 0;
@@ -780,15 +779,15 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 #ifdef DCNotchActivated
 			if(pIn == dma_1){
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_UINT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_UINT16 * window_value;
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
 			}else{ // pIn == dma_3
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_UINT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_UINT16 * window_value;
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
 			};
 #else // not DCNotchActivated
-			*pOut1++ = (float) *pIn++ / MAX_UINT16 * window_value;
-			*pOut2++ = (float) *pIn++ / MAX_UINT16 * window_value;
+			*pOut1++ = (float) *pIn++ / MAX_INT16 * window_value;
+			*pOut2++ = (float) *pIn++ / MAX_INT16 * window_value;
 #endif
 		}
 		new_sample_to_process = 1;
