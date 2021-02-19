@@ -53,7 +53,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DCNotchActivated
+#define DCNotchActivated 1
 
 #define N_ACTUAL_SAMPLES (2048)//32
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
@@ -62,8 +62,10 @@
 // constants
 #define N_MOTORS 4 // number of motors
 #define N_MIC 4 // number of microphones
-#define MAX_UINT16 65535.0 // max for uint16 (2**16-1)
-#define MAX_INT16 32767.0 // max for int16 (2**15-1)
+
+//the "f" is super important! otherwise it is a double, and division by double takes too long
+#define MAX_INT16 32767.0f // max for int16 (2**15-1).
+
 #define FLOAT_PRECISION 4 // float = 4 bytes
 #define INT16_PRECISION 2 // int16 = 2 bytes
 
@@ -143,7 +145,6 @@ float mic3[N_ACTUAL_SAMPLES];
 #include "tukey_window.h"
 #include "flattop_window.h"
 
-
 float mic0_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
 float mic2_f[N_ACTUAL_SAMPLES];
 float mic1_f[N_ACTUAL_SAMPLES];
@@ -159,7 +160,7 @@ uint16_t selected_indices[FFTSIZE_SENT];
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t filter_prop_enable = 1;
 uint16_t filter_snr_enable = 1;
-uint16_t window_type = 1; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
+uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
 uint16_t buzzer_freq_idx = 0;
@@ -310,20 +311,6 @@ int main(void)
 
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
-
-	switch (window_type) {
-		case 1:
-			tapering_window = hann_window;
-			break;
-		case 2:
-			tapering_window = flattop_window;
-			break;
-		case 3:
-			tapering_window = tukey_window;
-			break;
-		default:
-			break;
-	}
 
 	HAL_TIM_Base_Init(&htim5);
 	HAL_TIM_Base_Start(&htim5);
@@ -786,8 +773,8 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
 			};
 #else // not DCNotchActivated
-			*pOut1++ = (float) *pIn++ / MAX_INT16 * window_value;
-			*pOut2++ = (float) *pIn++ / MAX_INT16 * window_value;
+			*pOut1++ = (float) *pIn++ /  MAX_INT16 * window_value;
+			*pOut2++ = (float) *pIn++ /  MAX_INT16 * window_value;
 #endif
 		}
 		new_sample_to_process = 1;
@@ -1021,23 +1008,26 @@ void read_rx_buffer() {
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
 	filter_snr_enable = param_array[N_MOTORS + 6];
-	window_type = param_array[N_MOTORS + 7];
 
-	switch (window_type) {
-		case 1:
-			tapering_window = hann_window;
-			break;
-		case 2:
-			tapering_window = flattop_window;
-			break;
-		case 3:
-			tapering_window = tukey_window;
-			break;
-		default:
-			break;
+	// initialize everything if we have changed window.
+	if (param_array[N_MOTORS + 7] != window_type) {
+		window_type = param_array[N_MOTORS + 7];
+		switch (window_type) {
+			case 1:
+				tapering_window = hann_window;
+				break;
+			case 2:
+				tapering_window = flattop_window;
+				break;
+			case 3:
+				tapering_window = tukey_window;
+				break;
+			default:
+				break;
+		}
+		// reset the DC notch filter
+		DCNotch(0, 10);
 	}
-	// reset the DC notch filter
-	DCNotch(0, 10);
 }
 
 int compare_amplitudes(const void *a, const void *b) {
