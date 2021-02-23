@@ -114,6 +114,11 @@ def generate_sweep(key):
         t_sec = 0.5 # duration of each frequency
         freqs_hard = [1750, 2375, 3125, 3875]
         bins = [np.argmin(np.abs(freqs - f)) for f in freqs_hard]
+    elif key == 'sweep_short':
+        t_sec = 1.0 # duration of each frequency
+        min_freq, max_freq = SOUND_EFFECTS[key][1] 
+        bins = select_frequencies(n_buffer=N_BUFFER, fs=FS, 
+                min_freq=min_freq, max_freq=max_freq, n_freqs=int(FFTSIZE//2))
     else:
         t_sec = 1.0 # duration of each note in seconds
         min_freq, max_freq = SOUND_EFFECTS[key][1] 
