@@ -36,7 +36,6 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "arm_const_structs.h"
-#include "sweep_hard_bins.h"
 
 /* USER CODE END Includes */
 
@@ -810,11 +809,6 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	// This happens in the beginning only, afterwards it only happens if there
 	// was faulty communication between the Crazyflie and Audio deck.
 	if (min_freq >= max_freq) {
-		return;
-	}
-	// This is the key for hard-coded frequency values (best suited bins for buzzer effect sweep_hard)
-	else if ((min_freq == 1) & (max_freq == 2)) {
-		memcpy(selected_indices, sweep_hard_bins, sizeof(sweep_hard_bins));
 		return;
 	}
 
