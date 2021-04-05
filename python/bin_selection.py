@@ -5,10 +5,14 @@ import numpy as np
 
 from crazyflie_description_py.parameters import N_BUFFER, FS, FFTSIZE
 
+def get_frequencies(): 
+    return np.fft.rfftfreq(N_BUFFER, 1/FS)
+
+
+
 def generate_sweep(key):
     from crazyflie_description_py.parameters import SOUND_EFFECTS
-    
-    freqs = np.fft.rfftfreq(N_BUFFER, 1/FS)
+    freqs = get_frequencies()
 
     if key == 'sweep_all':
         t_sec = 0.5 # duration of each note in seconds
@@ -34,18 +38,16 @@ def generate_sweep(key):
     elif key == 'sweep_short':
         t_sec = 1.0 # duration of each frequency
         min_freq, max_freq = SOUND_EFFECTS[key][1] 
-        bins = select_frequencies(n_buffer=N_BUFFER, fs=FS, 
-                min_freq=min_freq, max_freq=max_freq, n_freqs=int(FFTSIZE//2))
+        bins = select_frequencies(min_freq=min_freq, max_freq=max_freq, n_freqs=int(FFTSIZE//2))
     else:
         t_sec = 1.0 # duration of each note in seconds
         min_freq, max_freq = SOUND_EFFECTS[key][1] 
-        bins = select_frequencies(n_buffer=N_BUFFER, fs=FS, 
-                min_freq=min_freq, max_freq=max_freq)
+        bins = select_frequencies(min_freq=min_freq, max_freq=max_freq)
     return bins, t_sec
 
 
-def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False, n_freqs=FFTSIZE):
-    freq = np.fft.rfftfreq(n_buffer, 1 / fs)
+def select_frequencies(n_buffer=N_BUFFER, fs=FS, thrust=0, min_freq=100, max_freq=10000, filter_snr=False, buffer_f=None, delta_freq=100, ax=None, verbose=False, n_freqs=FFTSIZE):
+    freq = get_frequencies()
     n_frequencies = len(freq)
     df = fs / n_buffer
     np.testing.assert_allclose(freq, df*np.arange(n_buffer//2 + 1))
@@ -123,55 +125,4 @@ def select_frequencies(n_buffer, fs, thrust=0, min_freq=100, max_freq=10000, fil
         selected_indices = np.r_[selected_indices, [0] * (n_freqs - len(selected_indices))]
 
     assert len(selected_indices) == n_freqs, len(selected_indices)
-
     return selected_indices
-
-if __name__ == "__main__":
-    import matplotlib.pylab as plt
-    from file_parser import read_recordings, parameters
-    n_freqs = FFTSIZE
-
-    dir_names = [
-        "recordings_9_7_20",  # audio shield measurements with buffer length 256, only 200Hz source
-        "recordings_14_7_20",  # audio shield measurements with buffer length 8060, only 200Hz source
-        "recordings_16_7_20",  # recordings with measurement mics, 200Hz and white_noise source
-    ]
-    sources = [
-        "200Hz",
-        "white_noise",
-    ]  # source types (single frequency at 200Hz or white noise)
-    loudnesses = ["high", "normal", "low"]  # loudness of source
-    gt_degrees_list = [0, 20, 40]  # rotation of drone with respect to source.
-
-    dir_name = dir_names[1]
-    loudness = loudnesses[1]
-    gt_degrees = gt_degrees_list[1]
-    source = sources[1]
-    Fs = parameters[dir_name]["Fs"]
-
-    signals_props, signals_source, signals_all = read_recordings(dir_name=dir_name, 
-            loudness=loudness, gt_degrees=gt_degrees, source=source)
-
-    buffer_f = np.fft.rfft(signals_props[:, :N_BUFFER])
-    freq = np.fft.rfftfreq(N_BUFFER, d=1/Fs)
-    print('available bins:', N_BUFFER, len(freq), buffer_f.shape)
-
-    fig, ax = plt.subplots()
-
-    thrust = 43000
-    min_freq = 100
-    max_freq = 4000
-    assert max_freq <= Fs / 2
-    bin_uniform_avoid_props = select_frequencies(N_BUFFER, Fs, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=False, ax=ax)
-    bin_uniform_avoid_props_snr = select_frequencies(N_BUFFER, Fs, thrust=thrust, min_freq=min_freq, max_freq=max_freq, filter_snr=True, buffer_f=buffer_f, ax=ax)
-
-    ### plotting
-    max_amp = np.max(np.abs(buffer_f[:, (freq<max_freq) & (freq>min_freq)]))
-    for i, buffer_f_i in enumerate(buffer_f):
-        ax.plot(freq, np.abs(buffer_f_i), label = f"mic{i}")
-    ax.scatter(freq[bin_uniform_avoid_props], [0.3 * max_amp] * n_freqs, label = 'bins_avoid_props')
-    ax.scatter(freq[bin_uniform_avoid_props_snr], [0.6 * max_amp] * n_freqs, label = 'bins_avoid_props_snr')
-    ax.set_xlim(0.5*min_freq, 1.5*max_freq)
-    ax.set_ylim(-1, max_amp)
-    ax.legend()
-    plt.show()
