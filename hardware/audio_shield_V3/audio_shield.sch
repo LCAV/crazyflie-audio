@@ -1,0 +1,1172 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 7
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power:GND #PWR0102
+U 1 1 5EF4F83A
+P 1300 2400
+F 0 "#PWR0102" H 1300 2150 50  0001 C CNN
+F 1 "GND" H 1305 2227 50  0000 C CNN
+F 2 "" H 1300 2400 50  0001 C CNN
+F 3 "" H 1300 2400 50  0001 C CNN
+	1    1300 2400
+	-1   0    0    1   
+$EndComp
+Text Label 1200 2750 0    50   ~ 0
+SWCLK
+Text Label 1200 2850 0    50   ~ 0
+SWDIO
+Text Label 1200 2950 0    50   ~ 0
+nRESET
+Wire Wire Line
+	1200 2950 1450 2950
+Wire Wire Line
+	1200 2850 1450 2850
+Wire Wire Line
+	1200 2750 1450 2750
+Text Notes 1450 2100 0    50   ~ 0
+microcontroller stm32f4\n
+Text Label 1200 4350 0    50   ~ 0
+RX1
+Text Label 1200 4450 0    50   ~ 0
+TX1
+Text Label 1200 3300 0    50   ~ 0
+SDA
+Text Label 1200 3400 0    50   ~ 0
+SCL
+Wire Wire Line
+	1450 4350 1200 4350
+Wire Wire Line
+	1450 4450 1200 4450
+Wire Wire Line
+	1450 3300 1200 3300
+Wire Wire Line
+	1200 3400 1450 3400
+Text Notes 1150 750  0    50   ~ 0
+TC2030 connector for debug
+Wire Wire Line
+	1250 1400 1400 1400
+$Comp
+L power:GND #PWR0114
+U 1 1 5EFF1397
+P 1250 1400
+F 0 "#PWR0114" H 1250 1150 50  0001 C CNN
+F 1 "GND" H 1255 1227 50  0000 C CNN
+F 2 "" H 1250 1400 50  0001 C CNN
+F 3 "" H 1250 1400 50  0001 C CNN
+	1    1250 1400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 1000 1250 1000
+$Comp
+L power:VCC #PWR0113
+U 1 1 5EFEDE82
+P 1250 1000
+F 0 "#PWR0113" H 1250 850 50  0001 C CNN
+F 1 "VCC" H 1265 1173 50  0000 C CNN
+F 2 "" H 1250 1000 50  0001 C CNN
+F 3 "" H 1250 1000 50  0001 C CNN
+	1    1250 1000
+	1    0    0    -1  
+$EndComp
+Text Label 1150 1100 0    50   ~ 0
+SWDIO
+Wire Wire Line
+	1150 1300 1400 1300
+Wire Wire Line
+	1150 1100 1400 1100
+Wire Wire Line
+	1150 1200 1400 1200
+Text Label 1150 1200 0    50   ~ 0
+nRESET
+Text Label 1150 1300 0    50   ~ 0
+SWCLK
+Text Notes 6900 700  0    50   ~ 0
+MEMS microphones
+Text Label 2350 2350 0    50   ~ 0
+I2S1_SD
+Text Label 2350 2450 0    50   ~ 0
+I2S1_CK
+Text Label 2350 3400 0    50   ~ 0
+I2S3_WS
+Text Label 2350 3300 0    50   ~ 0
+I2S3_CK
+Text Label 2350 3200 0    50   ~ 0
+I2S3_SD
+Text Label 2350 2550 0    50   ~ 0
+I2S1_WS
+Text Label 5750 3550 0    50   ~ 0
+I2S1_SD
+Text Label 5750 3650 0    50   ~ 0
+I2S1_CK
+Text Label 5750 3750 0    50   ~ 0
+I2S1_WS
+Wire Wire Line
+	5750 3550 6150 3550
+Text Label 5800 4700 0    50   ~ 0
+I2S1_CK
+Text Label 5800 4800 0    50   ~ 0
+I2S1_WS
+Text Label 5800 1400 0    50   ~ 0
+I2S3_SD
+Text Label 5800 1500 0    50   ~ 0
+I2S3_CK
+Text Label 5800 1600 0    50   ~ 0
+I2S3_WS
+Text Label 5800 2450 0    50   ~ 0
+I2S3_SD
+Text Label 5800 2550 0    50   ~ 0
+I2S3_CK
+Text Label 5800 2650 0    50   ~ 0
+I2S3_WS
+Wire Wire Line
+	5750 3750 6150 3750
+Wire Wire Line
+	5750 3650 6150 3650
+Wire Wire Line
+	5800 4600 6150 4600
+Wire Wire Line
+	5800 4700 6150 4700
+Wire Wire Line
+	5800 4800 6150 4800
+Wire Wire Line
+	5800 1400 6150 1400
+Wire Wire Line
+	5800 1500 6150 1500
+Wire Wire Line
+	5800 1600 6150 1600
+Wire Wire Line
+	5800 2450 6150 2450
+Wire Wire Line
+	5800 2550 6150 2550
+Wire Wire Line
+	5800 2650 6150 2650
+Wire Wire Line
+	6050 1050 6050 950 
+Wire Wire Line
+	6150 1050 6050 1050
+$Comp
+L power:GND #PWR05
+U 1 1 5F0EF132
+P 6050 950
+F 0 "#PWR05" H 6050 700 50  0001 C CNN
+F 1 "GND" H 6055 777 50  0000 C CNN
+F 2 "" H 6050 950 50  0001 C CNN
+F 3 "" H 6050 950 50  0001 C CNN
+	1    6050 950 
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5900 1150 5900 1100
+$Comp
+L power:VCC #PWR01
+U 1 1 5F0EF139
+P 5900 1100
+F 0 "#PWR01" H 5900 950 50  0001 C CNN
+F 1 "VCC" H 5915 1273 50  0000 C CNN
+F 2 "" H 5900 1100 50  0001 C CNN
+F 3 "" H 5900 1100 50  0001 C CNN
+	1    5900 1100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5900 1150 6150 1150
+Wire Wire Line
+	6050 2100 6050 2000
+Wire Wire Line
+	6150 2100 6050 2100
+$Comp
+L power:GND #PWR06
+U 1 1 5F0F920D
+P 6050 2000
+F 0 "#PWR06" H 6050 1750 50  0001 C CNN
+F 1 "GND" H 6055 1827 50  0000 C CNN
+F 2 "" H 6050 2000 50  0001 C CNN
+F 3 "" H 6050 2000 50  0001 C CNN
+	1    6050 2000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5900 2200 5900 2150
+$Comp
+L power:VCC #PWR02
+U 1 1 5F0F9214
+P 5900 2150
+F 0 "#PWR02" H 5900 2000 50  0001 C CNN
+F 1 "VCC" H 5915 2323 50  0000 C CNN
+F 2 "" H 5900 2150 50  0001 C CNN
+F 3 "" H 5900 2150 50  0001 C CNN
+	1    5900 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5900 2200 6150 2200
+Wire Wire Line
+	6050 3200 6050 3100
+Wire Wire Line
+	6150 3200 6050 3200
+$Comp
+L power:GND #PWR07
+U 1 1 5F0FCAC9
+P 6050 3100
+F 0 "#PWR07" H 6050 2850 50  0001 C CNN
+F 1 "GND" H 6055 2927 50  0000 C CNN
+F 2 "" H 6050 3100 50  0001 C CNN
+F 3 "" H 6050 3100 50  0001 C CNN
+	1    6050 3100
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5900 3300 5900 3250
+$Comp
+L power:VCC #PWR03
+U 1 1 5F0FCAD0
+P 5900 3250
+F 0 "#PWR03" H 5900 3100 50  0001 C CNN
+F 1 "VCC" H 5915 3423 50  0000 C CNN
+F 2 "" H 5900 3250 50  0001 C CNN
+F 3 "" H 5900 3250 50  0001 C CNN
+	1    5900 3250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5900 3300 6150 3300
+Wire Wire Line
+	6050 4250 6050 4150
+Wire Wire Line
+	6150 4250 6050 4250
+$Comp
+L power:GND #PWR08
+U 1 1 5F1006FE
+P 6050 4150
+F 0 "#PWR08" H 6050 3900 50  0001 C CNN
+F 1 "GND" H 6055 3977 50  0000 C CNN
+F 2 "" H 6050 4150 50  0001 C CNN
+F 3 "" H 6050 4150 50  0001 C CNN
+	1    6050 4150
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5900 4350 5900 4300
+$Comp
+L power:VCC #PWR04
+U 1 1 5F100705
+P 5900 4300
+F 0 "#PWR04" H 5900 4150 50  0001 C CNN
+F 1 "VCC" H 5915 4473 50  0000 C CNN
+F 2 "" H 5900 4300 50  0001 C CNN
+F 3 "" H 5900 4300 50  0001 C CNN
+	1    5900 4300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5900 4350 6150 4350
+Wire Wire Line
+	6150 1250 5900 1250
+Wire Wire Line
+	5900 1250 5900 1150
+Connection ~ 5900 1150
+Wire Wire Line
+	6150 3400 5900 3400
+Wire Wire Line
+	5900 3400 5900 3300
+Connection ~ 5900 3300
+Wire Wire Line
+	6150 4450 6050 4450
+Wire Wire Line
+	6050 4450 6050 4250
+Connection ~ 6050 4250
+Wire Wire Line
+	2350 3200 2250 3200
+Wire Wire Line
+	2350 3300 2250 3300
+Wire Wire Line
+	2350 3400 2250 3400
+Wire Wire Line
+	2350 2550 2250 2550
+Wire Wire Line
+	2350 2450 2250 2450
+Wire Wire Line
+	2350 2350 2250 2350
+Text Label 2350 4000 0    50   ~ 0
+SPI2_NSS
+Text Label 2350 3900 0    50   ~ 0
+SPI2_CK
+Text Label 2350 3800 0    50   ~ 0
+SPI2_MOSI
+Wire Wire Line
+	2250 3800 2350 3800
+Wire Wire Line
+	2250 3900 2350 3900
+Wire Wire Line
+	2250 4000 2350 4000
+Text Label 2350 3700 0    50   ~ 0
+SPI2_MISO
+Wire Wire Line
+	2350 3700 2250 3700
+$Comp
+L power:VCC #PWR0103
+U 1 1 5EF504C5
+P 1100 2500
+F 0 "#PWR0103" H 1100 2350 50  0001 C CNN
+F 1 "VCC" H 1115 2673 50  0000 C CNN
+F 2 "" H 1100 2500 50  0001 C CNN
+F 3 "" H 1100 2500 50  0001 C CNN
+	1    1100 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1100 2500 1450 2500
+Wire Wire Line
+	1300 2400 1450 2400
+Text Label 10200 5400 0    50   ~ 0
+GND
+$Comp
+L power:VCC #PWR0123
+U 1 1 5F338EA0
+P 10050 5150
+F 0 "#PWR0123" H 10050 5000 50  0001 C CNN
+F 1 "VCC" H 10065 5323 50  0000 C CNN
+F 2 "" H 10050 5150 50  0001 C CNN
+F 3 "" H 10050 5150 50  0001 C CNN
+	1    10050 5150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10050 5150 10400 5150
+$Comp
+L power:GND #PWR0127
+U 1 1 5F345DAF
+P 10050 5400
+F 0 "#PWR0127" H 10050 5150 50  0001 C CNN
+F 1 "GND" H 10055 5227 50  0000 C CNN
+F 2 "" H 10050 5400 50  0001 C CNN
+F 3 "" H 10050 5400 50  0001 C CNN
+	1    10050 5400
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	10050 5400 10200 5400
+$Comp
+L power:+3V0 #PWR0128
+U 1 1 5F352F66
+P 10400 5150
+F 0 "#PWR0128" H 10400 5000 50  0001 C CNN
+F 1 "+3V0" H 10415 5323 50  0000 C CNN
+F 2 "" H 10400 5150 50  0001 C CNN
+F 3 "" H 10400 5150 50  0001 C CNN
+	1    10400 5150
+	1    0    0    -1  
+$EndComp
+Text Label 9650 2450 0    50   ~ 0
+SPI2_MISO
+$Sheet
+S 6150 4150 550  750 
+U 5F096C14
+F0 "sheet5F096C0C" 50
+F1 "SPH0645LM4H-B .sch" 50
+F2 "DATA_OUT" I L 6150 4600 50 
+F3 "GND" I L 6150 4250 50 
+F4 "VDD" I L 6150 4350 50 
+F5 "WS" I L 6150 4800 50 
+F6 "BCLK" I L 6150 4700 50 
+F7 "SELECT" I L 6150 4450 50 
+$EndSheet
+$Sheet
+S 6150 3100 550  750 
+U 5F0950A2
+F0 "sheet5F09509A" 50
+F1 "SPH0645LM4H-B .sch" 50
+F2 "DATA_OUT" I L 6150 3550 50 
+F3 "GND" I L 6150 3200 50 
+F4 "VDD" I L 6150 3300 50 
+F5 "WS" I L 6150 3750 50 
+F6 "BCLK" I L 6150 3650 50 
+F7 "SELECT" I L 6150 3400 50 
+$EndSheet
+$Sheet
+S 6150 2000 550  750 
+U 5F093705
+F0 "sheet5F0936FD" 50
+F1 "SPH0645LM4H-B .sch" 50
+F2 "DATA_OUT" I L 6150 2450 50 
+F3 "GND" I L 6150 2100 50 
+F4 "VDD" I L 6150 2200 50 
+F5 "WS" I L 6150 2650 50 
+F6 "BCLK" I L 6150 2550 50 
+F7 "SELECT" I L 6150 2300 50 
+$EndSheet
+$Sheet
+S 6150 950  550  750 
+U 5F04603F
+F0 "sheet5F046037" 50
+F1 "SPH0645LM4H-B .sch" 50
+F2 "DATA_OUT" I L 6150 1400 50 
+F3 "GND" I L 6150 1050 50 
+F4 "VDD" I L 6150 1150 50 
+F5 "WS" I L 6150 1600 50 
+F6 "BCLK" I L 6150 1500 50 
+F7 "SELECT" I L 6150 1250 50 
+$EndSheet
+Text Label 9650 2350 0    50   ~ 0
+SPI2_CK
+Text Label 9650 2550 0    50   ~ 0
+SPI2_MOSI
+Text Label 9650 1850 0    50   ~ 0
+SPI2_NSS
+Wire Wire Line
+	9650 2450 10150 2450
+$Comp
+L Connector_Generic:Conn_01x10 J2
+U 1 1 5EE8979D
+P 10350 2550
+F 0 "J2" H 10430 2542 50  0000 L CNN
+F 1 "CONN_10_RIGHT" H 10430 2451 50  0000 L CNN
+F 2 "audio_shield:BF090-10-X-B1" H 10350 2550 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 2550 50  0001 C CNN
+F 4 "Farnell" H 10350 2550 50  0001 C CNN "Supplier"
+F 5 "2751429 " H 10350 2550 50  0001 C CNN "Supplier ref."
+F 6 "1.46" H 10350 2550 50  0001 C CNN "Price"
+	1    10350 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x10 J1
+U 1 1 5EE88981
+P 10350 1450
+F 0 "J1" H 10430 1442 50  0000 L CNN
+F 1 "CONN_10_LEFT" H 10430 1351 50  0000 L CNN
+F 2 "audio_shield:BF090-10-X-B1" H 10350 1450 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 1450 50  0001 C CNN
+F 4 "Farnell" H 10350 1450 50  0001 C CNN "Supplier"
+F 5 "2751429 " H 10350 1450 50  0001 C CNN "Supplier ref."
+F 6 "1.46" H 10350 1450 50  0001 C CNN "Price"
+	1    10350 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 5EE8E607
+P 10050 1950
+F 0 "#PWR0101" H 10050 1700 50  0001 C CNN
+F 1 "GND" H 9900 1900 50  0000 C CNN
+F 2 "" H 10050 1950 50  0001 C CNN
+F 3 "" H 10050 1950 50  0001 C CNN
+	1    10050 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10050 1950 10150 1950
+$Comp
+L power:VCC #PWR0108
+U 1 1 5EF6D11E
+P 10000 1050
+F 0 "#PWR0108" H 10000 900 50  0001 C CNN
+F 1 "VCC" H 10015 1223 50  0000 C CNN
+F 2 "" H 10000 1050 50  0001 C CNN
+F 3 "" H 10000 1050 50  0001 C CNN
+	1    10000 1050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10150 1050 10000 1050
+Text Label 9900 1150 0    50   ~ 0
+RX1
+Text Label 9900 1250 0    50   ~ 0
+TX1
+Wire Wire Line
+	10150 1150 9900 1150
+Wire Wire Line
+	10150 1250 9900 1250
+Text Notes 9800 700  0    50   ~ 0
+Crazyflie connectors\n
+Text Label 5800 4600 0    50   ~ 0
+I2S1_SD
+Wire Wire Line
+	6150 2300 6050 2300
+Wire Wire Line
+	6050 2300 6050 2100
+Connection ~ 6050 2100
+Text Label 8900 4000 0    50   ~ 0
+I2S3_SD
+Text Label 8900 4100 0    50   ~ 0
+I2S3_CK
+Text Label 8900 4200 0    50   ~ 0
+I2S3_WS
+$Comp
+L Connector:TestPoint I2S3_CK1
+U 1 1 5F0F583E
+P 10050 3400
+F 0 "I2S3_CK1" H 10108 3518 50  0000 L CNN
+F 1 "TestPoint" H 10108 3427 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 3400 50  0001 C CNN
+F 3 "~" H 10250 3400 50  0001 C CNN
+F 4 "np" H 10050 3400 50  0001 C CNN "Supplier"
+	1    10050 3400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9550 3450 9550 3400
+Wire Wire Line
+	8900 4000 9550 4000
+Wire Wire Line
+	10050 3550 10050 3400
+Wire Wire Line
+	8900 4100 10050 4100
+Wire Wire Line
+	8900 4200 10550 4200
+Text Label 8900 3450 0    50   ~ 0
+I2S1_SD
+Text Label 8900 3550 0    50   ~ 0
+I2S1_CK
+Text Label 8900 3650 0    50   ~ 0
+I2S1_WS
+Wire Wire Line
+	10550 3650 10550 3400
+$Comp
+L Connector:TestPoint I2S1_SD1
+U 1 1 5F155001
+P 9550 3950
+F 0 "I2S1_SD1" H 9608 4068 50  0000 L CNN
+F 1 "TestPoint" H 9608 3977 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9750 3950 50  0001 C CNN
+F 3 "~" H 9750 3950 50  0001 C CNN
+F 4 "np" H 9550 3950 50  0001 C CNN "Supplier"
+	1    9550 3950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint I2S1_CK1
+U 1 1 5F155007
+P 10050 3950
+F 0 "I2S1_CK1" H 10108 4068 50  0000 L CNN
+F 1 "TestPoint" H 10108 3977 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 3950 50  0001 C CNN
+F 3 "~" H 10250 3950 50  0001 C CNN
+F 4 "np" H 10050 3950 50  0001 C CNN "Supplier"
+	1    10050 3950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint I2S1_WS1
+U 1 1 5F15500D
+P 10550 3950
+F 0 "I2S1_WS1" H 10608 4068 50  0000 L CNN
+F 1 "TestPoint" H 10608 3977 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 3950 50  0001 C CNN
+F 3 "~" H 10750 3950 50  0001 C CNN
+F 4 "np" H 10550 3950 50  0001 C CNN "Supplier"
+	1    10550 3950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9550 4000 9550 3950
+Wire Wire Line
+	10050 4100 10050 3950
+Wire Wire Line
+	10550 4200 10550 3950
+Wire Wire Line
+	8900 3650 10550 3650
+Wire Wire Line
+	8900 3550 10050 3550
+Wire Wire Line
+	8900 3450 9550 3450
+Text Label 8900 4500 0    50   ~ 0
+RX1
+Text Label 8900 4600 0    50   ~ 0
+TX1
+$Comp
+L Connector:TestPoint RX1
+U 1 1 5F16A53B
+P 9250 4450
+F 0 "RX1" H 9308 4568 50  0000 L CNN
+F 1 "TestPoint" H 9308 4477 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9450 4450 50  0001 C CNN
+F 3 "~" H 9450 4450 50  0001 C CNN
+F 4 "np" H 9250 4450 50  0001 C CNN "Supplier"
+	1    9250 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint TX1
+U 1 1 5F16A541
+P 9750 4450
+F 0 "TX1" H 9808 4568 50  0000 L CNN
+F 1 "TestPoint" H 9808 4477 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9950 4450 50  0001 C CNN
+F 3 "~" H 9950 4450 50  0001 C CNN
+F 4 "np" H 9750 4450 50  0001 C CNN "Supplier"
+	1    9750 4450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9250 4500 9250 4450
+Wire Wire Line
+	9750 4600 9750 4450
+Wire Wire Line
+	8900 4500 9250 4500
+Wire Wire Line
+	8900 4600 9750 4600
+Wire Wire Line
+	9050 5200 9050 5100
+$Comp
+L power:GND #PWR022
+U 1 1 5F1C6E4D
+P 9050 5100
+F 0 "#PWR022" H 9050 4850 50  0001 C CNN
+F 1 "GND" H 9055 4927 50  0000 C CNN
+F 2 "" H 9050 5100 50  0001 C CNN
+F 3 "" H 9050 5100 50  0001 C CNN
+	1    9050 5100
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:VCC #PWR021
+U 1 1 5F1C6E54
+P 8900 5700
+F 0 "#PWR021" H 8900 5550 50  0001 C CNN
+F 1 "VCC" H 8915 5873 50  0000 C CNN
+F 2 "" H 8900 5700 50  0001 C CNN
+F 3 "" H 8900 5700 50  0001 C CNN
+	1    8900 5700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8900 5750 9150 5750
+$Comp
+L Connector:TestPoint I2S3_SD1
+U 1 1 5F0E4486
+P 9550 3400
+F 0 "I2S3_SD1" H 9608 3518 50  0000 L CNN
+F 1 "TestPoint" H 9608 3427 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9750 3400 50  0001 C CNN
+F 3 "~" H 9750 3400 50  0001 C CNN
+F 4 "np" H 9550 3400 50  0001 C CNN "Supplier"
+	1    9550 3400
+	1    0    0    -1  
+$EndComp
+Text Label 8800 6250 0    50   ~ 0
+SPI2_CK
+Text Label 8800 6350 0    50   ~ 0
+SPI2_MOSI
+Text Label 8800 6150 0    50   ~ 0
+SPI2_MISO
+$Comp
+L Connector:TestPoint SPI2_MISO1
+U 1 1 5F27A2F0
+P 9650 6000
+F 0 "SPI2_MISO1" H 9708 6118 50  0000 L CNN
+F 1 "TestPoint" H 9708 6027 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9850 6000 50  0001 C CNN
+F 3 "~" H 9850 6000 50  0001 C CNN
+F 4 "np" H 9650 6000 50  0001 C CNN "Supplier"
+	1    9650 6000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint SPI2_CK1
+U 1 1 5F27A2F6
+P 10150 6000
+F 0 "SPI2_CK1" H 10208 6118 50  0000 L CNN
+F 1 "TestPoint" H 10208 6027 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10350 6000 50  0001 C CNN
+F 3 "~" H 10350 6000 50  0001 C CNN
+F 4 "np" H 10150 6000 50  0001 C CNN "Supplier"
+	1    10150 6000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9650 6150 9650 6000
+Wire Wire Line
+	10150 6250 10150 6000
+$Comp
+L Connector:TestPoint SPI2_MOSI1
+U 1 1 5F27A2FF
+P 10600 6000
+F 0 "SPI2_MOSI1" H 10658 6118 50  0000 L CNN
+F 1 "TestPoint" H 10658 6027 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10800 6000 50  0001 C CNN
+F 3 "~" H 10800 6000 50  0001 C CNN
+F 4 "np" H 10600 6000 50  0001 C CNN "Supplier"
+	1    10600 6000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8800 6150 9650 6150
+Wire Wire Line
+	8800 6250 10150 6250
+Wire Wire Line
+	8800 6350 10600 6350
+Wire Wire Line
+	10600 6000 10600 6350
+Wire Wire Line
+	8900 5700 8900 5750
+Text Label 2350 4200 0    50   ~ 0
+PC3
+Text Label 2350 4300 0    50   ~ 0
+PA2
+Wire Wire Line
+	2250 4300 2350 4300
+Wire Wire Line
+	2250 4200 2350 4200
+Text Label 7450 6250 0    50   ~ 0
+PC3
+Text Label 7450 6350 0    50   ~ 0
+PA2
+$Comp
+L Connector:TestPoint PC3
+U 1 1 5F2D740A
+P 7750 6200
+F 0 "PC3" H 7808 6318 50  0000 L CNN
+F 1 "TestPoint" H 7808 6227 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 7950 6200 50  0001 C CNN
+F 3 "~" H 7950 6200 50  0001 C CNN
+F 4 "np" H 7750 6200 50  0001 C CNN "Supplier"
+	1    7750 6200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint PA2
+U 1 1 5F2D7410
+P 8250 6200
+F 0 "PA2" H 8308 6318 50  0000 L CNN
+F 1 "TestPoint" H 8308 6227 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 8450 6200 50  0001 C CNN
+F 3 "~" H 8450 6200 50  0001 C CNN
+F 4 "np" H 8250 6200 50  0001 C CNN "Supplier"
+	1    8250 6200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7750 6250 7750 6200
+Wire Wire Line
+	8250 6350 8250 6200
+Wire Wire Line
+	7450 6250 7750 6250
+Wire Wire Line
+	7450 6350 8250 6350
+$Comp
+L Connector:TestPoint I2S3_WS1
+U 1 1 5F0FDA51
+P 10550 3400
+F 0 "I2S3_WS1" H 10608 3518 50  0000 L CNN
+F 1 "TestPoint" H 10608 3427 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 3400 50  0001 C CNN
+F 3 "~" H 10750 3400 50  0001 C CNN
+F 4 "np" H 10550 3400 50  0001 C CNN "Supplier"
+	1    10550 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint GND2
+U 1 1 5F306697
+P 9150 5150
+F 0 "GND2" H 9208 5268 50  0000 L CNN
+F 1 "TestPoint" H 9208 5177 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9350 5150 50  0001 C CNN
+F 3 "~" H 9350 5150 50  0001 C CNN
+F 4 "np" H 9150 5150 50  0001 C CNN "Supplier"
+	1    9150 5150
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint 3V0_2
+U 1 1 5F37B87C
+P 9150 5600
+F 0 "3V0_2" H 9208 5718 50  0000 L CNN
+F 1 "TestPoint" H 9208 5627 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9350 5600 50  0001 C CNN
+F 3 "~" H 9350 5600 50  0001 C CNN
+F 4 "np" H 9150 5600 50  0001 C CNN "Supplier"
+	1    9150 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9150 5600 9150 5750
+Wire Wire Line
+	9050 5200 9150 5200
+Wire Wire Line
+	9150 5200 9150 5150
+$Comp
+L Connector:AVR-JTAG-10 J48
+U 1 1 5F223B53
+P -1450 1450
+F 0 "J48" H -1879 1496 50  0000 R CNN
+F 1 "STLINK-V3MINI Placeholder" H -1879 1405 50  0000 R CNN
+F 2 "" V -1600 1600 50  0001 C CNN
+F 3 "https://www.digikey.ch/product-detail/fr/STLINK-V3MINI/497-19530-ND/10266291/?itemSeq=333705927 ~" H -2725 900 50  0001 C CNN
+F 4 "np" H -1450 1450 50  0001 C CNN "Supplier"
+	1    -1450 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L audio_shield:DS28E05P U2
+U 1 1 5F3EF92F
+P 2700 6100
+F 0 "U2" H 2700 6265 50  0000 C CNN
+F 1 "DS28E05R+T" H 2700 6174 50  0000 C CNN
+F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 2700 6150 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6150 50  0001 C CNN
+F 4 "Mouser" H 2700 6100 50  0001 C CNN "Supplier"
+F 5 "700-DS28E05R+T" H 2700 6100 50  0001 C CNN "Supplier ref."
+F 6 " 0.73" H 2700 6100 50  0001 C CNN "Price"
+	1    2700 6100
+	1    0    0    -1  
+$EndComp
+Text Label 9750 2850 0    50   ~ 0
+EEPROM
+Wire Wire Line
+	9750 2850 10150 2850
+Text Notes 700  3200 0    50   ~ 0
+I2C adress 47\n
+Wire Wire Line
+	9650 2350 10150 2350
+Wire Wire Line
+	9650 2550 10150 2550
+Wire Wire Line
+	9650 1850 10150 1850
+$Comp
+L Connector:TestPoint EE1
+U 1 1 5F815185
+P 10250 4450
+F 0 "EE1" H 10308 4568 50  0000 L CNN
+F 1 "TestPoint" H 10308 4477 50  0000 L CNN
+F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10450 4450 50  0001 C CNN
+F 3 "~" H 10450 4450 50  0001 C CNN
+F 4 "np" H 10250 4450 50  0001 C CNN "Supplier"
+	1    10250 4450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10250 4700 10250 4450
+Wire Wire Line
+	8900 4700 10250 4700
+Text Label 8900 4700 0    50   ~ 0
+EEPROM
+Text Notes 1350 5950 0    50   ~ 0
+EEPROM for deck identification
+$Comp
+L power:GND #PWR0104
+U 1 1 6047F8A6
+P 2300 7250
+F 0 "#PWR0104" H 2300 7000 50  0001 C CNN
+F 1 "GND" H 2305 7077 50  0000 C CNN
+F 2 "" H 2300 7250 50  0001 C CNN
+F 3 "" H 2300 7250 50  0001 C CNN
+	1    2300 7250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2300 6850 2400 6850
+Text Label 950  6600 0    50   ~ 0
+EEPROM
+Wire Wire Line
+	2300 7250 2300 6850
+Wire Wire Line
+	2300 6850 2300 6200
+Wire Wire Line
+	2300 6200 2400 6200
+Connection ~ 2300 6850
+Wire Wire Line
+	10150 2150 9650 2150
+Text Label 9650 2150 0    50   ~ 0
+CF_Buzzer
+Text Label 4100 6600 2    50   ~ 0
+CF_Buzzer
+$Comp
+L power:GND #PWR0105
+U 1 1 604A37B6
+P 5300 7250
+F 0 "#PWR0105" H 5300 7000 50  0001 C CNN
+F 1 "GND" H 5305 7077 50  0000 C CNN
+F 2 "" H 5300 7250 50  0001 C CNN
+F 3 "" H 5300 7250 50  0001 C CNN
+	1    5300 7250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 7250 5300 6550
+$Comp
+L Device:R R?
+U 1 1 604AB1B8
+P 4750 6800
+AR Path="/5EF054A6/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F08F7EB/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F04603F/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F04907C/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F04C161/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F093705/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F0950A2/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F096C14/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F0649F9/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F064A02/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F064A0A/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F064A12/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F0910DF/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F0910E8/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F0910F0/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/5F0910F8/604AB1B8" Ref="R?"  Part="1" 
+AR Path="/604AB1B8" Ref="R10"  Part="1" 
+F 0 "R10" H 4820 6846 50  0000 L CNN
+F 1 "10k" H 4820 6755 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4680 6800 50  0001 C CNN
+F 3 "https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&no-cache=true" H 4750 6800 50  0001 C CNN
+F 4 "Distrelec" H 4750 6800 50  0001 C CNN "Supplier"
+F 5 "300-56-687" H 4750 6800 50  0001 C CNN "Supplier ref."
+F 6 "0.0084" H 4750 6800 50  0001 C CNN "Price"
+F 7 "Thick film resistor 0.1W 1%" H 4750 6800 50  0001 C CNN "Description"
+	1    4750 6800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 604AB1BE
+P 4750 7250
+AR Path="/5F08F7EB/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F04603F/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F04907C/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F04C161/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F093705/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F0950A2/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F096C14/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F0649F9/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F064A02/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F064A0A/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F064A12/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F0910DF/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F0910E8/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F0910F0/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/5F0910F8/604AB1BE" Ref="#PWR?"  Part="1" 
+AR Path="/604AB1BE" Ref="#PWR0106"  Part="1" 
+F 0 "#PWR0106" H 4750 7000 50  0001 C CNN
+F 1 "GND" H 4755 7077 50  0000 C CNN
+F 2 "" H 4750 7250 50  0001 C CNN
+F 3 "" H 4750 7250 50  0001 C CNN
+	1    4750 7250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4750 7250 4750 6950
+Wire Wire Line
+	4750 6650 4750 6350
+Wire Wire Line
+	4750 6350 5000 6350
+Wire Wire Line
+	4750 6350 4400 6350
+Connection ~ 4750 6350
+$Comp
+L power:VCC #PWR0107
+U 1 1 604C22D4
+P 5300 5450
+F 0 "#PWR0107" H 5300 5300 50  0001 C CNN
+F 1 "VCC" H 5315 5623 50  0000 C CNN
+F 2 "" H 5300 5450 50  0001 C CNN
+F 3 "" H 5300 5450 50  0001 C CNN
+	1    5300 5450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Buzzer BZ1
+U 1 1 604C2FB7
+P 5400 5800
+F 0 "BZ1" H 5552 5829 50  0000 L CNN
+F 1 "KXG1201B" H 5552 5738 50  0000 L CNN
+F 2 "Buzzer_Beeper:MagneticBuzzer_ProSignal_ABT-410-RC" V 5375 5900 50  0001 C CNN
+F 3 "https://www.distrelec.ch/fr/vibreur-electromagnetique-86-db-khz-vdc-kingstate-kxg1201b/p/13787249?track=true&no-cache=true&marketingPopup=false" V 5375 5900 50  0001 C CNN
+F 4 "2.45" H 5400 5800 50  0001 C CNN "Price"
+F 5 "np" H 5400 5800 50  0001 C CNN "Supplier"
+	1    5400 5800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 5700 5300 5450
+Wire Wire Line
+	5300 5900 5300 6150
+$Comp
+L Transistor_FET:BS170F Q1
+U 1 1 604D2928
+P 5200 6350
+F 0 "Q1" H 5405 6396 50  0000 L CNN
+F 1 "BS170F" H 5405 6305 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 5400 6275 50  0001 L CIN
+F 3 "https://www.distrelec.ch/fr/mosfet-60-sot-23-diodes-incorporated-mmbf170/p/30041455?track=true&no-cache=true&marketingPopup=false" H 5200 6350 50  0001 L CNN
+F 4 "0.1937" H 5200 6350 50  0001 C CNN "Price"
+F 5 "Distrelec" H 5200 6350 50  0001 C CNN "Supplier"
+F 6 "300-41-455" H 5200 6350 50  0001 C CNN "Supplier ref."
+	1    5200 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L audio_shield:DS28E05P U3
+U 1 1 604E5C19
+P 2700 6750
+F 0 "U3" H 2700 6915 50  0000 C CNN
+F 1 "DS28E05R+T" H 2700 6824 50  0000 C CNN
+F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 2700 6800 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6800 50  0001 C CNN
+F 4 "Mouser" H 2700 6750 50  0001 C CNN "Supplier"
+F 5 "700-DS28E05R+T" H 2700 6750 50  0001 C CNN "Supplier ref."
+F 6 " 0.73" H 2700 6750 50  0001 C CNN "Price"
+	1    2700 6750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 6950 1500 6950
+Wire Wire Line
+	1500 6950 1500 6600
+Wire Wire Line
+	950  6600 1500 6600
+Wire Wire Line
+	1700 6300 1500 6300
+Wire Wire Line
+	1500 6300 1500 6600
+Connection ~ 1500 6600
+$Comp
+L Jumper:Jumper_2_Bridged JP3
+U 1 1 604F84EB
+P 1900 6950
+F 0 "JP3" H 1900 7145 50  0000 C CNN
+F 1 "Jumper_2_Bridged" H 1900 7054 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm" H 1900 6950 50  0001 C CNN
+F 3 "~" H 1900 6950 50  0001 C CNN
+	1    1900 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Jumper:Jumper_2_Open JP1
+U 1 1 604F6CE1
+P 1900 6300
+F 0 "JP1" H 1900 6535 50  0000 C CNN
+F 1 "Jumper_2_Open" H 1900 6444 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 1900 6300 50  0001 C CNN
+F 3 "~" H 1900 6300 50  0001 C CNN
+	1    1900 6300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2100 6950 2400 6950
+Wire Wire Line
+	2100 6300 2400 6300
+Text Label 2350 3550 0    50   ~ 0
+AD_Buzzer
+Wire Wire Line
+	2250 3550 2350 3550
+Text Label 4100 6100 2    50   ~ 0
+AD_Buzzer
+$Comp
+L Jumper:Jumper_3_Bridged12 JP2
+U 1 1 6052495A
+P 4250 6350
+F 0 "JP2" V 4296 6417 50  0000 L CNN
+F 1 "Jumper_3_Bridged12" V 4650 5600 50  0000 L CNN
+F 2 "Jumper:SolderJumper-3_P1.3mm_Bridged12_RoundedPad1.0x1.5mm_NumberLabels" H 4250 6350 50  0001 C CNN
+F 3 "~" H 4250 6350 50  0001 C CNN
+	1    4250 6350
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4100 6100 4250 6100
+Wire Wire Line
+	4100 6600 4250 6600
+$Sheet
+S 3900 900  550  800 
+U 6053D7AA
+F0 "Sheet6053D7A9" 50
+F1 "leds.sch" 50
+F2 "LED1" I L 3900 1100 50 
+F3 "LED2" I L 3900 1200 50 
+F4 "LED3" I L 3900 1300 50 
+F5 "LED4" I L 3900 1400 50 
+$EndSheet
+Text Label 2350 2700 0    50   ~ 0
+LED1
+Text Label 2350 2800 0    50   ~ 0
+LED2
+Text Label 2350 2900 0    50   ~ 0
+LED3
+Text Label 2350 3000 0    50   ~ 0
+LED4
+$Sheet
+S 1450 2250 800  2300
+U 5EF054A6
+F0 "stm32f446re" 50
+F1 "stm32f446re.sch" 50
+F2 "3.0V" I L 1450 2500 50 
+F3 "I2S1_WS" I R 2250 2550 50 
+F4 "I2S1_SD" I R 2250 2350 50 
+F5 "I2S3_SD" I R 2250 3200 50 
+F6 "I2S3_WS" I R 2250 3400 50 
+F7 "I2S3_CK" I R 2250 3300 50 
+F8 "I2S1_CK" I R 2250 2450 50 
+F9 "GND" I L 1450 2400 50 
+F10 "nRESET" I L 1450 2950 50 
+F11 "SWDIO" I L 1450 2850 50 
+F12 "SWCLK" I L 1450 2750 50 
+F13 "UART4_TX" I L 1450 4350 50 
+F14 "UART4_RX" I L 1450 4450 50 
+F15 "I2C1_SDA" I L 1450 3300 50 
+F16 "I2C1_SCL" I L 1450 3400 50 
+F17 "SPI2_CK" I R 2250 3900 50 
+F18 "SPI2_NSS" I R 2250 4000 50 
+F19 "SPI2_MOSI" I R 2250 3800 50 
+F20 "SPI2_MISO" I R 2250 3700 50 
+F21 "PC3" I R 2250 4200 50 
+F22 "PA2" I R 2250 4300 50 
+F23 "TIM3_CH1" I R 2250 3550 50 
+F24 "TIM1_CH1" I R 2250 2700 50 
+F25 "TIM1_CH2" I R 2250 2800 50 
+F26 "TIM1_CH3" I R 2250 2900 50 
+F27 "TIM1_CH4" I R 2250 3000 50 
+$EndSheet
+Wire Wire Line
+	2250 2700 2350 2700
+Wire Wire Line
+	2250 2800 2350 2800
+Wire Wire Line
+	2250 2900 2350 2900
+Wire Wire Line
+	2250 3000 2350 3000
+Text Label 3650 1100 0    50   ~ 0
+LED1
+Text Label 3650 1200 0    50   ~ 0
+LED2
+Text Label 3650 1300 0    50   ~ 0
+LED3
+Text Label 3650 1400 0    50   ~ 0
+LED4
+Wire Wire Line
+	3650 1100 3900 1100
+Wire Wire Line
+	3650 1200 3900 1200
+Wire Wire Line
+	3650 1300 3900 1300
+Wire Wire Line
+	3650 1400 3900 1400
+$Comp
+L audio_shield:SWD_TC2030 J9
+U 1 1 5EFDB2F4
+P 1450 900
+F 0 "J9" H 1928 596 50  0000 L CNN
+F 1 "SWD_TC2030" H 1928 505 50  0000 L CNN
+F 2 "Connector:Tag-Connect_TC2030-IDC-FP_2x03_P1.27mm_Vertical" H 1450 900 50  0001 C CNN
+F 3 "https://www.digikey.ch/htmldatasheets/production/2094258/0/0/1/tc2030-ctx-datasheet.html" H 1450 900 50  0001 C CNN
+F 4 "Digikey" H 1450 900 50  0001 C CNN "Supplier"
+F 5 "TC2030-CTX-ND " H 1450 900 50  0001 C CNN "Supplier ref."
+F 6 "51.01" H 1450 900 50  0001 C CNN "Price"
+	1    1450 900 
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
