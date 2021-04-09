@@ -26,8 +26,10 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "arm_const_structs.h"
-#include "tapering_window.h"
-#include "sweep_hard_bins.h"
+
+#include "hann_window.h"
+#include "flattop_window.h"
+#include "tukey_window.h"
 #include "buzzer.h"
 
 /* USER CODE END Includes */
@@ -67,7 +69,7 @@
 
 // processing
 #define N_PROP_FACTORS 30
-#define DF (32000.0/FFTSIZE)
+#define DF (32000.0f/FFTSIZE)
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
 
 // cannot use both below flags at the same time
@@ -181,7 +183,7 @@ uint16_t selected_indices[FFTSIZE_SENT];
 // parameters
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t filter_prop_enable = 1;
-uint16_t filter_snr_enable = 1;
+uint16_t filter_snr_enable = 3;
 uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
@@ -382,11 +384,7 @@ int main(void) {
 			note_index = 0;
 			state_note_sm = NOTE_NEXT_NOTE;
 
-			//memset(&mics_f_avg, 3, sizeof(mics_f_avg));
-
-			for (size_t i = 0; i < 4*2*FFTSIZE_SENT; i++) {
-				mics_f_avg[i] = 0;
-			}
+			memset(&mics_f_avg, 0, sizeof(mics_f_avg));
 
 			f_avg_counter = 0;
 
@@ -430,8 +428,8 @@ int main(void) {
 					init_stage_iir = 0;
 				} else {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
-						amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
-								+ ALPHA
+						amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
+								+ IIR_ALPHA
 										* (abs_value_squared(&mic0_f[i * 2])
 												+ abs_value_squared(
 														&mic1_f[i * 2])
@@ -482,6 +480,8 @@ int main(void) {
 				note_index++;
 				if (note_index == NOTE_SEQUENCE_LENGTH) {
 					state_note_sm = NOTE_WAIT_START;
+					memset(&mics_f_avg, 0, sizeof(mics_f_avg));
+
 				} else {
 					state_note_sm = NOTE_NEXT_NOTE;
 				}
@@ -1016,12 +1016,17 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 }
 
 void frequency_bin_selection(uint16_t *selected_indices) {
+	uint16_t freq_idx;
+
+	freq_idx = (uint16_t) round(freq_list_tim[note_index].f / DF);
 
 	// return fixed frequency bins
 	if (filter_snr_enable == 3) {
 		int start_i = 0;
-		if (buzzer_freq_idx >= FFTSIZE_HALF) {
-			start_i = buzzer_freq_idx - FFTSIZE_HALF;
+
+		if (freq_idx >= FFTSIZE_HALF) {
+
+			start_i = freq_idx - FFTSIZE_HALF;
 		}
 		for (int i = start_i ; i < start_i + FFTSIZE_SENT + 1; i++)  {
 			selected_indices[i - start_i] = i;
@@ -1143,7 +1148,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 	// put the buzzer frequency in the first bin, if requested
 	if (filter_snr_enable == 2) {
-		selected_indices[0] = buzzer_freq_idx;
+		selected_indices[0] = freq_idx;
 		start_idx = 1;
 	}
 	// put the sorted frequencies in the next bins
@@ -1240,7 +1245,7 @@ void read_rx_buffer() {
 	delta_freq = param_array[N_MOTORS + 3];
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
-	filter_snr_enable = param_array[N_MOTORS + 6];
+	//filter_snr_enable = param_array[N_MOTORS + 6];
 
 	// initialize everything if we have changed window.
 	if (param_array[N_MOTORS + 7] != window_type) {
