@@ -15,17 +15,7 @@
  *                        opensource.org/licenses/BSD-3-Clause
  *
  ******************************************************************************
- *
- * Microphone designations:
- *
- * for location: front is where sign points, looking from above
- * old     | main.c/ROS  | location    | motor  |
- * =================================================
- * left_1  |    mic0     | back left   | m2     |
- * left_3  |    mic1     | back right  | m1     |
- * right_1 |    mic2     | front left  | m3     |
- * right_3 |    mic3     | front right | m4     |
- * =================================================
+
  *
  */
 /* USER CODE END Header */
@@ -38,6 +28,7 @@
 #include "arm_const_structs.h"
 #include "tapering_window.h"
 #include "sweep_hard_bins.h"
+#include "buzzer.h"
 
 /* USER CODE END Includes */
 
@@ -47,7 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-
 
 /* USER CODE END PTD */
 
@@ -118,7 +108,9 @@ SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi2_tx;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
@@ -143,6 +135,38 @@ float mic2_f[N_ACTUAL_SAMPLES];
 float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
+#define NUM_TIM_FREQ 15
+
+typedef const struct {
+	uint16_t f;
+	uint16_t PSC;
+	uint16_t ARR;
+	uint32_t ERR;
+} freq_list_t;
+
+#define NOTE_CHANGE_BY_TIMER
+
+freq_list_t freq_list_tim[] = { { 3000, 26, 1038, 35 }, { 3125, 0, 26879, 0 }, {
+		3250, 70, 363, 86 }, { 3375, 407, 60, 36 }, { 3500, 0, 23999, 0 }, {
+		3625, 46, 492, 61 }, { 3750, 0, 22399, 0 }, { 3875, 52, 408, 19 }, {
+		4000, 0, 20999, 0 }, { 4125, 10, 1850, 12 }, { 4250, 35, 548, 36 }, {
+		4375, 0, 19199, 0 }, { 4500, 17, 1036, 36 }, { 4625, 2017, 8, 9 }, {
+		4750, 1359, 12, 125 }, { 4875, 3445, 4, 45 } };
+
+typedef enum {
+	NOTE_WAIT_START, NOTE_WAIT, NOTE_RESET, NOTE_NEXT_NOTE
+} state_note_t;
+
+uint8_t flag_spi_recieved = 0;
+uint8_t flag_reset_average = 0;
+uint32_t note_tickstart;
+uint16_t note_index = 0;
+
+#define NOTE_SEQUENCE_LENGTH 16
+#define NOTE_LENGTH 300
+
+state_note_t state_note_sm = NOTE_WAIT_START;
+
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
@@ -156,6 +180,7 @@ uint16_t filter_snr_enable = 1;
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
 uint16_t buzzer_freq_idx = 0;
+uint16_t buzzer_freq_idx_old = 0;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 uint16_t n_added = 0; // counter of how many samples were averaged.
@@ -177,6 +202,7 @@ volatile int32_t time_us;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
 
+uint16_t freq = 0;
 
 /* USER CODE END PV */
 
@@ -189,6 +215,8 @@ static void MX_TIM2_Init(void);
 static void MX_I2S1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM5_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 struct index_amplitude {
@@ -237,11 +265,15 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+	HAL_GPIO_TogglePin(PC3_GPIO_Port, PC3_Pin);
+
 	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
 		STOPCHRONO;
 		time_spi_error = time_us;
 		counter_error += 1;
 	} else {
+		flag_spi_recieved = 1;
 		STOPCHRONO;
 		time_spi_ok = time_us;
 		counter_ok += 1;
@@ -286,10 +318,12 @@ int main(void)
   MX_I2S1_Init();
   MX_SPI2_Init();
   MX_TIM5_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
-    size_t length_tukey = sizeof(tukey_window)/sizeof(tukey_window[0]);
-    assert(length_tukey == N_ACTUAL_SAMPLES);
+	size_t length_tukey = sizeof(tukey_window) / sizeof(tukey_window[0]);
+	assert(length_tukey == N_ACTUAL_SAMPLES);
 
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
@@ -312,9 +346,12 @@ int main(void)
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
-			SPI_N_BYTES);
+	SPI_N_BYTES);
+
+	piezoInit();
 
   /* USER CODE END 2 */
 
@@ -367,19 +404,23 @@ int main(void)
 			if (init_stage_iir) {
 				for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 					amplitude_avg[i] = abs_value_squared(&mic0_f[i * 2])
-									 + abs_value_squared(&mic1_f[i * 2])
-									 + abs_value_squared(&mic2_f[i * 2])
-									 + abs_value_squared(&mic3_f[i * 2]);
+							+ abs_value_squared(&mic1_f[i * 2])
+							+ abs_value_squared(&mic2_f[i * 2])
+							+ abs_value_squared(&mic3_f[i * 2]);
 				}
 				init_stage_iir = 0;
-			}
-			else {
+			} else {
 				for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
-					amplitude_avg[i] = (1 - ALPHA) * amplitude_avg[i]
-							+ ALPHA * (abs_value_squared(&mic0_f[i * 2])
-									 + abs_value_squared(&mic1_f[i * 2])
-									 + abs_value_squared(&mic2_f[i * 2])
-									 + abs_value_squared(&mic3_f[i * 2]));
+					amplitude_avg[i] =
+							(1 - ALPHA) * amplitude_avg[i]
+									+ ALPHA
+											* (abs_value_squared(&mic0_f[i * 2])
+													+ abs_value_squared(
+															&mic1_f[i * 2])
+													+ abs_value_squared(
+															&mic2_f[i * 2])
+													+ abs_value_squared(
+															&mic3_f[i * 2]));
 				}
 			}
 #endif
@@ -403,6 +444,70 @@ int main(void)
 		fill_tx_buffer();
 		read_rx_buffer();
 #endif // DEBUG_SPI
+
+		if(buzzer_freq_idx != buzzer_freq_idx_old){
+			if(buzzer_freq_idx == 0){
+				state_note_sm = NOTE_WAIT_START;
+			}else{
+				state_note_sm = NOTE_RESET;
+			}
+			buzzer_freq_idx_old = buzzer_freq_idx;
+		}
+
+		switch (state_note_sm) {
+		case NOTE_RESET:
+			note_index = 0;
+			state_note_sm = NOTE_NEXT_NOTE;
+			break;
+		case NOTE_NEXT_NOTE:
+			flag_reset_average = 1;
+			HAL_TIM_Base_Init(&htim5);
+			piezoSetMaxCount(freq_list_tim[note_index].ARR);
+			piezoSetRatio(freq_list_tim[note_index].ARR / 2);
+			piezoSetPSC(freq_list_tim[note_index].PSC);
+			HAL_TIM_Base_Start(&htim5);
+
+			note_tickstart = HAL_GetTick();
+			state_note_sm = NOTE_WAIT;
+
+			break;
+		case NOTE_WAIT:
+#ifndef NOTE_CHANGE_BY_TIMER
+			if((note_tickstart + NOTE_LENGTH) < HAL_GetTick()){
+				note_index++;
+				if(note_index == NOTE_SEQUENCE_LENGTH){
+					state_note_sm = NOTE_WAIT_START;
+				}else{
+					state_note_sm = NOTE_NEXT_NOTE;
+				}
+			}
+#else
+			if(flag_spi_recieved){
+				flag_spi_recieved = 0;
+				note_index++;
+				if(note_index == NOTE_SEQUENCE_LENGTH){
+					state_note_sm = NOTE_WAIT_START;
+				}else{
+					state_note_sm = NOTE_NEXT_NOTE;
+				}
+			}
+#endif
+			break;
+		case NOTE_WAIT_START:
+			piezoSetMaxCount(0);
+			piezoSetRatio(0);
+			piezoSetPSC(0);
+
+			break;
+		default:
+		break;
+		}
+/*
+	piezoSetMaxCount(freq_list_tim[note_index].ARR);
+	piezoSetRatio(freq_list_tim[note_index].ARR / 2);
+	piezoSetPSC(freq_list_tim[note_index].PSC);
+*/
+
 	}
   /* USER CODE END 3 */
 }
@@ -572,6 +677,93 @@ static void MX_SPI2_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
   * @brief TIM2 Initialization Function
   * @param None
   * @retval None
@@ -617,6 +809,65 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
   * @brief TIM5 Initialization Function
   * @param None
   * @retval None
@@ -630,14 +881,15 @@ static void MX_TIM5_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
 
   /* USER CODE BEGIN TIM5_Init 1 */
 
   /* USER CODE END TIM5_Init 1 */
   htim5.Instance = TIM5;
-  htim5.Init.Prescaler = 84;
+  htim5.Init.Prescaler = 1;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 0xffffffff;
+  htim5.Init.Period = 100;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
@@ -649,15 +901,32 @@ static void MX_TIM5_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM5_Init 2 */
 
   /* USER CODE END TIM5_Init 2 */
+  HAL_TIM_MspPostInit(&htim5);
 
 }
 
@@ -703,35 +972,26 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PC3_GPIO_Port, PC3_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PC3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  /*Configure GPIO pin : PC3_Pin */
+  GPIO_InitStruct.Pin = PC3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PA2 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(PC3_GPIO_Port, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
 #ifdef DCNotchActivated
 static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
-  static int16_t x_prev[4] = {0, 0, 0, 0};
-  static int16_t y_prev[4] = {0, 0, 0, 0};
-  y_prev[filter_index] = (((int32_t)y_prev[filter_index] * 0x00007999) >> 16) - x_prev[filter_index] + x;
-  x_prev[filter_index] = x;
-  return y_prev[filter_index];
+	static int16_t x_prev[4] = { 0, 0, 0, 0 };
+	static int16_t y_prev[4] = { 0, 0, 0, 0 };
+	y_prev[filter_index] = (((int32_t) y_prev[filter_index] * 0x00007999) >> 16)
+			- x_prev[filter_index] + x;
+	x_prev[filter_index] = x;
+	return y_prev[filter_index];
 }
 #endif
 
@@ -746,7 +1006,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 		for (uint16_t i = 0; i < size; i += 1) {
 #ifdef DCNotchActivated
-			if(pIn == dma_1){
+			if (pIn == dma_1) {
 #ifdef WINDOWINGActivated
 				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT * tukey_window[i];
 				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT * tukey_window[i];
@@ -754,7 +1014,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 				*pOut1++ = (float) DCNotch(*pIn++, 1) / (float) MAXINT;
 				*pOut2++ = (float) DCNotch(*pIn++, 2) / (float) MAXINT;
 #endif
-			}else{ // pIn == dma_3
+			} else { // pIn == dma_3
 #ifdef WINDOWINGActivated
 				*pOut1++ = (float) DCNotch(*pIn++, 3) / (float) MAXINT * tukey_window[i];
 				*pOut2++ = (float) DCNotch(*pIn++, 4) / (float) MAXINT * tukey_window[i];
@@ -819,7 +1079,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		for (int i = 0; i < N_MOTORS; i++) {
 			if (param_array[i] > 0) {
 				average_thrust += (float) param_array[i];
-				counter ++;
+				counter++;
 			}
 		}
 		// this was the old and potentially more average formula in general,
@@ -870,7 +1130,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	// if we have less candidates than required, we simply send all candidates
 	if (potential_count <= FFTSIZE_SENT) {
 		if (!filter_snr_enable) {
-			memcpy(selected_indices, potential_indices, potential_count * INT16_PRECISION);
+			memcpy(selected_indices, potential_indices,
+					potential_count * INT16_PRECISION);
 		}
 		// we still do the sorting for consistency (for instance, if down the line
 		// we rely on the first index to be the strongest)
@@ -880,14 +1141,16 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 				sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
 				sort_this[i].index = potential_indices[i];
 			}
-			qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
+			qsort(sort_this, potential_count, sizeof(sort_this[0]),
+					compare_amplitudes);
 			for (int i = 0; i < potential_count; i++) {
 				selected_indices[i] = sort_this[i].index;
 			}
 		}
 
 		// fill the remaining indices with zeroes
-		memset(&selected_indices[potential_count], 0x00, INT16_PRECISION * (FFTSIZE_SENT - potential_count));
+		memset(&selected_indices[potential_count], 0x00,
+		INT16_PRECISION * (FFTSIZE_SENT - potential_count));
 		return;
 	}
 
@@ -936,6 +1199,26 @@ void fill_tx_buffer() {
 
 	uint16_t i_array = 0;
 	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+
+
+		memcpy(&spi_tx_buffer[i_array], mic0_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin]]));
+		i_array += 4;
+		memcpy(&spi_tx_buffer[i_array], mic1_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin]]));
+		i_array += 4
+		memcpy(&spi_tx_buffer[i_array], mic2_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin]]));
+		i_array += 4;
+		memcpy(&spi_tx_buffer[i_array], mic3_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin]]));
+		i_array += 4;
+		memcpy(&spi_tx_buffer[i_array], mic0_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin] + 1]));
+		i_array += 4;
+		memcpy(&spi_tx_buffer[i_array], mic1_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin] + 1]));
+		i_array += 4
+		memcpy(&spi_tx_buffer[i_array], mic2_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin] + 1]));
+		i_array += 4;
+		memcpy(&spi_tx_buffer[i_array], mic3_f[2 * selected_indices[i_fbin]], sizeof(mic0_f[2 * selected_indices[i_fbin] + 1]));
+		i_array += 4;
+
+		/*
 		float_to_byte_array(mic0_f[2 * selected_indices[i_fbin]],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
@@ -960,6 +1243,7 @@ void fill_tx_buffer() {
 		float_to_byte_array(mic3_f[2 * selected_indices[i_fbin] + 1],
 				&spi_tx_buffer[i_array]);
 		i_array += 4;
+		*/
 	}
 
 	// Fill with bins indices
@@ -1009,11 +1293,7 @@ float abs_value_squared(float real_imag[]) {
 
 void float_to_byte_array(float input, uint8_t output[]) {
 	uint32_t temp = *((uint32_t*) &input);
-	uint32_to_byte_array(temp, output);
-}
-
-void uint32_to_byte_array(uint32_t input, uint8_t output[]) {
-	memcpy(output, &input, sizeof(input));
+	memcpy(output, &temp, sizeof(temp));
 }
 
 /* USER CODE END 4 */
