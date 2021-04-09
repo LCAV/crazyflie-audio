@@ -12,53 +12,84 @@ import time
 # to find serial port, run python -m serial.tools.list_ports
 SERIAL_PORT = "/dev/ttyACM0"
 
+# duration for longest movements (in seconds)
+DURATION_50 = 165
+DURATION_360 = 27
+
 # (distance (cm), command, time (s))
 move = {
     'forward': [
         (0.1,  b"q", 2.0),
         (1, b"w", 5.0),
         (10, b"e", 34.0),
-        (50, b"r", 165.0)
+        (50, b"r", DURATION_50)
     ],
     'backward': [
         (0.1,  b"a", 2.0),
         (1, b"s", 5.0),
         (10, b"d", 34.0),
-        (50, b"f", 165.0)
+        (50, b"f", DURATION_50)
     ]
 }
 turn = {
     'forward': [
         (27,  b"p", 3),
         (90, b"o", 8),
-        (360, b"i", 27)
+        (360, b"i", DURATION_360)
     ],
     'backward': [
         (27,  b"l", 3),
         (90, b"k", 8),
-        (360, b"j", 27)
+        (360, b"j", DURATION_360)
     ]
 }
 
 class SerialMotors(object):
-    def __init__(self, port=SERIAL_PORT, baudrate=115200, verbose=False):
+    def __init__(self, port=SERIAL_PORT, baudrate=115200, verbose=False, current_angle=0, current_distance=0):
         self.port = SERIAL_PORT
         self.serial = serial.Serial(port, baudrate)
         self.verbose = verbose
 
+        self.current_angle = current_angle
+        self.current_distance = current_distance
+
     # turn is by default non-blocking because when we do the 360 degrees we 
     # want to recording DURING, not after, as for the others.
     def turn(self, angle_deg, blocking=True):
+        if angle_deg > 0:
+            self.turn_forward(angle_deg, blocking)
+        elif angle_deg < 0:
+            self.turn_back(-angle_deg, blocking)
+
+    def turn_to(self, angle_deg, blocking=True):
+        delta = angle_deg - self.current_angle
+        self.turn(delta, blocking)
+
+    def turn_forward(self, angle_deg, blocking=True):
         self.move_in_chunks(turn['forward'], angle_deg, blocking=blocking)
+        self.current_angle += angle_deg
 
     def turn_back(self, angle_deg, blocking=True):
         self.move_in_chunks(turn['backward'], angle_deg, blocking=blocking)
+        self.current_angle -= angle_deg
 
     def move(self, delta_cm, blocking=True):
+        if delta_cm > 0:
+            self.move_forward(delta_cm, blocking)
+        elif delta_cm < 0:
+            self.move_back(-delta_cm, blocking)
+
+    def move_to(self, distance_cm, blocking=True):
+        delta = distance_cm - self.current_distance
+        self.move(delta, blocking)
+
+    def move_forward(self, delta_cm, blocking=True):
         self.move_in_chunks(move['forward'], delta_cm, blocking=blocking)
+        self.current_distance += delta_cm
 
     def move_back(self, delta_cm, blocking=True):
         self.move_in_chunks(move['backward'], delta_cm, blocking=blocking)
+        self.current_distance -= delta_cm
 
     def move_in_chunks(self, commands, total, blocking=True):
         assert total >= 0
