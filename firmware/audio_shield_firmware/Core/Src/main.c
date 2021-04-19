@@ -72,9 +72,6 @@
 #define DF (32000.0f/FFTSIZE)
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
 
-// cannot use both below flags at the same time
-//#define USE_TEST_SIGNALS // set this to use test signals instead of real audio data. make sure SPI_N_BYTES MATCHES!
-
 // communication
 // in uint16, min_freq, max_freq, buzzer_freq_idx, n_average, delta_freq, snr_enable, propeller_enable, window, tot = 8
 #define PARAMS_N_INT16 (N_MOTORS + 8)
@@ -119,16 +116,10 @@ TIM_HandleTypeDef htim5;
 int16_t dma_1[FULL_BUFFER_SIZE];
 int16_t dma_3[FULL_BUFFER_SIZE];
 
-#ifndef USE_TEST_SIGNALS
 float mic0[N_ACTUAL_SAMPLES];
 float mic2[N_ACTUAL_SAMPLES];
 float mic1[N_ACTUAL_SAMPLES];
 float mic3[N_ACTUAL_SAMPLES];
-#else
-//#include "real_data_1024.h"
-#include "simulated_data_1024.h"
-//#include "real_data_32.h"
-#endif
 
 #include "hann_window.h"
 #include "tukey_window.h"
@@ -165,7 +156,6 @@ typedef enum {
 } state_note_t;
 
 uint8_t flag_spi_recieved = 0;
-uint8_t flag_reset_average = 0;
 uint32_t note_tickstart;
 uint16_t note_index = 0;
 
@@ -239,8 +229,6 @@ void fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
 float abs_value_squared(float real_imag[]);
-void uint32_to_byte_array(uint32_t input, uint8_t output[]);
-void float_to_byte_array(float input, uint8_t output[]);
 
 /* USER CODE END PFP */
 
@@ -248,23 +236,19 @@ void float_to_byte_array(float input, uint8_t output[]);
 /* USER CODE BEGIN 0 */
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-#ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
 		process(dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
 		process(dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
 	}
-#endif
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
-#ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
 		process(&dma_1[HALF_BUFFER_SIZE], mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
 		process(&dma_3[HALF_BUFFER_SIZE], mic1, mic0, N_ACTUAL_SAMPLES);
 	}
-#endif
 }
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
@@ -330,15 +314,13 @@ int main(void) {
 	MX_TIM3_Init();
 	/* USER CODE BEGIN 2 */
 
-	size_t length_tukey = sizeof(tukey_window) / sizeof(tukey_window[0]);
-	assert(length_tukey == N_ACTUAL_SAMPLES);
-
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
+	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 
 	HAL_TIM_Base_Init(&htim5);
 	HAL_TIM_Base_Start(&htim5);
@@ -359,25 +341,10 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 
-	// Note that below while loop takes ca. 40ms (fft processing) + 10ms (bin selection and tx-buffer filling).
 	while (1) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-
-#ifdef USE_TEST_SIGNALS
-		new_sample_to_process = 1;
-#endif
-
-		// Start and stop condition detection
-		if (buzzer_freq_idx != buzzer_freq_idx_old) {
-			if (buzzer_freq_idx == 0) {
-				state_note_sm = NOTE_WAIT_START;
-			} else {
-				state_note_sm = NOTE_RESET;
-			}
-			buzzer_freq_idx_old = buzzer_freq_idx;
-		}
 
 		switch (state_note_sm) {
 		case NOTE_RESET:
@@ -390,7 +357,6 @@ int main(void) {
 
 			break;
 		case NOTE_NEXT_NOTE:
-			flag_reset_average = 1;
 			HAL_TIM_Base_Init(&htim5);
 			piezoSetMaxCount(freq_list_tim[note_index].ARR);
 			piezoSetRatio(freq_list_tim[note_index].ARR / 2);
@@ -429,57 +395,56 @@ int main(void) {
 				} else {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
-								+ IIR_ALPHA
-										* (abs_value_squared(&mic0_f[i * 2])
-												+ abs_value_squared(
-														&mic1_f[i * 2])
-												+ abs_value_squared(
-														&mic2_f[i * 2])
-												+ abs_value_squared(
-														&mic3_f[i * 2]));
+								+ IIR_ALPHA * (abs_value_squared(&mic0_f[i * 2])
+										     + abs_value_squared(&mic1_f[i * 2])
+										     + abs_value_squared(&mic2_f[i * 2])
+										     + abs_value_squared(&mic3_f[i * 2]));
 					}
 				}
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
 			}
 			frequency_bin_selection(selected_indices);
-#if 1
+
 			// Averaging between SPI communications
+			// The buffer will be filled like
+			// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+			//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+			//  ...
+			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+			//  where N is FFTSIZE_SENT-1
 			uint8_t i_array = 0;
 			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_avg[i_array] += mic0_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic1_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic2_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic3_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic0_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_avg[i_array] += mic1_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_avg[i_array] += mic2_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_avg[i_array] += mic3_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_avg[i_array++] += mic0_f[2 * selected_indices[i_fbin]];
+				mics_f_avg[i_array++] += mic1_f[2 * selected_indices[i_fbin]];
+				mics_f_avg[i_array++] += mic2_f[2 * selected_indices[i_fbin]];
+				mics_f_avg[i_array++] += mic3_f[2 * selected_indices[i_fbin]];
+				mics_f_avg[i_array++] += mic0_f[2 * selected_indices[i_fbin] + 1];
+				mics_f_avg[i_array++] += mic1_f[2 * selected_indices[i_fbin] + 1];
+				mics_f_avg[i_array++] += mic2_f[2 * selected_indices[i_fbin] + 1];
+				mics_f_avg[i_array++] += mic3_f[2 * selected_indices[i_fbin] + 1];
 			}
 			f_avg_counter++;
-#else
-			f_avg_counter = 1;
-#endif
 			fill_tx_buffer();
-			read_rx_buffer();
 
 #ifndef NOTE_CHANGE_BY_TIMER
 			if((note_tickstart + NOTE_LENGTH) < HAL_GetTick()){
 				note_index++;
 				if(note_index == NOTE_SEQUENCE_LENGTH){
 					state_note_sm = NOTE_WAIT_START;
-				}else{
+				} else {
 					state_note_sm = NOTE_NEXT_NOTE;
 				}
 			}
 #else
-
-
+			// play new note for each new communication.
 			if (flag_spi_recieved) {
 				flag_spi_recieved = 0;
 				note_index++;
 				if (note_index == NOTE_SEQUENCE_LENGTH) {
 					state_note_sm = NOTE_WAIT_START;
+
+					// reset average buffer
 					memset(&mics_f_avg, 0, sizeof(mics_f_avg));
 
 				} else {
@@ -489,20 +454,26 @@ int main(void) {
 #endif
 			break;
 		case NOTE_WAIT_START:
+
+			read_rx_buffer();
+			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+
 			piezoSetMaxCount(0);
 			piezoSetRatio(0);
 			piezoSetPSC(0);
+
+			// Start and stop condition detection
+			if (buzzer_freq_idx != buzzer_freq_idx_old) {
+				if (buzzer_freq_idx > 0) {
+					state_note_sm = NOTE_RESET;
+				}
+				buzzer_freq_idx_old = buzzer_freq_idx;
+			}
 
 			break;
 		default:
 			break;
 		}
-		/*
-		 piezoSetMaxCount(freq_list_tim[note_index].ARR);
-		 piezoSetRatio(freq_list_tim[note_index].ARR / 2);
-		 piezoSetPSC(freq_list_tim[note_index].PSC);
-		 */
-
 	}
 	/* USER CODE END 3 */
 }
@@ -1172,15 +1143,9 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 uint16_t i_array;
 
 void fill_tx_buffer() {
-	// Fill with FFT content
-	// The spi_tx_buffer will be filled like
-	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-	//  ...
-	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-	//  where N is FFTSIZE_SENT-1
-
-#if 1
+	// set the CHECKSUM to 0 so that if we communicate during filling,
+	// the package is not valid.
+	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
 	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
 		mics_f_avg[i] /= f_avg_counter;
@@ -1190,41 +1155,12 @@ void fill_tx_buffer() {
 
 	i_array = sizeof(mics_f_avg);
 
-#else
-
-		float_to_byte_array(mic0_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic1_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic2_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic3_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic0_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic1_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic2_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic3_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-	}
-#endif
-
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
 	i_array += sizeof(selected_indices);
 
 	// Fill with timestamp
-	uint32_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
+	memcpy(&spi_tx_buffer[i_array], &timestamp, sizeof(timestamp));
 	i_array += sizeof(timestamp);
 
 	assert(i_array == SPI_N_BYTES - 1);
@@ -1284,14 +1220,6 @@ float abs_value_squared(float real_imag[]) {
 	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
 
-void float_to_byte_array(float input, uint8_t output[]) {
-	uint32_t temp = *((uint32_t*) &input);
-	memcpy(output, &temp, sizeof(temp));
-}
-
-void uint32_to_byte_array(uint32_t input, uint8_t output[]) {
-	memcpy(output, &input, sizeof(input));
-}
 
 /* USER CODE END 4 */
 
