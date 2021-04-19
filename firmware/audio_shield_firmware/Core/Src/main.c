@@ -201,8 +201,6 @@ volatile int32_t time_us;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
 
-uint16_t freq = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
