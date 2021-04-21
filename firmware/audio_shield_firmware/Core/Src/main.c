@@ -31,6 +31,7 @@
 #include "flattop_window.h"
 #include "tukey_window.h"
 #include "buzzer.h"
+#include "sound.h"
 
 /* USER CODE END Includes */
 
@@ -130,56 +131,26 @@ float mic2_f[N_ACTUAL_SAMPLES];
 float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
-float mics_f_avg[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
-uint16_t f_avg_counter = 0;
-
-typedef const struct {
-	uint16_t f;
-	uint16_t PSC;
-	uint16_t ARR;
-	uint32_t ERR;
-} freq_list_t;
-
-typedef const struct {
-	uint16_t index;
-	int16_t* notes;
-} melody;
-
-#define STOP -1
-#define REPEAT -2
+float mics_f_sum[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
+uint16_t f_avg_counter = -1;
 
 uint16_t current_frequency = 0;
 
-freq_list_t freq_list_tim[] = {{ 3000, 26, 1038, 35 }, { 3125, 0, 26879, 0 }, {
-		3250, 70, 363, 86 }, { 3375, 407, 60, 36 }, { 3500, 0, 23999, 0 }, {
-		3625, 46, 492, 61 }, { 3750, 0, 22399, 0 }, { 3875, 52, 408, 19 }, {
-		4000, 0, 20999, 0 }, { 4125, 10, 1850, 12 }, { 4250, 35, 548, 36 }, {
-		4375, 0, 19199, 0 }, { 4500, 17, 1036, 36 }, { 4625, 2017, 8, 9 }, {
-		4750, 1359, 12, 125 }, { 4875, 3445, 4, 45 }};
-
-int16_t sweep[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, REPEAT};
-
-// TODO(FD) test this.
-int16_t mono3000[] = {0, REPEAT};
-melody melodies[] = {
-	{1, sweep},
-	{3000, mono3000}
-};
-
 //#define BUZZER_CHANGE_BY_TIMER
-
 typedef enum {
-	BUZZER_IDLE, BUZZER_RECORD, BUZZER_PLAY_NEXT, BUZZER_CHOOSE_NEXT
+	BUZZER_IDLE, BUZZER_RECORD, BUZZER_PLAY_NEXT, BUZZER_CHOOSE_NEXT, BUZZER_STOP
 } state_note_t;
 
 uint8_t flag_spi_recieved = 0;
+uint8_t spi_counter = 0;
 uint32_t note_tickstart;
-uint16_t melody_index = 0;
-int16_t* current_note_index_ptr;
-
+uint8_t melody_index = 0;
+uint8_t note_index = 0;
+int16_t current_note_index;
 
 #define NOTE_SEQUENCE_LENGTH 16
 #define NOTE_LENGTH 300
+#define N_SPI_PER_NOTE 100
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
@@ -351,6 +322,11 @@ int main(void) {
 
 	piezoInit();
 
+	HAL_TIM_Base_Init(&htim5);
+	piezoSetMaxCount(BUZZER_ARR);
+	piezoSetRatio(BUZZER_ARR / 10);
+	HAL_TIM_Base_Start(&htim5);
+
 
 	/* USER CODE END 2 */
 
@@ -361,40 +337,44 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
+		read_rx_buffer();
+
+		if(buzzer_idx == 0 && state_note_sm != BUZZER_IDLE){
+			state_note_sm = BUZZER_STOP;
+		}
 
 		switch (state_note_sm) {
 		case BUZZER_IDLE:
-			read_rx_buffer();
 
 			// start condition detection
 			if (buzzer_idx > 0) {
 				// TODO(FD) check for invalid index.
 				for (int i = 0; i < sizeof(melodies); i++) {
 					if (melodies[i].index == buzzer_idx) {
-						current_note_index_ptr = melodies[i].notes;
+						melody_index = i;
 					}
 				}
-				melody_index = 0;
+				note_index = 0;
 				state_note_sm = BUZZER_PLAY_NEXT;
 			}
 
 			break;
-		case BUZZER_PLAY_NEXT:
-
-			memset(&mics_f_avg, 0, sizeof(mics_f_avg));
-			f_avg_counter = 0;
+		case BUZZER_PLAY_NEXT: ;
 
 			// TODO(FD) for readability, create function that takes
-			// current_melody[melody_index] as in put and plays
+			// current_melody[note_index] as in put and plays
 			// the given note.
-			freq_list_t next_note = freq_list_tim[*current_note_index_ptr];
+			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
-			HAL_TIM_Base_Init(&htim5);
-			piezoSetMaxCount(next_note.ARR);
-			piezoSetRatio(next_note.ARR / 2);
+			//HAL_TIM_Base_Init(&htim5);
+			//piezoSetMaxCount(next_note.ARR);
+			//piezoSetRatio(next_note.ARR / 2);
 			piezoSetPSC(next_note.PSC);
-			HAL_TIM_Base_Start(&htim5);
+			//HAL_TIM_Base_Start(&htim5);
+
+			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
+			f_avg_counter = -1;
 
 			note_tickstart = HAL_GetTick();
 			state_note_sm = BUZZER_RECORD;
@@ -447,18 +427,23 @@ int main(void) {
 			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
 			//  where N is FFTSIZE_SENT-1
 			uint8_t i_array = 0;
-			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_avg[i_array++] += mic0_f[2 * selected_indices[i_fbin]];
-				mics_f_avg[i_array++] += mic1_f[2 * selected_indices[i_fbin]];
-				mics_f_avg[i_array++] += mic2_f[2 * selected_indices[i_fbin]];
-				mics_f_avg[i_array++] += mic3_f[2 * selected_indices[i_fbin]];
-				mics_f_avg[i_array++] += mic0_f[2 * selected_indices[i_fbin] + 1];
-				mics_f_avg[i_array++] += mic1_f[2 * selected_indices[i_fbin] + 1];
-				mics_f_avg[i_array++] += mic2_f[2 * selected_indices[i_fbin] + 1];
-				mics_f_avg[i_array++] += mic3_f[2 * selected_indices[i_fbin] + 1];
+			if (f_avg_counter >= 0) {
+				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+					mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin] + 1];
+				}
+				f_avg_counter++;
+				fill_tx_buffer();
+			} else{
+				f_avg_counter++;
 			}
-			f_avg_counter++;
-			fill_tx_buffer();
+
 
 			// TODO(FD) check that this still works.
 #ifdef BUZZER_CHANGE_BY_TIMER
@@ -469,43 +454,46 @@ int main(void) {
 			// play new note for each new communication.
 			if (flag_spi_recieved) {
 				flag_spi_recieved = 0;
-				state_note_sm = BUZZER_CHOOSE_NEXT;
+				spi_counter++;
+				if (spi_counter == N_SPI_PER_NOTE) {
+					state_note_sm = BUZZER_CHOOSE_NEXT;
+					spi_counter = 0;
+				}
 			}
 #endif
 			break;
 		case BUZZER_CHOOSE_NEXT: ;
-			melody_index++;
+			note_index++;
 
 			// point to next element and get its value.
-			int16_t note_index = *(++current_note_index_ptr);
+			int16_t frequency_index = melodies[melody_index].notes[note_index];
 
-			// check if in the meantime we set the buzzer to 0.
-			// in that case we stop.
-			read_rx_buffer();
+			if (frequency_index == STOP) {
 
-			if ((note_index == STOP) || (buzzer_idx == 0)) {
+				state_note_sm = BUZZER_STOP;
 
-				memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
-
-				HAL_TIM_Base_Init(&htim5);
-				piezoSetMaxCount(0);
-				piezoSetRatio(0);
-				piezoSetPSC(0);
-				HAL_TIM_Base_Start(&htim5);
-
-				// reset average buffer
-				state_note_sm = BUZZER_IDLE;
-
-			} else if (note_index == REPEAT) {
-
-				// go back to beginning of array
-				current_note_index_ptr -= melody_index;
-				melody_index = 0;
+			} else if (frequency_index == REPEAT) {
+				// go back to beginning of melody
+				note_index = 0;
 
 				state_note_sm = BUZZER_PLAY_NEXT;
 			} else {
 			    state_note_sm = BUZZER_PLAY_NEXT;
 			}
+			break;
+		case BUZZER_STOP:
+
+			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+
+			//HAL_TIM_Base_Init(&htim5);
+			//piezoSetMaxCount(0);
+			//piezoSetRatio(0);
+			piezoSetPSC(0);
+			//HAL_TIM_Base_Start(&htim5);
+
+			// reset average buffer
+			state_note_sm = BUZZER_IDLE;
+
 			break;
 		default:
 			break;
@@ -1185,13 +1173,16 @@ void fill_tx_buffer() {
 
 	// NOTE: cannot do this inplace because we call fill_tx_buffer
 	// multiple times on the same buffer.
-	int i_array = 0;
+	/*int i_array = 0;
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-		averaged_value = mics_f_avg[i]/f_avg_counter;
-		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_avg[i]));
-		i_array += sizeof(mics_f_avg[i]);
+		averaged_value = mics_f_sum[i]/f_avg_counter;
+		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
+		i_array += sizeof(mics_f_sum[i]);
 	}
+*/
+	memcpy(&spi_tx_buffer[0], mics_f_sum, sizeof(mics_f_sum));
+	int i_array = sizeof(mics_f_sum);
 
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
