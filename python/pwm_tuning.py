@@ -98,19 +98,39 @@ def print_errors():
     print(output)
     print('\nthese are the ', df.shape[0], ' total combination meeting your tolerance requirement')
 
-def print_frequencies(period=PERIOD, fmin=0, fmax=np.inf): 
-    frequencies = []
+def print_frequencies(period=PERIOD, fmin=0, fmax=np.inf, n_freqs=None): 
+    df = pd.DataFrame(columns=['PSC', 'ARR', 'F', 'ERROR'])
+
     prescalers = np.arange(1, MAX_INT, step=1)
-    print(f'PSC, F [Hz] for ARR={period}')
     for psc in prescalers:
         f = get_frequency(psc, period)
         if fmax >= f >= fmin: 
-            print(f"{psc}, {f:.2f}")
-            frequencies.append(int(round(f)))
-    return np.sort(frequencies)
+            df.loc[len(df), :] = dict(
+                    PSC=psc,
+                    ARR=period,
+                    F=int(round(f)),
+                    ERROR=0
+            )
+    df.sort_values('F', axis=0, inplace=True)
+    n_total = len(df)
+    if n_freqs is not None:
+        #keep_indices = np.linspace(0, n_total-1, n_freqs).astype(int)
+        keep_frequencies = np.linspace(fmin, fmax, n_freqs)
+        keep_indices = np.argmin(np.abs(keep_frequencies[None, :] - df.F[:, None]), axis=0)
+        df = df.iloc[keep_indices]
+        df.loc[:, 'ERROR'] = (keep_frequencies - df.F)
+    df = df.astype(np.int)
+    return df
+
+def print_correct_format(df):
+    print(r'freq_list_t freq_list_tim[] = {')
+    for i, row in df.iterrows():
+        print('\t' + r'{' + f'{row.F}, {row.PSC}, {row.ARR}, {row.ERROR}' + r'},')
+    print(r'};')
     
 
 if __name__ == "__main__": 
     #print_errors()
-    fs = print_frequencies(period=128, fmin=3000, fmax=5000)
-    print('all frequencies:', fs) 
+    df = print_frequencies(period=256, fmin=3000, fmax=4875, n_freqs=16)
+    print(df)
+    print_correct_format(df)
