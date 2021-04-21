@@ -164,8 +164,10 @@ typedef enum {
 	NOTE_WAIT_START, NOTE_WAIT, NOTE_RESET, NOTE_NEXT_NOTE
 } state_note_t;
 
+uint8_t spi_counter = 0;
+#define N_SPI_PER_NOTE 50
+
 uint8_t flag_spi_recieved = 0;
-uint8_t flag_reset_average = 0;
 uint32_t note_tickstart;
 uint16_t note_index = 0;
 
@@ -368,6 +370,7 @@ int main(void) {
 #ifdef USE_TEST_SIGNALS
 		new_sample_to_process = 1;
 #endif
+		read_rx_buffer();
 
 		// Start and stop condition detection
 		if (buzzer_freq_idx != buzzer_freq_idx_old) {
@@ -390,7 +393,6 @@ int main(void) {
 
 			break;
 		case NOTE_NEXT_NOTE:
-			flag_reset_average = 1;
 			HAL_TIM_Base_Init(&htim5);
 			piezoSetMaxCount(freq_list_tim[note_index].ARR);
 			piezoSetRatio(freq_list_tim[note_index].ARR / 2);
@@ -445,7 +447,7 @@ int main(void) {
 			frequency_bin_selection(selected_indices);
 #if 1
 			// Averaging between SPI communications
-			uint8_t i_array = 0;
+			uint16_t i_array = 0;
 			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
 				mics_f_avg[i_array] += mic0_f[2 * selected_indices[i_fbin]]; i_array += 1;
 				mics_f_avg[i_array] += mic1_f[2 * selected_indices[i_fbin]]; i_array += 1;
@@ -477,13 +479,17 @@ int main(void) {
 
 			if (flag_spi_recieved) {
 				flag_spi_recieved = 0;
-				note_index++;
-				if (note_index == NOTE_SEQUENCE_LENGTH) {
-					state_note_sm = NOTE_WAIT_START;
-					memset(&mics_f_avg, 0, sizeof(mics_f_avg));
+				spi_counter++;
+				if (spi_counter == N_SPI_PER_NOTE) {
+					spi_counter = 0;
+					note_index++;
+					if (note_index == NOTE_SEQUENCE_LENGTH) {
+						state_note_sm = NOTE_WAIT_START;
+						memset(&mics_f_avg, 0, sizeof(mics_f_avg));
 
-				} else {
-					state_note_sm = NOTE_NEXT_NOTE;
+					} else {
+						state_note_sm = NOTE_NEXT_NOTE;
+					}
 				}
 			}
 #endif
@@ -1241,7 +1247,7 @@ void read_rx_buffer() {
 
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
-	//buzzer_freq_idx = param_array[N_MOTORS + 2];
+	buzzer_freq_idx = param_array[N_MOTORS + 2];
 	delta_freq = param_array[N_MOTORS + 3];
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
