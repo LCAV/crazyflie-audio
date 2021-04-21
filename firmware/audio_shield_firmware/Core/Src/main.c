@@ -72,11 +72,8 @@
 #define DF (32000.0f/FFTSIZE)
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
 
-// cannot use both below flags at the same time
-//#define USE_TEST_SIGNALS // set this to use test signals instead of real audio data. make sure SPI_N_BYTES MATCHES!
-
 // communication
-// in uint16, min_freq, max_freq, buzzer_freq_idx, n_average, delta_freq, snr_enable, propeller_enable, window, tot = 8
+// in uint16, min_freq, max_freq, buzzer_idx, n_average, delta_freq, snr_enable, propeller_enable, window, tot = 8
 #define PARAMS_N_INT16 (N_MOTORS + 8)
 #define CHECKSUM_VALUE (0xAC)
 
@@ -119,16 +116,10 @@ TIM_HandleTypeDef htim5;
 int16_t dma_1[FULL_BUFFER_SIZE];
 int16_t dma_3[FULL_BUFFER_SIZE];
 
-#ifndef USE_TEST_SIGNALS
 float mic0[N_ACTUAL_SAMPLES];
 float mic2[N_ACTUAL_SAMPLES];
 float mic1[N_ACTUAL_SAMPLES];
 float mic3[N_ACTUAL_SAMPLES];
-#else
-//#include "real_data_1024.h"
-#include "simulated_data_1024.h"
-//#include "real_data_32.h"
-#endif
 
 #include "hann_window.h"
 #include "tukey_window.h"
@@ -189,8 +180,8 @@ uint16_t filter_snr_enable = 3;
 uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
-uint16_t buzzer_freq_idx = 0;
-uint16_t buzzer_freq_idx_old = 0;
+uint16_t buzzer_idx = 0;
+uint16_t buzzer_idx_old = 0;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 
@@ -241,8 +232,6 @@ void fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
 float abs_value_squared(float real_imag[]);
-void uint32_to_byte_array(uint32_t input, uint8_t output[]);
-void float_to_byte_array(float input, uint8_t output[]);
 
 /* USER CODE END PFP */
 
@@ -250,23 +239,19 @@ void float_to_byte_array(float input, uint8_t output[]);
 /* USER CODE BEGIN 0 */
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-#ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
 		process(dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
 		process(dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
 	}
-#endif
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
-#ifndef USE_TEST_SIGNALS
 	if (hi2s->Instance == hi2s1.Instance) {
 		process(&dma_1[HALF_BUFFER_SIZE], mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
 		process(&dma_3[HALF_BUFFER_SIZE], mic1, mic0, N_ACTUAL_SAMPLES);
 	}
-#endif
 }
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
@@ -366,20 +351,16 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-
-#ifdef USE_TEST_SIGNALS
-		new_sample_to_process = 1;
-#endif
 		read_rx_buffer();
 
 		// Start and stop condition detection
-		if (buzzer_freq_idx != buzzer_freq_idx_old) {
-			if (buzzer_freq_idx == 0) {
+		if (buzzer_idx != buzzer_idx_old) {
+			if (buzzer_idx == 0) {
 				state_note_sm = NOTE_WAIT_START;
 			} else {
 				state_note_sm = NOTE_RESET;
 			}
-			buzzer_freq_idx_old = buzzer_freq_idx;
+			buzzer_idx_old = buzzer_idx;
 		}
 
 		switch (state_note_sm) {
@@ -1186,8 +1167,6 @@ void fill_tx_buffer() {
 	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
 	//  where N is FFTSIZE_SENT-1
 
-#if 1
-
 	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
 		mics_f_avg[i] /= f_avg_counter;
 	}
@@ -1196,41 +1175,12 @@ void fill_tx_buffer() {
 
 	i_array = sizeof(mics_f_avg);
 
-#else
-
-		float_to_byte_array(mic0_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic1_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic2_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic3_f[2 * selected_indices[i_fbin]],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic0_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic1_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic2_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-		float_to_byte_array(mic3_f[2 * selected_indices[i_fbin] + 1],
-				&spi_tx_buffer[i_array]);
-		i_array += 4;
-	}
-#endif
-
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
 	i_array += sizeof(selected_indices);
 
 	// Fill with timestamp
-	uint32_to_byte_array(timestamp, &spi_tx_buffer[i_array]);
+	memcpy(&spi_tx_buffer[i_array], &timestamp, sizeof(timestamp));
 	i_array += sizeof(timestamp);
 
 	assert(i_array == SPI_N_BYTES - 1);
@@ -1247,7 +1197,7 @@ void read_rx_buffer() {
 
 	min_freq = param_array[N_MOTORS];
 	max_freq = param_array[N_MOTORS + 1];
-	buzzer_freq_idx = param_array[N_MOTORS + 2];
+	buzzer_idx = param_array[N_MOTORS + 2];
 	delta_freq = param_array[N_MOTORS + 3];
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
@@ -1288,15 +1238,6 @@ int compare_amplitudes(const void *a, const void *b) {
 // Wrong absolute value but should work faster without sqrt.
 float abs_value_squared(float real_imag[]) {
 	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
-}
-
-void float_to_byte_array(float input, uint8_t output[]) {
-	uint32_t temp = *((uint32_t*) &input);
-	memcpy(output, &temp, sizeof(temp));
-}
-
-void uint32_to_byte_array(uint32_t input, uint8_t output[]) {
-	memcpy(output, &input, sizeof(input));
 }
 
 /* USER CODE END 4 */
