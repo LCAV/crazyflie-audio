@@ -358,13 +358,13 @@ int main(void) {
 						melody_index = i;
 					}
 				}
-				memset(&mics_f_sum, 0, sizeof(mics_f_sum));
-
-				f_avg_counter = 0;
 			}
 
 			break;
 		case BUZZER_PLAY_NEXT: ;
+
+			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
+			f_avg_counter = 0;
 
 			// TODO(FD) for readability, create function that takes
 			// current_melody[note_index] as in put and plays

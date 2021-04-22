@@ -18,7 +18,7 @@ typedef const struct {
 	int16_t* notes;
 } melody;
 
-
+/*
 freq_list_t freq_list_tim[] = {
 		{3000, 26, 1038, 35 },
 		{3125, 0, 26879, 0 },
@@ -37,7 +37,7 @@ freq_list_t freq_list_tim[] = {
 		{4750, 1359, 12, 125 },
 		{4875, 3445, 4, 45 }
 };
-/*
+*/
 freq_list_t freq_list_tim[] = {
         {3010, 109, 256, -10},
         {3125, 105, 256, 0},
@@ -56,7 +56,7 @@ freq_list_t freq_list_tim[] = {
         {4755, 69, 256, -5},
         {4825, 68, 256, 50},
 };
-*/
+
 
 int16_t sweep[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, REPEAT};
 int16_t mono3000[] = {0, REPEAT};
