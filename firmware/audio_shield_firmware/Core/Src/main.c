@@ -430,14 +430,14 @@ int main(void) {
 			//  where N is FFTSIZE_SENT-1
 			uint16_t i_array = 0;
 			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_sum[i_array] += mic0_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_sum[i_array] += mic1_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_sum[i_array] += mic2_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_sum[i_array] += mic3_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_sum[i_array] += mic0_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_sum[i_array] += mic1_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_sum[i_array] += mic2_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_sum[i_array] += mic3_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] = mic0_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] = mic1_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] = mic2_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] = mic3_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] = mic0_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] = mic1_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] = mic2_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] = mic3_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
 			}
 			f_avg_counter++;
 			fill_tx_buffer();
@@ -1168,17 +1168,20 @@ void fill_tx_buffer() {
 	// the package is not valid.
 	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
+	// NOTE: cannot do this inplace because we call fill_tx_buffer
+	// multiple times on the same buffer.
+/*
 	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
 		mics_f_sum[i] /= f_avg_counter;
 	}
 
-	memcpy(&spi_tx_buffer, &mics_f_sum, sizeof(mics_f_sum));
+	*/
+	memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
 	i_array = sizeof(mics_f_sum);
 
-/*
-	// NOTE: cannot do this inplace because we call fill_tx_buffer
-	// multiple times on the same buffer.
-	int i_array = 0;
+	/*
+	i_array = 0;
+
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
 		averaged_value = mics_f_sum[i]/f_avg_counter;
@@ -1186,7 +1189,6 @@ void fill_tx_buffer() {
 		i_array += sizeof(mics_f_sum[i]);
 	}
 */
-	//memcpy(&spi_tx_buffer[0], mics_f_sum, sizeof(mics_f_sum));
 
 
 	// Fill with bins indices
