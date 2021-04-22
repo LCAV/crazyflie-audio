@@ -187,6 +187,7 @@ arm_rfft_fast_instance_f32 rfft_instance;
 int16_t *tapering_window;
 
 // debugging
+uint32_t last_update_spi = 0;
 uint8_t retval = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
@@ -250,7 +251,7 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-	HAL_GPIO_TogglePin(PC3_GPIO_Port, PC3_Pin);
+	last_update_spi = HAL_GetTick();
 
 	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
 		STOPCHRONO;
@@ -319,8 +320,8 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	};
+//	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+//	};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -361,9 +362,14 @@ int main(void) {
 			state_note_sm = BUZZER_STOP;
 		}
 
+		// Monitoring
 		// TODO: Upgrade led reactions
 		ledSetMaxCount(2000);
-		ledSetRatio((uint16_t) abs(dma_1[0]), 1);
+		if(last_update_spi > (HAL_GetTick() - 3000)){
+			ledSetRatio((uint16_t) abs(dma_1[0]), 1);
+		} else{
+			ledSetRatio(0, 1);
+		}
 		ledSetRatio((uint16_t) abs(dma_1[1]), 2);
 		ledSetRatio((uint16_t) abs(dma_3[0]), 3);
 		ledSetRatio((uint16_t) abs(dma_3[1]), 4);
