@@ -41,7 +41,7 @@
 
 /******** Defines ********/
 
-extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim3;
 
 /*** Public interface ***/
 
