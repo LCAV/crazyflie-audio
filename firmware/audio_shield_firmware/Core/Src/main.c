@@ -32,6 +32,7 @@
 #include "tukey_window.h"
 #include "buzzer.h"
 #include "sound.h"
+#include "led.h"
 
 /* USER CODE END Includes */
 
@@ -66,7 +67,6 @@
 #define FFTSIZE N_ACTUAL_SAMPLES // size of FFT (effectively we will have half samples because of symmetry)
 #define FFTSIZE_SENT 32 // number of frequency bins to select
 #define FFTSIZE_HALF 16 // for filter_snr = 3, number of bins to send before buzzer bin
-
 
 // processing
 #define N_PROP_FACTORS 30
@@ -138,7 +138,11 @@ uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
 typedef enum {
-	BUZZER_IDLE, BUZZER_RECORD, BUZZER_PLAY_NEXT, BUZZER_CHOOSE_NEXT, BUZZER_STOP
+	BUZZER_IDLE,
+	BUZZER_RECORD,
+	BUZZER_PLAY_NEXT,
+	BUZZER_CHOOSE_NEXT,
+	BUZZER_STOP
 } state_note_t;
 
 uint8_t flag_spi_recieved = 0;
@@ -180,7 +184,7 @@ uint8_t init_stage_iir = 1;
 uint16_t n_added = 0; // counter of how many samples were averaged.
 float prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
-int16_t * tapering_window;
+int16_t *tapering_window;
 
 // debugging
 uint8_t retval = 0;
@@ -296,9 +300,9 @@ int main(void) {
 	MX_TIM2_Init();
 	MX_I2S1_Init();
 	MX_SPI2_Init();
+	MX_TIM5_Init();
 	MX_TIM1_Init();
 	MX_TIM3_Init();
-	MX_TIM5_Init();
 	/* USER CODE BEGIN 2 */
 
 	// Start DMAs
@@ -327,6 +331,20 @@ int main(void) {
 	piezoSetRatio(BUZZER_ARR / 10);
 	HAL_TIM_Base_Start(&htim5);
 
+	ledInit();
+
+	ledSetMaxCount(100);
+	for (uint8_t i = 1; i <= 4; i++) {
+		for (uint8_t j = 0; j < 100; j++) {
+			ledSetRatio(j, i);
+			HAL_Delay(1);
+		}
+		for (uint8_t j = 100; j > 0; j--) {
+			ledSetRatio(j, i);
+			HAL_Delay(1);
+		}
+		ledSetRatio(0, i);
+	}
 
 	/* USER CODE END 2 */
 
@@ -339,9 +357,16 @@ int main(void) {
 		/* USER CODE BEGIN 3 */
 		read_rx_buffer();
 
-		if(buzzer_idx == 0 && state_note_sm != BUZZER_IDLE){
+		if (buzzer_idx == 0 && state_note_sm != BUZZER_IDLE) {
 			state_note_sm = BUZZER_STOP;
 		}
+
+		// TODO: Upgrade led reactions
+		ledSetMaxCount(2000);
+		ledSetRatio((uint16_t) abs(dma_1[0]), 1);
+		ledSetRatio((uint16_t) abs(dma_1[1]), 2);
+		ledSetRatio((uint16_t) abs(dma_3[0]), 3);
+		ledSetRatio((uint16_t) abs(dma_3[1]), 4);
 
 		switch (state_note_sm) {
 		case BUZZER_IDLE:
@@ -359,12 +384,14 @@ int main(void) {
 			}
 
 			break;
-		case BUZZER_PLAY_NEXT: ;
+		case BUZZER_PLAY_NEXT:
+			;
 
 			// TODO(FD) for readability, create function that takes
 			// current_melody[note_index] as in put and plays
 			// the given note.
-			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
+			freq_list_t next_note =
+					freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
 			//HAL_TIM_Base_Init(&htim5);
@@ -408,10 +435,14 @@ int main(void) {
 				} else {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
-								+ IIR_ALPHA * (abs_value_squared(&mic0_f[i * 2])
-										     + abs_value_squared(&mic1_f[i * 2])
-										     + abs_value_squared(&mic2_f[i * 2])
-										     + abs_value_squared(&mic3_f[i * 2]));
+								+ IIR_ALPHA
+										* (abs_value_squared(&mic0_f[i * 2])
+												+ abs_value_squared(
+														&mic1_f[i * 2])
+												+ abs_value_squared(
+														&mic2_f[i * 2])
+												+ abs_value_squared(
+														&mic3_f[i * 2]));
 					}
 				}
 				flag_fft_processing = 0;
@@ -429,21 +460,28 @@ int main(void) {
 			uint8_t i_array = 0;
 			if (f_avg_counter >= 0) {
 				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-					mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin] + 1];
-					mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin] + 1];
-					mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin] + 1];
-					mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] +=
+							mic0_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] +=
+							mic1_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] +=
+							mic2_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] +=
+							mic3_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]
+							+ 1];
+					mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]
+							+ 1];
+					mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]
+							+ 1];
+					mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]
+							+ 1];
 				}
 				f_avg_counter++;
 				fill_tx_buffer();
-			} else{
+			} else {
 				f_avg_counter++;
 			}
-
 
 			// TODO(FD) check that this still works.
 #ifdef BUZZER_CHANGE_BY_TIMER
@@ -462,7 +500,8 @@ int main(void) {
 			}
 #endif
 			break;
-		case BUZZER_CHOOSE_NEXT: ;
+		case BUZZER_CHOOSE_NEXT:
+			;
 			note_index++;
 
 			// point to next element and get its value.
@@ -478,7 +517,7 @@ int main(void) {
 
 				state_note_sm = BUZZER_PLAY_NEXT;
 			} else {
-			    state_note_sm = BUZZER_PLAY_NEXT;
+				state_note_sm = BUZZER_PLAY_NEXT;
 			}
 			break;
 		case BUZZER_STOP:
@@ -677,9 +716,9 @@ static void MX_TIM1_Init(void) {
 
 	/* USER CODE END TIM1_Init 1 */
 	htim1.Instance = TIM1;
-	htim1.Init.Prescaler = 0;
+	htim1.Init.Prescaler = 1000;
 	htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim1.Init.Period = 65535;
+	htim1.Init.Period = 1000;
 	htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim1.Init.RepetitionCounter = 0;
 	htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -950,16 +989,17 @@ static void MX_GPIO_Init(void) {
 /* USER CODE BEGIN 4 */
 #ifdef DCNotchActivated
 static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
-  static int16_t x_prev[4] = {0, 0, 0, 0};
-  static int16_t y_prev[4] = {0, 0, 0, 0};
-  if (filter_index == 10) {
-	  memset(x_prev, 0x00, sizeof(x_prev));
-	  memset(y_prev, 0x00, sizeof(y_prev));
-  }
+	static int16_t x_prev[4] = { 0, 0, 0, 0 };
+	static int16_t y_prev[4] = { 0, 0, 0, 0 };
+	if (filter_index == 10) {
+		memset(x_prev, 0x00, sizeof(x_prev));
+		memset(y_prev, 0x00, sizeof(y_prev));
+	}
 
-  y_prev[filter_index] = (((int32_t)y_prev[filter_index] * 0x00007999) >> 16) - x_prev[filter_index] + x;
-  x_prev[filter_index] = x;
-  return y_prev[filter_index];
+	y_prev[filter_index] = (((int32_t) y_prev[filter_index] * 0x00007999) >> 16)
+			- x_prev[filter_index] + x;
+	x_prev[filter_index] = x;
+	return y_prev[filter_index];
 }
 #endif
 
@@ -976,18 +1016,21 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 		for (uint16_t i = 0; i < size; i += 1) {
 			if (window_type > 0) {
 				window_value = (float) tapering_window[i] / MAX_INT16;
-			}
-			else {
+			} else {
 				window_value = 1.0;
 			}
 
 #ifdef DCNotchActivated
-			if(pIn == dma_1){
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
-			}else{ // pIn == dma_3
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
+			if (pIn == dma_1) {
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16
+						* window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16
+						* window_value;
+			} else { // pIn == dma_3
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16
+						* window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16
+						* window_value;
 			};
 #else // not DCNotchActivated
 			*pOut1++ = (float) *pIn++ /  MAX_INT16 * window_value;
@@ -1013,7 +1056,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 void frequency_bin_selection(uint16_t *selected_indices) {
 	uint16_t freq_idx;
 
-	freq_idx = (uint16_t) round( current_frequency / DF);
+	freq_idx = (uint16_t) round(current_frequency / DF);
 
 	// return fixed frequency bins
 	if (filter_snr_enable == 3) {
@@ -1023,7 +1066,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 			start_i = freq_idx - FFTSIZE_HALF;
 		}
-		for (int i = start_i ; i < start_i + FFTSIZE_SENT + 1; i++)  {
+		for (int i = start_i; i < start_i + FFTSIZE_SENT + 1; i++) {
 			selected_indices[i - start_i] = i;
 		}
 		return;
@@ -1174,13 +1217,13 @@ void fill_tx_buffer() {
 	// NOTE: cannot do this inplace because we call fill_tx_buffer
 	// multiple times on the same buffer.
 	/*int i_array = 0;
-	float averaged_value;
-	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-		averaged_value = mics_f_sum[i]/f_avg_counter;
-		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
-		i_array += sizeof(mics_f_sum[i]);
-	}
-*/
+	 float averaged_value;
+	 for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
+	 averaged_value = mics_f_sum[i]/f_avg_counter;
+	 memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
+	 i_array += sizeof(mics_f_sum[i]);
+	 }
+	 */
 	memcpy(&spi_tx_buffer[0], mics_f_sum, sizeof(mics_f_sum));
 	int i_array = sizeof(mics_f_sum);
 
@@ -1216,17 +1259,17 @@ void read_rx_buffer() {
 	if (param_array[N_MOTORS + 7] != window_type) {
 		window_type = param_array[N_MOTORS + 7];
 		switch (window_type) {
-			case 1:
-				tapering_window = hann_window;
-				break;
-			case 2:
-				tapering_window = flattop_window;
-				break;
-			case 3:
-				tapering_window = tukey_window;
-				break;
-			default:
-				break;
+		case 1:
+			tapering_window = hann_window;
+			break;
+		case 2:
+			tapering_window = flattop_window;
+			break;
+		case 3:
+			tapering_window = tukey_window;
+			break;
+		default:
+			break;
 		}
 		// reset the DC notch filter
 		DCNotch(0, 10);
@@ -1248,7 +1291,6 @@ int compare_amplitudes(const void *a, const void *b) {
 float abs_value_squared(float real_imag[]) {
 	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
-
 
 /* USER CODE END 4 */
 
