@@ -132,8 +132,7 @@ float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
 float mics_f_sum[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
-uint16_t f_avg_counter = -1;
-
+uint16_t f_avg_counter = 0;
 uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
@@ -154,7 +153,7 @@ int16_t current_note_index;
 
 #define NOTE_SEQUENCE_LENGTH 16
 #define NOTE_LENGTH 300
-#define N_SPI_PER_NOTE 100
+#define N_SPI_PER_NOTE 50
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
@@ -320,8 +319,8 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-//	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-//	};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -407,7 +406,7 @@ int main(void) {
 			//HAL_TIM_Base_Start(&htim5);
 
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
-			f_avg_counter = -1;
+			f_avg_counter = 0;
 
 			note_tickstart = HAL_GetTick();
 			state_note_sm = BUZZER_RECORD;
@@ -463,31 +462,27 @@ int main(void) {
 			//  ...
 			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
 			//  where N is FFTSIZE_SENT-1
-			uint8_t i_array = 0;
-			if (f_avg_counter >= 0) {
-				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-					mics_f_sum[i_array++] +=
-							mic0_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] +=
-							mic1_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] +=
-							mic2_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] +=
-							mic3_f[2 * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]
-							+ 1];
-					mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]
-							+ 1];
-					mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]
-							+ 1];
-					mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]
-							+ 1];
-				}
-				f_avg_counter++;
-				fill_tx_buffer();
-			} else {
-				f_avg_counter++;
+			uint16_t i_array = 0;
+			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+				mics_f_sum[i_array++] +=
+						mic0_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] +=
+						mic1_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] +=
+						mic2_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] +=
+						mic3_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]
+						+ 1];
+				mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]
+						+ 1];
+				mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]
+						+ 1];
+				mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]
+						+ 1];
 			}
+			f_avg_counter++;
+			fill_tx_buffer();
 
 			// TODO(FD) check that this still works.
 #ifdef BUZZER_CHANGE_BY_TIMER
@@ -507,7 +502,6 @@ int main(void) {
 #endif
 			break;
 		case BUZZER_CHOOSE_NEXT:
-			;
 			note_index++;
 
 			// point to next element and get its value.
@@ -536,7 +530,6 @@ int main(void) {
 			piezoSetPSC(0);
 			//HAL_TIM_Base_Start(&htim5);
 
-			// reset average buffer
 			state_note_sm = BUZZER_IDLE;
 
 			break;
@@ -1222,16 +1215,26 @@ void fill_tx_buffer() {
 
 	// NOTE: cannot do this inplace because we call fill_tx_buffer
 	// multiple times on the same buffer.
-	/*int i_array = 0;
-	 float averaged_value;
-	 for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-	 averaged_value = mics_f_sum[i]/f_avg_counter;
-	 memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
-	 i_array += sizeof(mics_f_sum[i]);
-	 }
-	 */
-	memcpy(&spi_tx_buffer[0], mics_f_sum, sizeof(mics_f_sum));
-	int i_array = sizeof(mics_f_sum);
+/*
+	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
+		mics_f_sum[i] /= f_avg_counter;
+	}
+
+	*/
+	memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
+	i_array = sizeof(mics_f_sum);
+
+	/*
+	i_array = 0;
+
+	float averaged_value;
+	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
+		averaged_value = mics_f_sum[i]/f_avg_counter;
+		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
+		i_array += sizeof(mics_f_sum[i]);
+	}
+*/
+
 
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
