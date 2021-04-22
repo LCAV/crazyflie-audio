@@ -31,6 +31,7 @@
 #include "flattop_window.h"
 #include "tukey_window.h"
 #include "buzzer.h"
+#include "sound.h"
 
 /* USER CODE END Includes */
 
@@ -54,7 +55,7 @@
 
 // constants
 #define N_MOTORS 4 // number of motors
-#define N_MIC 4 // number of microphones
+#define N_MICS 4 // number of microphones
 
 //the "f" is super important! otherwise it is a double, and division by double takes too long
 #define MAX_INT16 32767.0f // max for int16 (2**15-1).
@@ -77,7 +78,7 @@
 #define PARAMS_N_INT16 (N_MOTORS + 8)
 #define CHECKSUM_VALUE (0xAC)
 
-#define AUDIO_N_BYTES (N_MIC * FFTSIZE_SENT * FLOAT_PRECISION * 2)
+#define AUDIO_N_BYTES (N_MICS * FFTSIZE_SENT * FLOAT_PRECISION * 2)
 #define FBINS_N_BYTES (FFTSIZE_SENT * INT16_PRECISION)
 #define SPI_N_BYTES (AUDIO_N_BYTES + FBINS_N_BYTES + 4 + 1) // + 4 for timestamp, + 1 for checksum
 
@@ -130,42 +131,27 @@ float mic2_f[N_ACTUAL_SAMPLES];
 float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
-float mics_f_avg[4 * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
+float mics_f_sum[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
 uint16_t f_avg_counter = 0;
+uint16_t current_frequency = 0;
 
-#define NUM_TIM_FREQ 15
-
-typedef const struct {
-	uint16_t f;
-	uint16_t PSC;
-	uint16_t ARR;
-	uint32_t ERR;
-} freq_list_t;
-
-#define NOTE_CHANGE_BY_TIMER
-
-freq_list_t freq_list_tim[] = { { 3000, 26, 1038, 35 }, { 3125, 0, 26879, 0 }, {
-		3250, 70, 363, 86 }, { 3375, 407, 60, 36 }, { 3500, 0, 23999, 0 }, {
-		3625, 46, 492, 61 }, { 3750, 0, 22399, 0 }, { 3875, 52, 408, 19 }, {
-		4000, 0, 20999, 0 }, { 4125, 10, 1850, 12 }, { 4250, 35, 548, 36 }, {
-		4375, 0, 19199, 0 }, { 4500, 17, 1036, 36 }, { 4625, 2017, 8, 9 }, {
-		4750, 1359, 12, 125 }, { 4875, 3445, 4, 45 } };
-
+//#define BUZZER_CHANGE_BY_TIMER
 typedef enum {
-	NOTE_WAIT_START, NOTE_WAIT, NOTE_RESET, NOTE_NEXT_NOTE
+	BUZZER_IDLE, BUZZER_RECORD, BUZZER_PLAY_NEXT, BUZZER_CHOOSE_NEXT, BUZZER_STOP
 } state_note_t;
 
-uint8_t spi_counter = 0;
-#define N_SPI_PER_NOTE 50
-
 uint8_t flag_spi_recieved = 0;
+uint8_t spi_counter = 0;
 uint32_t note_tickstart;
-uint16_t note_index = 0;
+uint8_t melody_index = 0;
+uint8_t note_index = 0;
+int16_t current_note_index;
 
 #define NOTE_SEQUENCE_LENGTH 16
 #define NOTE_LENGTH 300
+#define N_SPI_PER_NOTE 50
 
-state_note_t state_note_sm = NOTE_WAIT_START;
+state_note_t state_note_sm = BUZZER_IDLE;
 
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
@@ -181,7 +167,6 @@ uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: 
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
 uint16_t buzzer_idx = 0;
-uint16_t buzzer_idx_old = 0;
 uint16_t delta_freq = 100;
 uint16_t n_average = 1; // number of frequency bins to average.
 
@@ -203,8 +188,6 @@ uint32_t counter_ok = 0;
 volatile int32_t time_us;
 volatile int32_t time_spi_error;
 volatile int32_t time_spi_ok;
-
-uint16_t freq = 0;
 
 /* USER CODE END PV */
 
@@ -249,6 +232,9 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (hi2s->Instance == hi2s1.Instance) {
 		process(&dma_1[HALF_BUFFER_SIZE], mic3, mic2, N_ACTUAL_SAMPLES);
+		HAL_GPIO_TogglePin(LD1_TIM1_CH1_GPIO_Port, LD1_TIM1_CH1_Pin);
+
+
 	} else {
 		process(&dma_3[HALF_BUFFER_SIZE], mic1, mic0, N_ACTUAL_SAMPLES);
 	}
@@ -312,13 +298,10 @@ int main(void) {
 	MX_TIM2_Init();
 	MX_I2S1_Init();
 	MX_SPI2_Init();
-	MX_TIM5_Init();
 	MX_TIM1_Init();
 	MX_TIM3_Init();
+	MX_TIM5_Init();
 	/* USER CODE BEGIN 2 */
-
-	size_t length_tukey = sizeof(tukey_window) / sizeof(tukey_window[0]);
-	assert(length_tukey == N_ACTUAL_SAMPLES);
 
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
@@ -326,9 +309,10 @@ int main(void) {
 
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
+	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 
-	HAL_TIM_Base_Init(&htim5);
-	HAL_TIM_Base_Start(&htim5);
+	HAL_TIM_Base_Init(&htim3);
+	HAL_TIM_Base_Start(&htim3);
 	timestamp = 0;
 
 	// Super important! We need to wait until the bus is idle, otherwise
@@ -340,55 +324,69 @@ int main(void) {
 
 	piezoInit();
 
+	HAL_TIM_Base_Init(&htim5);
+	piezoSetMaxCount(BUZZER_ARR);
+	piezoSetRatio(BUZZER_ARR / 10);
+	HAL_TIM_Base_Start(&htim5);
+
 
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 
-	// Note that below while loop takes ca. 40ms (fft processing) + 10ms (bin selection and tx-buffer filling).
 	while (1) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
 		read_rx_buffer();
 
-		// Start and stop condition detection
-		if (buzzer_idx != buzzer_idx_old) {
-			if (buzzer_idx == 0) {
-				state_note_sm = NOTE_WAIT_START;
-			} else {
-				state_note_sm = NOTE_RESET;
-			}
-			buzzer_idx_old = buzzer_idx;
+		if(buzzer_idx == 0 && state_note_sm != BUZZER_IDLE){
+			state_note_sm = BUZZER_STOP;
 		}
 
 		switch (state_note_sm) {
-		case NOTE_RESET:
-			note_index = 0;
-			state_note_sm = NOTE_NEXT_NOTE;
+		case BUZZER_IDLE:
+			// start condition detection
+			if (buzzer_idx > 0) {
 
-			memset(&mics_f_avg, 0, sizeof(mics_f_avg));
+				note_index = 0;
+				state_note_sm = BUZZER_PLAY_NEXT;
+				// TODO(FD) check for invalid index.
+				for (int i = 0; i < sizeof(melodies); i++) {
+					if (melodies[i].index == buzzer_idx) {
+						melody_index = i;
+					}
+				}
+				memset(&mics_f_sum, 0, sizeof(mics_f_sum));
 
-			f_avg_counter = 0;
+				f_avg_counter = 0;
+			}
 
 			break;
-		case NOTE_NEXT_NOTE:
-			HAL_TIM_Base_Init(&htim5);
-			piezoSetMaxCount(freq_list_tim[note_index].ARR);
-			piezoSetRatio(freq_list_tim[note_index].ARR / 2);
-			piezoSetPSC(freq_list_tim[note_index].PSC);
-			HAL_TIM_Base_Start(&htim5);
+		case BUZZER_PLAY_NEXT: ;
+
+			// TODO(FD) for readability, create function that takes
+			// current_melody[note_index] as in put and plays
+			// the given note.
+			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
+			current_frequency = next_note.f;
+
+			//HAL_TIM_Base_Init(&htim5);
+			//piezoSetMaxCount(next_note.ARR);
+			//piezoSetRatio(next_note.ARR / 2);
+			piezoSetPSC(next_note.PSC);
+			//HAL_TIM_Base_Start(&htim5);
 
 			note_tickstart = HAL_GetTick();
-			state_note_sm = NOTE_WAIT;
+			state_note_sm = BUZZER_RECORD;
 
 			break;
-		case NOTE_WAIT:
+		case BUZZER_RECORD:
 			// we have a new sample to process and want to add it to the buffer
 			if (new_sample_to_process) {
 				flag_fft_processing = 1;
-				timestamp = __HAL_TIM_GET_COUNTER(&htim5);
+				timestamp = __HAL_TIM_GET_COUNTER(&htim3);
 
 				// Compute FFT
 				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -412,84 +410,91 @@ int main(void) {
 				} else {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
-								+ IIR_ALPHA
-										* (abs_value_squared(&mic0_f[i * 2])
-												+ abs_value_squared(
-														&mic1_f[i * 2])
-												+ abs_value_squared(
-														&mic2_f[i * 2])
-												+ abs_value_squared(
-														&mic3_f[i * 2]));
+								+ IIR_ALPHA * (abs_value_squared(&mic0_f[i * 2])
+										     + abs_value_squared(&mic1_f[i * 2])
+										     + abs_value_squared(&mic2_f[i * 2])
+										     + abs_value_squared(&mic3_f[i * 2]));
 					}
 				}
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
 			}
 			frequency_bin_selection(selected_indices);
-#if 1
+
 			// Averaging between SPI communications
+			// The buffer will be filled like
+			// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+			//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+			//  ...
+			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+			//  where N is FFTSIZE_SENT-1
 			uint16_t i_array = 0;
 			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_avg[i_array] += mic0_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic1_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic2_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic3_f[2 * selected_indices[i_fbin]]; i_array += 1;
-				mics_f_avg[i_array] += mic0_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_avg[i_array] += mic1_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_avg[i_array] += mic2_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
-				mics_f_avg[i_array] += mic3_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] += mic0_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] += mic1_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] += mic2_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] += mic3_f[2 * selected_indices[i_fbin]]; i_array += 1;
+				mics_f_sum[i_array] += mic0_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] += mic1_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] += mic2_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
+				mics_f_sum[i_array] += mic3_f[2 * selected_indices[i_fbin] + 1]; i_array += 1;
 			}
 			f_avg_counter++;
-#else
-			f_avg_counter = 1;
-#endif
 			fill_tx_buffer();
-			read_rx_buffer();
 
-#ifndef NOTE_CHANGE_BY_TIMER
+
+			// TODO(FD) check that this still works.
+#ifdef BUZZER_CHANGE_BY_TIMER
 			if((note_tickstart + NOTE_LENGTH) < HAL_GetTick()){
-				note_index++;
-				if(note_index == NOTE_SEQUENCE_LENGTH){
-					state_note_sm = NOTE_WAIT_START;
-				}else{
-					state_note_sm = NOTE_NEXT_NOTE;
-				}
+				state_note_sm = BUZZER_CHOOSE_NEXT;
 			}
 #else
-
-
+			// play new note for each new communication.
 			if (flag_spi_recieved) {
 				flag_spi_recieved = 0;
 				spi_counter++;
 				if (spi_counter == N_SPI_PER_NOTE) {
+					state_note_sm = BUZZER_CHOOSE_NEXT;
 					spi_counter = 0;
-					note_index++;
-					if (note_index == NOTE_SEQUENCE_LENGTH) {
-						state_note_sm = NOTE_WAIT_START;
-						memset(&mics_f_avg, 0, sizeof(mics_f_avg));
-
-					} else {
-						state_note_sm = NOTE_NEXT_NOTE;
-					}
 				}
 			}
 #endif
 			break;
-		case NOTE_WAIT_START:
-			piezoSetMaxCount(0);
-			piezoSetRatio(0);
+		case BUZZER_CHOOSE_NEXT: ;
+			note_index++;
+
+			// point to next element and get its value.
+			int16_t frequency_index = melodies[melody_index].notes[note_index];
+
+			if (frequency_index == STOP) {
+
+				state_note_sm = BUZZER_STOP;
+
+			} else if (frequency_index == REPEAT) {
+				// go back to beginning of melody
+				note_index = 0;
+
+				state_note_sm = BUZZER_PLAY_NEXT;
+			} else {
+			    state_note_sm = BUZZER_PLAY_NEXT;
+			}
+			break;
+		case BUZZER_STOP:
+
+			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+
+			//HAL_TIM_Base_Init(&htim5);
+			//piezoSetMaxCount(0);
+			//piezoSetRatio(0);
 			piezoSetPSC(0);
+			//HAL_TIM_Base_Start(&htim5);
+
+			state_note_sm = BUZZER_IDLE;
 
 			break;
 		default:
 			break;
 		}
-		/*
-		 piezoSetMaxCount(freq_list_tim[note_index].ARR);
-		 piezoSetRatio(freq_list_tim[note_index].ARR / 2);
-		 piezoSetPSC(freq_list_tim[note_index].PSC);
-		 */
-
 	}
 	/* USER CODE END 3 */
 }
@@ -1005,7 +1010,7 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 void frequency_bin_selection(uint16_t *selected_indices) {
 	uint16_t freq_idx;
 
-	freq_idx = (uint16_t) round(freq_list_tim[note_index].f / DF);
+	freq_idx = (uint16_t) round( current_frequency / DF);
 
 	// return fixed frequency bins
 	if (filter_snr_enable == 3) {
@@ -1159,21 +1164,30 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 uint16_t i_array;
 
 void fill_tx_buffer() {
-	// Fill with FFT content
-	// The spi_tx_buffer will be filled like
-	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-	//  ...
-	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-	//  where N is FFTSIZE_SENT-1
+	// set the CHECKSUM to 0 so that if we communicate during filling,
+	// the package is not valid.
+	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
 	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
-		mics_f_avg[i] /= f_avg_counter;
+		mics_f_sum[i] /= f_avg_counter;
 	}
 
-	memcpy(&spi_tx_buffer, &mics_f_avg, sizeof(mics_f_avg));
+	memcpy(&spi_tx_buffer, &mics_f_sum, sizeof(mics_f_sum));
+	i_array = sizeof(mics_f_sum);
 
-	i_array = sizeof(mics_f_avg);
+/*
+	// NOTE: cannot do this inplace because we call fill_tx_buffer
+	// multiple times on the same buffer.
+	int i_array = 0;
+	float averaged_value;
+	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
+		averaged_value = mics_f_sum[i]/f_avg_counter;
+		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
+		i_array += sizeof(mics_f_sum[i]);
+	}
+*/
+	//memcpy(&spi_tx_buffer[0], mics_f_sum, sizeof(mics_f_sum));
+
 
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
@@ -1201,7 +1215,7 @@ void read_rx_buffer() {
 	delta_freq = param_array[N_MOTORS + 3];
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
-	//filter_snr_enable = param_array[N_MOTORS + 6];
+	filter_snr_enable = param_array[N_MOTORS + 6];
 
 	// initialize everything if we have changed window.
 	if (param_array[N_MOTORS + 7] != window_type) {
@@ -1239,6 +1253,7 @@ int compare_amplitudes(const void *a, const void *b) {
 float abs_value_squared(float real_imag[]) {
 	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
+
 
 /* USER CODE END 4 */
 
