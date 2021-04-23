@@ -191,8 +191,8 @@ uint8_t retval = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
 volatile int32_t time_us;
-volatile int32_t time_spi_error;
-volatile int32_t time_spi_ok;
+//volatile int32_t time_spi_error;
+//volatile int32_t time_spi_ok;
 
 /* USER CODE END PV */
 
@@ -242,27 +242,19 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	}
 }
 
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-	STOPCHRONO;
-	time_spi_error = time_us;
-	counter_error += 1;
-}
-
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-
-	last_update_spi = HAL_GetTick();
-
 	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
-		STOPCHRONO;
-		time_spi_error = time_us;
+		//STOPCHRONO;
+		//time_spi_error = time_us;
 		counter_error += 1;
 	} else {
+		last_update_spi = HAL_GetTick();
 		flag_spi_recieved = 1;
-		STOPCHRONO;
-		time_spi_ok = time_us;
+		//STOPCHRONO;
+		//time_spi_ok = time_us;
 		counter_ok += 1;
 	}
-	// Note that we do not need to restart the transmission by caling
+	// Note that we do not need to restart the transmission by calling
 	// HAL_SPI_TransmitReceive_DMA again, because the buffer is circular.
 }
 
@@ -313,9 +305,10 @@ int main(void)
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-	HAL_TIM_Base_Init(&htim3);
-	HAL_TIM_Base_Start(&htim3);
+	HAL_TIM_Base_Init(&htim2); // debug timer
+	HAL_TIM_Base_Start(&htim2);
 	timestamp = 0;
 
 	// Super important! We need to wait until the bus is idle, otherwise
@@ -327,12 +320,12 @@ int main(void)
 
 	piezoInit();
 
-	HAL_TIM_Base_Init(&htim5);
+	HAL_TIM_Base_Init(&htim3); // small buzzer timer
 	piezoSetMaxCount(BUZZER_ARR);
 	piezoSetRatio(BUZZER_ARR / 10);
-	HAL_TIM_Base_Start(&htim5);
+	HAL_TIM_Base_Start(&htim3);
 
-	ledInit();
+	ledInit(); // uses htim1
 
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
@@ -365,9 +358,9 @@ int main(void)
 		// Monitoring
 		// TODO: Upgrade led reactions
 		ledSetMaxCount(2000);
-		if(last_update_spi > (HAL_GetTick() - 3000)){
+		if (last_update_spi > (HAL_GetTick() - 3000)) {
 			ledSetRatio((uint16_t) abs(dma_1[0]), 1);
-		} else{
+		} else {
 			ledSetRatio(0, 1);
 		}
 		ledSetRatio((uint16_t) abs(dma_1[1]), 2);
@@ -392,19 +385,11 @@ int main(void)
 			break;
 		case BUZZER_PLAY_NEXT:
 			;
-
-			// TODO(FD) for readability, create function that takes
-			// current_melody[note_index] as in put and plays
-			// the given note.
 			freq_list_t next_note =
 					freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
-			//HAL_TIM_Base_Init(&htim5);
-			//piezoSetMaxCount(next_note.ARR);
-			//piezoSetRatio(next_note.ARR / 2);
 			piezoSetPSC(next_note.PSC);
-			//HAL_TIM_Base_Start(&htim5);
 
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
 			f_avg_counter = 0;
@@ -417,7 +402,7 @@ int main(void)
 			// we have a new sample to process and want to add it to the buffer
 			if (new_sample_to_process) {
 				flag_fft_processing = 1;
-				timestamp = __HAL_TIM_GET_COUNTER(&htim3);
+				timestamp = __HAL_TIM_GET_COUNTER(&htim2);
 
 				// Compute FFT
 				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -433,22 +418,18 @@ int main(void)
 				if (init_stage_iir) {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = abs_value_squared(&mic0_f[i * 2])
-								+ abs_value_squared(&mic1_f[i * 2])
-								+ abs_value_squared(&mic2_f[i * 2])
-								+ abs_value_squared(&mic3_f[i * 2]);
+										 + abs_value_squared(&mic1_f[i * 2])
+										 + abs_value_squared(&mic2_f[i * 2])
+										 + abs_value_squared(&mic3_f[i * 2]);
 					}
 					init_stage_iir = 0;
 				} else {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
-								+ IIR_ALPHA
-										* (abs_value_squared(&mic0_f[i * 2])
-												+ abs_value_squared(
-														&mic1_f[i * 2])
-												+ abs_value_squared(
-														&mic2_f[i * 2])
-												+ abs_value_squared(
-														&mic3_f[i * 2]));
+							   + IIR_ALPHA * (abs_value_squared(&mic0_f[i * 2])
+											+ abs_value_squared(&mic1_f[i * 2])
+											+ abs_value_squared(&mic2_f[i * 2])
+											+ abs_value_squared(&mic3_f[i * 2]));
 					}
 				}
 				flag_fft_processing = 0;
@@ -464,23 +445,17 @@ int main(void)
 			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
 			//  where N is FFTSIZE_SENT-1
 			uint16_t i_array = 0;
+
+			// TODO(FD) change back to average
 			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_sum[i_array++] +=
-						mic0_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] +=
-						mic1_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] +=
-						mic2_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] +=
-						mic3_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]
-						+ 1];
-				mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]
-						+ 1];
-				mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]
-						+ 1];
-				mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]
-						+ 1];
+				mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin]];
+				mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin] + 1];
+				mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin] + 1];
+				mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin] + 1];
+				mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin] + 1];
 			}
 			f_avg_counter++;
 			fill_tx_buffer();
@@ -524,12 +499,9 @@ int main(void)
 		case BUZZER_STOP:
 
 			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-			//HAL_TIM_Base_Init(&htim5);
-			//piezoSetMaxCount(0);
-			//piezoSetRatio(0);
 			piezoSetPSC(0);
-			//HAL_TIM_Base_Start(&htim5);
 
 			state_note_sm = BUZZER_IDLE;
 
@@ -1238,11 +1210,11 @@ uint16_t i_array;
 void fill_tx_buffer() {
 	// set the CHECKSUM to 0 so that if we communicate during filling,
 	// the package is not valid.
-	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
+	//spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
 	// NOTE: cannot do this inplace because we call fill_tx_buffer
 	// multiple times on the same buffer.
-/*
+	/*
 	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
 		mics_f_sum[i] /= f_avg_counter;
 	}
@@ -1253,7 +1225,6 @@ void fill_tx_buffer() {
 
 	/*
 	i_array = 0;
-
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
 		averaged_value = mics_f_sum[i]/f_avg_counter;
