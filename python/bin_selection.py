@@ -87,7 +87,6 @@ def select_frequencies(n_buffer=N_BUFFER, fs=FS, thrust=0, min_freq=100, max_fre
     if verbose:
         print(f'selecting {FFTSIZE} from {len(potential_indices)}')
     if not potential_indices:
-        print(f"Warning: did not find any potential indices. using min_freq={min_freq}")
         potential_indices = [min_index]
 
     # Select indices based on snr or uniformly. 

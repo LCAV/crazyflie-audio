@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pdb
 import logging
+import pdb
 import time
+import warnings
 
 import numpy as np
 
@@ -213,6 +214,9 @@ class ReaderCRTP(object):
 
     def __init__(self, crazyflie, verbose=False, log_motion=False, log_status=True, log_motors=False):
 
+        warnings.warn("Use the class in src/crazyflie_crtp/crazyflie_crtp/reader_crtp.py instead of this one",
+                DeprecationWarning)
+
         test_logging_size()
         self.start_time = time.time()
 
@@ -224,11 +228,11 @@ class ReaderCRTP(object):
         self.mc = MotionCommander(self.cf)
 
         self.logging_dicts = {
-                key: {
-                   'timestamp': None, 
-                   'data': None, 
-                   'published': True
-                } for key in ['motion', 'status', 'motors']
+            key: {
+               'timestamp': None, 
+               'data': None, 
+               'published': True
+            } for key in ['motion', 'status', 'motors']
         }
         if log_motion:
             self.init_log_config('motion')

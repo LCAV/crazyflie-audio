@@ -5,6 +5,9 @@
 #define STOP -1
 #define REPEAT -2
 #define BUZZER_ARR 256
+#define NOTE_LENGTH 300
+#define N_SPI_PER_NOTE 50
+
 
 typedef const struct {
 	uint16_t f;
@@ -13,10 +16,21 @@ typedef const struct {
 	uint32_t ERR;
 } freq_list_t;
 
+
 typedef const struct {
 	uint16_t index;
 	int16_t* notes;
 } melody;
+
+
+typedef enum {
+	BUZZER_IDLE,
+	BUZZER_RECORD,
+	BUZZER_PLAY_NEXT,
+	BUZZER_CHOOSE_NEXT,
+	BUZZER_STOP
+} state_note_t;
+
 
 /*
 freq_list_t freq_list_tim[] = {

@@ -132,28 +132,17 @@ float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
 float mics_f_sum[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
-uint16_t f_avg_counter = 0;
+uint16_t sum_counter = 0;
 uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
-typedef enum {
-	BUZZER_IDLE,
-	BUZZER_RECORD,
-	BUZZER_PLAY_NEXT,
-	BUZZER_CHOOSE_NEXT,
-	BUZZER_STOP
-} state_note_t;
 
 uint8_t flag_spi_recieved = 0;
 uint8_t spi_counter = 0;
 uint32_t note_tickstart;
 uint8_t melody_index = 0;
 uint8_t note_index = 0;
-int16_t current_note_index;
-
-#define NOTE_SEQUENCE_LENGTH 16
-#define NOTE_LENGTH 300
-#define N_SPI_PER_NOTE 50
+freq_list_t next_note;
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
@@ -384,15 +373,13 @@ int main(void)
 
 			break;
 		case BUZZER_PLAY_NEXT:
-			;
-			freq_list_t next_note =
-					freq_list_tim[melodies[melody_index].notes[note_index]];
+			next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
 			piezoSetPSC(next_note.PSC);
 
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
-			f_avg_counter = 0;
+			sum_counter = 0;
 
 			note_tickstart = HAL_GetTick();
 			state_note_sm = BUZZER_RECORD;
@@ -457,7 +444,7 @@ int main(void)
 				mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin] + 1];
 				mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin] + 1];
 			}
-			f_avg_counter++;
+			sum_counter++;
 			fill_tx_buffer();
 
 			// TODO(FD) check that this still works.
@@ -484,13 +471,10 @@ int main(void)
 			int16_t frequency_index = melodies[melody_index].notes[note_index];
 
 			if (frequency_index == STOP) {
-
 				state_note_sm = BUZZER_STOP;
-
 			} else if (frequency_index == REPEAT) {
 				// go back to beginning of melody
 				note_index = 0;
-
 				state_note_sm = BUZZER_PLAY_NEXT;
 			} else {
 				state_note_sm = BUZZER_PLAY_NEXT;
@@ -1216,7 +1200,7 @@ void fill_tx_buffer() {
 	// multiple times on the same buffer.
 	/*
 	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
-		mics_f_sum[i] /= f_avg_counter;
+		mics_f_sum[i] /= sum_counter;
 	}
 
 	*/
@@ -1227,7 +1211,7 @@ void fill_tx_buffer() {
 	i_array = 0;
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-		averaged_value = mics_f_sum[i]/f_avg_counter;
+		averaged_value = mics_f_sum[i]/sum_counter;
 		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
 		i_array += sizeof(mics_f_sum[i]);
 	}
