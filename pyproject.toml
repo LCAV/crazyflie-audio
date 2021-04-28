@@ -1,0 +1,13 @@
+# configuration for black
+# copied from https://github.com/psf/black/blob/master/pyproject.toml
+[tool.black]
+line-length = 80
+target-version = ['py36', 'py37', 'py38']
+include = '\.pyi?$'
+# can add excluded stuff below
+#extend-exclude = '''
+#/(
+#  | test_flake8
+#  | test_pep257
+#)/
+#'''
