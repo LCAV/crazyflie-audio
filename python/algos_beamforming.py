@@ -8,8 +8,9 @@ import numpy as np
 from algos_basics import get_autocorrelation, get_mic_delays, low_rank_inverse
 from constants import SPEED_OF_SOUND
 
-INVERSE = 'pinv'
-#INVERSE = 'low-rank'
+INVERSE = "pinv"
+# INVERSE = 'low-rank'
+
 
 def get_lcmv_beamformer(
     Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None
@@ -32,7 +33,7 @@ def get_lcmv_beamformer(
     print("Deprecation warning: use get_lcmv_beamformer_fast for better performance.")
 
     assert mic_positions.ndim == 2, "watch out, changed argument order!!"
-    
+
     n_mics = Rx.shape[1]
 
     assert mic_positions.shape[0] == n_mics
@@ -61,9 +62,9 @@ def get_lcmv_beamformer(
 
         # solve the optimization problem
         Rx_inv = np.linalg.pinv(Rx[j, :, :] + lamda * np.eye(Rx.shape[1]), rcond=rcond)
-        # (n_constraints x n_mics) (n_mics  x n_mics) (n_mics x n_constraints) 
+        # (n_constraints x n_mics) (n_mics  x n_mics) (n_mics x n_constraints)
         # = n_constraints x n_constraints
-        big_mat = C.conj().T @ Rx_inv @ C         
+        big_mat = C.conj().T @ Rx_inv @ C
         big_inv = np.linalg.pinv(big_mat, rcond=rcond)
         H[j, :] = Rx_inv @ C @ big_inv @ c
         condition_numbers.append(np.linalg.cond(Rx[j, :, :]))
@@ -72,7 +73,14 @@ def get_lcmv_beamformer(
 
 
 def get_lcmv_beamformer_fast(
-    Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None, inverse=INVERSE
+    Rx,
+    frequencies,
+    mic_positions,
+    constraints,
+    rcond=0,
+    lamda=1e-3,
+    elevation=None,
+    inverse=INVERSE,
 ):
     """
 
@@ -94,24 +102,26 @@ def get_lcmv_beamformer_fast(
     # generate constraints
     C = np.zeros((len(frequencies), n_mics, 0), dtype=np.complex128)
     c = np.array([c[1] for c in constraints], dtype=np.complex128)
-    for theta,__ in constraints:
+    for theta, __ in constraints:
         delays = get_mic_delays(mic_positions, theta, elevation)
-        exponent = 2 * np.pi * delays[None, :] * frequencies[:, None] # n_freq x n_mics
+        exponent = 2 * np.pi * delays[None, :] * frequencies[:, None]  # n_freq x n_mics
         C_row = np.exp(-1j * exponent)
-        C = np.concatenate([C, C_row[:, :, None]], axis=2) # n_freq x n_mics x n_constr
+        C = np.concatenate([C, C_row[:, :, None]], axis=2)  # n_freq x n_mics x n_constr
 
     # solve the optimization problem
-    if inverse == 'pinv':
-        Rx_inv = np.linalg.pinv(Rx + lamda * np.eye(Rx.shape[1])[None, :, :], rcond=rcond) # n_freq x n_mics x n_mics
+    if inverse == "pinv":
+        Rx_inv = np.linalg.pinv(
+            Rx + lamda * np.eye(Rx.shape[1])[None, :, :], rcond=rcond
+        )  # n_freq x n_mics x n_mics
 
-    elif inverse == 'low-rank':
+    elif inverse == "low-rank":
         Rx_inv = np.empty(Rx.shape, dtype=np.complex)
         for i in range(Rx.shape[0]):
-            Rx_inv[i,...] = low_rank_inverse(Rx[i,...], rank=1)
+            Rx_inv[i, ...] = low_rank_inverse(Rx[i, ...], rank=1)
     # big_mat should have dimension n_freq x n_constr x n_constr
-    # (n_freq x n_constr x n_mics) (n_freq x n_mics x n_mics) = n_freq x n_constr x n_mics 
+    # (n_freq x n_constr x n_mics) (n_freq x n_mics x n_mics) = n_freq x n_constr x n_mics
     # @ n_freq x n_mics x n_constr = n_freq x n_constr x n_constr
-    big_mat = np.transpose(C.conj(), (0, 2, 1)) @ Rx_inv @ C  # 
+    big_mat = np.transpose(C.conj(), (0, 2, 1)) @ Rx_inv @ C  #
     big_inv = np.linalg.inv(big_mat)
     # n_freq x n_mics x n_mics @ # n_freq x n_mics x n_constr = n_freq x n_mics x n_constr
     H = Rx_inv @ C @ big_inv @ c
@@ -156,9 +166,9 @@ def get_powers(H, Rx):
     n_mics = Rx.shape[1]
     assert H.shape[0] == n_frequencies
     assert H.shape[1] == n_mics
-    # (n_frequencies x 1 x n_mics) (n_frequencies x n_mics x n_mics) (n_frequencies x n_mics x 1) 
+    # (n_frequencies x 1 x n_mics) (n_frequencies x n_mics x n_mics) (n_frequencies x n_mics x 1)
     # n_frequencies x 1 x n_mics (n_frequencies x n_mics x 1)
-    powers =  np.abs(H.conj()[:, None, :] @ Rx @ H[:, :, None]).squeeze()
+    powers = np.abs(H.conj()[:, None, :] @ Rx @ H[:, :, None]).squeeze()
     return powers
 
 

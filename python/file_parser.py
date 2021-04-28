@@ -20,7 +20,7 @@ FILENAMES = [
     "front_right.npy",  # 3, should be 3
 ]
 # Note that these positions were not very accurate
-MEMS_MIC_POSITIONS = get_square_array(baseline=0.11, delta=0) 
+MEMS_MIC_POSITIONS = get_square_array(baseline=0.11, delta=0)
 MEMS_SOURCE_DISTANCE = 1.925
 
 # These positions were more accurate
@@ -31,28 +31,54 @@ SIM_MIC_POSITIONS = get_square_array(baseline=0.11, delta=0)
 SIM_SOURCE_DISTANCE = 1.925
 
 parameters = {
-        "recordings_9_7_20": {"Fs": 32000, "time_index": 100, "mic_positions": MEMS_MIC_POSITIONS, "source_distance": MEMS_SOURCE_DISTANCE},
-        "recordings_14_7_20": {"Fs": 32000, "time_index": 100, "mic_positions": MEMS_MIC_POSITIONS, "source_distance": MEMS_SOURCE_DISTANCE},
-        "recordings_16_7_20": {"Fs": 48000, "time_index": 42000, "mic_positions": MEAS_MIC_POSITIONS, "source_distance": MEAS_SOURCE_DISTANCE},
-        "analytical": {"Fs": 44100, "time_index": 0, "mic_positions": SIM_MIC_POSITIONS, "source_distance": SIM_SOURCE_DISTANCE},
-        "pyroomacoustics": {"Fs": 44100, "time_index": 400, "mic_positions": SIM_MIC_POSITIONS, "source_distance": SIM_SOURCE_DISTANCE} 
+    "recordings_9_7_20": {
+        "Fs": 32000,
+        "time_index": 100,
+        "mic_positions": MEMS_MIC_POSITIONS,
+        "source_distance": MEMS_SOURCE_DISTANCE,
+    },
+    "recordings_14_7_20": {
+        "Fs": 32000,
+        "time_index": 100,
+        "mic_positions": MEMS_MIC_POSITIONS,
+        "source_distance": MEMS_SOURCE_DISTANCE,
+    },
+    "recordings_16_7_20": {
+        "Fs": 48000,
+        "time_index": 42000,
+        "mic_positions": MEAS_MIC_POSITIONS,
+        "source_distance": MEAS_SOURCE_DISTANCE,
+    },
+    "analytical": {
+        "Fs": 44100,
+        "time_index": 0,
+        "mic_positions": SIM_MIC_POSITIONS,
+        "source_distance": SIM_SOURCE_DISTANCE,
+    },
+    "pyroomacoustics": {
+        "Fs": 44100,
+        "time_index": 400,
+        "mic_positions": SIM_MIC_POSITIONS,
+        "source_distance": SIM_SOURCE_DISTANCE,
+    },
 }
-
 
 
 def read_all(dir_name, Fs=None, verbose=False, fnames=FILENAMES):
     n_times = None
     for i, fname in enumerate(fnames):
         fullname = f"{dir_name}/{fname}"
-        if fullname.split('.')[-1] == "npy":
-            # Unfortunately we cannot check that the sampling rate matches for 
+        if fullname.split(".")[-1] == "npy":
+            # Unfortunately we cannot check that the sampling rate matches for
             # numpy arrays as it is not saved.
             signal0 = np.load(fullname)
-        elif fullname.split('.')[-1] == "wav":
+        elif fullname.split(".")[-1] == "wav":
             Fs_new, signal0 = read(fullname)
             # Check that the sampling rate matches for wav files.
             if Fs is not None:
-                assert Fs == Fs_new, f"Fs {Fs_new} of file {fullname} does not match {Fs}"
+                assert (
+                    Fs == Fs_new
+                ), f"Fs {Fs_new} of file {fullname} does not match {Fs}"
             Fs = Fs_new
         if verbose:
             print("read", fullname)
@@ -70,7 +96,10 @@ def read_recording_9_7_20(loudness="high", gt_degrees=0, verbose=False, type_="p
     elif type_ == "source":
         dir_name = root_dir + f"recordings_9_7_20/200Hz/{loudness}_sound/without_prop/"
     elif type_ == "all":
-        dir_name = root_dir + f"recordings_9_7_20/200Hz/{loudness}_sound/with_prop/{gt_degrees}_deg/"
+        dir_name = (
+            root_dir
+            + f"recordings_9_7_20/200Hz/{loudness}_sound/with_prop/{gt_degrees}_deg/"
+        )
     Fs = parameters["recordings_9_7_20"]
     return read_all(dir_name, Fs, verbose)
 
@@ -81,7 +110,10 @@ def read_recording_14_7_20(gt_degrees=0, verbose=False, type_="props"):
     elif type_ == "source":
         dir_name = root_dir + f"/recordings_14_7_20/external_source_only/"
     elif type_ == "all":
-        dir_name = root_dir + f"/recordings_14_7_20/external_source_and_propellers/{gt_degrees}deg/"
+        dir_name = (
+            root_dir
+            + f"/recordings_14_7_20/external_source_and_propellers/{gt_degrees}deg/"
+        )
 
     Fs = parameters["recordings_14_7_20"]
     return read_all(dir_name, Fs, verbose)
@@ -89,7 +121,9 @@ def read_recording_14_7_20(gt_degrees=0, verbose=False, type_="props"):
 
 def read_recordings_9_7_20(loudness="high", gt_degrees=0, verbose=False):
     signals_props = read_recording_9_7_20(loudness, gt_degrees, verbose, type_="props")
-    signals_source = read_recording_9_7_20(loudness, gt_degrees, verbose, type_="source")
+    signals_source = read_recording_9_7_20(
+        loudness, gt_degrees, verbose, type_="source"
+    )
     signals_all = read_recording_9_7_20(loudness, gt_degrees, verbose, type_="all")
     return signals_props, signals_source, signals_all
 
@@ -117,14 +151,28 @@ def read_recording_16_7_20(fname, verbose):
     return signals
 
 
-def read_recordings_16_7_20(loudness="high", gt_degrees=0, source="white_noise", verbose=False):
+def read_recordings_16_7_20(
+    loudness="high", gt_degrees=0, source="white_noise", verbose=False
+):
     file_props = root_dir + "/recordings_16_7_20/propellers_only/all.npy"
     if source == "white_noise":
-        file_source = root_dir + f"/recordings_16_7_20/white_noise/{loudness}/{gt_degrees}deg/wn_only.npy"
-        file_all = root_dir + f"/recordings_16_7_20/white_noise/{loudness}/{gt_degrees}deg/wn_and_props.npy"
+        file_source = (
+            root_dir
+            + f"/recordings_16_7_20/white_noise/{loudness}/{gt_degrees}deg/wn_only.npy"
+        )
+        file_all = (
+            root_dir
+            + f"/recordings_16_7_20/white_noise/{loudness}/{gt_degrees}deg/wn_and_props.npy"
+        )
     elif source == "200Hz":
-        file_source = root_dir + f"/recordings_16_7_20/200Hz/{loudness}/{gt_degrees}deg/200Hz_only.npy"
-        file_all = root_dir + f"/recordings_16_7_20/200Hz/{loudness}/{gt_degrees}deg/200Hz_and_props.npy"
+        file_source = (
+            root_dir
+            + f"/recordings_16_7_20/200Hz/{loudness}/{gt_degrees}deg/200Hz_only.npy"
+        )
+        file_all = (
+            root_dir
+            + f"/recordings_16_7_20/200Hz/{loudness}/{gt_degrees}deg/200Hz_and_props.npy"
+        )
     else:
         raise ValueError(source)
 
@@ -132,9 +180,7 @@ def read_recordings_16_7_20(loudness="high", gt_degrees=0, source="white_noise",
     signals_source = read_recording_16_7_20(file_source, verbose)
     signals_all = read_recording_16_7_20(file_all, verbose)
     n_times = min(
-        signals_props.shape[1],
-        signals_all.shape[1],
-        signals_source.shape[1],
+        signals_props.shape[1], signals_all.shape[1], signals_source.shape[1],
     )
     signals_props = signals_props[:, -n_times:]
     signals_source = signals_source[:, -n_times:]

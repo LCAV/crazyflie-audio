@@ -25,6 +25,7 @@ z_ranger_logs = np.empty(1)
 z_filtered_logs = np.empty(1)
 vz_logs = np.empty(1)
 
+
 def initialization(scf):
     cf = scf.cf
     activate_high_level_commander(cf)
@@ -33,6 +34,7 @@ def initialization(scf):
     cf.param.set_value("kalman.resetEstimation", "0")
     time.sleep(2)
     return cf.high_level_commander
+
 
 def low_pass(z, z_old, dt, fc):
     tau = 1 / (2 * np.pi * fc)
@@ -67,7 +69,7 @@ def log_func(scf):
             vz = (z - z_filtered_logs[-1]) / dt
             vz_logs = np.append(vz_logs, vz)
             z_filtered_logs = np.append(z_filtered_logs, z)
-            print('thrust', data["stabilizer.thrust"])
+            print("thrust", data["stabilizer.thrust"])
 
 
 def take_off(commander):
@@ -76,13 +78,14 @@ def take_off(commander):
     commander.takeoff(height, 0.5)
     time.sleep(1.0)
 
+
 def param_update_callback(name, value):
-    print('The crazyflie has parameter ' + name + ' set at number: ' + value)
+    print("The crazyflie has parameter " + name + " set at number: " + value)
 
 
 if __name__ == "__main__":
-    #cf_id = "E7E7E7E7E8"
-    #id = f"radio://0/80/2M/{cf_id}"
+    # cf_id = "E7E7E7E7E8"
+    # id = f"radio://0/80/2M/{cf_id}"
 
     cf_id = "E7E7E7E7E7"
     id = f"radio://0/70/2M/{cf_id}"
@@ -95,7 +98,7 @@ if __name__ == "__main__":
         time_start = time.process_time()
 
         take_off(commander)
-        
+
         try:
             Thread(target=log_func, args=[scf]).start()
 
@@ -105,16 +108,15 @@ if __name__ == "__main__":
             commander.land(0.0, 1.0)
             time.sleep(2)
             commander.stop()
-        
+
         print("flying")
         time.sleep(2)
-        
+
         print("landing")
         commander.land(0.0, 1.0)
         commander.stop()
 
         time.sleep(2)
-
 
     if PLOTTING:
         fig, axs = plt.subplots(2)
