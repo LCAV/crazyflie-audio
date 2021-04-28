@@ -27,6 +27,7 @@ vz_logs = np.empty(1)
 id = "radio://0/80/2M"
 is_deck_attached = False
 
+
 def initialization(scf):
     cf = scf.cf
     activate_high_level_commander(cf)
@@ -36,15 +37,17 @@ def initialization(scf):
     time.sleep(2)
     return cf.high_level_commander
 
+
 def param_deck_flow(name, value):
     global is_deck_attached
     print(value)
     if value:
         is_deck_attached = True
-        print('Deck is attached!')
+        print("Deck is attached!")
     else:
         is_deck_attached = False
-        print('Deck is NOT attached!')
+        print("Deck is NOT attached!")
+
 
 def low_pass(z, z_old, dt, fc):
     tau = 1 / (2 * np.pi * fc)
@@ -88,17 +91,17 @@ def take_off(commander):
     commander.takeoff(height, 0.5)
     time.sleep(1.0)
 
+
 def param_update_callback(name, value):
-    print('The crazyflie has parameter ' + name + ' set at number: ' + value)
+    print("The crazyflie has parameter " + name + " set at number: " + value)
 
 
 def simple_param_async(scf, groupstr, namestr, value):
     cf = scf.cf
-    full_name = groupstr + '.' + namestr
+    full_name = groupstr + "." + namestr
 
-    cf.param.add_update_callback(group=groupstr, name=namestr,
-                                 cb=param_update_callback)
-    #time.sleep(1)
+    cf.param.add_update_callback(group=groupstr, name=namestr, cb=param_update_callback)
+    # time.sleep(1)
     cf.param.set_value(full_name, value)
 
 
@@ -112,7 +115,7 @@ if __name__ == "__main__":
         time_start = time.process_time()
 
         take_off(commander)
-        
+
         try:
             Thread(target=log_func, args=[scf]).start()
 
@@ -122,22 +125,20 @@ if __name__ == "__main__":
             commander.land(0.0, 1.0)
             time.sleep(2)
             commander.stop()
-        
 
-        simple_param_async(scf, 'sound', 'effect', 12)
-        simple_param_async(scf, 'sound', 'freq', 600)
-        simple_param_async(scf, 'sound', 'ratio', 0)
-        
+        simple_param_async(scf, "sound", "effect", 12)
+        simple_param_async(scf, "sound", "freq", 600)
+        simple_param_async(scf, "sound", "ratio", 0)
+
         print("Flying")
         time.sleep(2)
-        
+
         print("Landing")
         commander.land(0.0, 1.0)
         commander.stop()
 
-        simple_param_async(scf, 'sound', 'effect', 0)
+        simple_param_async(scf, "sound", "effect", 0)
         time.sleep(2)
-
 
     if PLOTTING:
 
