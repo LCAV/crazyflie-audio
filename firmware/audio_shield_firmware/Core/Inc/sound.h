@@ -6,7 +6,7 @@
 #define REPEAT -2
 #define BUZZER_ARR 256
 #define NOTE_LENGTH 300
-#define N_SPI_PER_NOTE 2
+#define N_SPI_PER_NOTE 1
 
 
 typedef const struct {

@@ -299,20 +299,9 @@ int main(void)
 	//HAL_TIM_Base_Start(&htim2);
 	timestamp = 0;
 	
-        HAL_TIM_Base_Init(&htim3); // debug timer
+    HAL_TIM_Base_Init(&htim3); // debug timer
 	HAL_TIM_Base_Start(&htim3);
 
-	// Super important! We need to wait until the bus is idle, otherwise
-	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	};
-	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
-	SPI_N_BYTES);
-
-	piezoInit();
-
-	piezoSetMaxCount(BUZZER_ARR);
-	piezoSetRatio(BUZZER_ARR / 50);
 
 	ledInit(); // uses htim1
 
@@ -328,6 +317,17 @@ int main(void)
 		}
 		ledSetRatio(0, i);
 	}
+	// Super important! We need to wait until the bus is idle, otherwise
+	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	};
+	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
+	SPI_N_BYTES);
+
+	piezoInit();
+
+	piezoSetMaxCount(BUZZER_ARR);
+	piezoSetRatio(BUZZER_ARR / 2 - 1);
 
   /* USER CODE END 2 */
 
