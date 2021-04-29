@@ -305,8 +305,15 @@ int main(void)
 
 	ledInit(); // uses htim1
 
+	piezoInit();
+
+	piezoSetMaxCount(BUZZER_ARR);
+	piezoSetRatio(BUZZER_ARR / 2 - 1);
+
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
+		piezoSetPSC(freq_list_tim[melodies[0].notes[i-1]].PSC);
+
 		for (uint8_t j = 0; j < 100; j++) {
 			ledSetRatio(j, i);
 			HAL_Delay(1);
@@ -317,17 +324,15 @@ int main(void)
 		}
 		ledSetRatio(0, i);
 	}
+
+	piezoSetPSC(0);
+
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
 	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
 	};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
-
-	piezoInit();
-
-	piezoSetMaxCount(BUZZER_ARR);
-	piezoSetRatio(BUZZER_ARR / 2 - 1);
 
   /* USER CODE END 2 */
 
