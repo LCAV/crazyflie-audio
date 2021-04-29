@@ -142,7 +142,6 @@ uint8_t spi_counter = 0;
 uint32_t note_tickstart;
 uint8_t melody_index = 0;
 uint8_t note_index = 0;
-freq_list_t next_note;
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
@@ -296,9 +295,12 @@ int main(void)
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-	HAL_TIM_Base_Init(&htim2); // debug timer
-	HAL_TIM_Base_Start(&htim2);
+	//HAL_TIM_Base_Init(&htim2); // debug timer
+	//HAL_TIM_Base_Start(&htim2);
 	timestamp = 0;
+	
+        HAL_TIM_Base_Init(&htim3); // debug timer
+	HAL_TIM_Base_Start(&htim3);
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
@@ -309,10 +311,8 @@ int main(void)
 
 	piezoInit();
 
-	HAL_TIM_Base_Init(&htim3); // small buzzer timer
 	piezoSetMaxCount(BUZZER_ARR);
 	piezoSetRatio(BUZZER_ARR / 10);
-	HAL_TIM_Base_Start(&htim3);
 
 	ledInit(); // uses htim1
 
@@ -347,9 +347,9 @@ int main(void)
 		// Monitoring
 		// TODO: Upgrade led reactions
 		ledSetMaxCount(2000);
-		if (last_update_spi > (HAL_GetTick() - 3000)) {
+		if(last_update_spi > (HAL_GetTick() - 3000)){
 			ledSetRatio((uint16_t) abs(dma_1[0]), 1);
-		} else {
+		} else{
 			ledSetRatio(0, 1);
 		}
 		ledSetRatio((uint16_t) abs(dma_1[1]), 2);
@@ -361,22 +361,27 @@ int main(void)
 
 			// start condition detection
 			if (buzzer_idx > 0) {
-				// TODO(FD) check for invalid index.
+				melody_index = -1;
 				for (int i = 0; i < sizeof(melodies); i++) {
 					if (melodies[i].index == buzzer_idx) {
 						melody_index = i;
 					}
 				}
-				note_index = 0;
-				state_note_sm = BUZZER_PLAY_NEXT;
+
+				if (melody_index >= 0){
+					note_index = 0;
+					state_note_sm = BUZZER_PLAY_NEXT;
+				}
 			}
 
 			break;
-		case BUZZER_PLAY_NEXT:
-			next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
+		case BUZZER_PLAY_NEXT: ;
+			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
+			//HAL_TIM_Base_Init(&htim3); 
 			piezoSetPSC(next_note.PSC);
+			//HAL_TIM_Base_Start(&htim3);
 
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
 			sum_counter = 0;
@@ -471,10 +476,13 @@ int main(void)
 			int16_t frequency_index = melodies[melody_index].notes[note_index];
 
 			if (frequency_index == STOP) {
+
 				state_note_sm = BUZZER_STOP;
+
 			} else if (frequency_index == REPEAT) {
 				// go back to beginning of melody
 				note_index = 0;
+
 				state_note_sm = BUZZER_PLAY_NEXT;
 			} else {
 				state_note_sm = BUZZER_PLAY_NEXT;
@@ -485,7 +493,9 @@ int main(void)
 			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
+			//HAL_TIM_Base_Init(&htim3); 
 			piezoSetPSC(0);
+			//HAL_TIM_Base_Start(&htim3);
 
 			state_note_sm = BUZZER_IDLE;
 
@@ -1209,6 +1219,7 @@ void fill_tx_buffer() {
 
 	/*
 	i_array = 0;
+
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
 		averaged_value = mics_f_sum[i]/sum_counter;

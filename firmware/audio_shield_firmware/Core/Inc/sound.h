@@ -74,10 +74,12 @@ freq_list_t freq_list_tim[] = {
 
 int16_t sweep[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, REPEAT};
 int16_t mono3000[] = {0, REPEAT};
+int16_t mono4000[] = {8, REPEAT};
 
 melody melodies[] = {
 	{1, sweep},
-	{3000, mono3000}
+	{3000, mono3000},
+	{4000, mono4000}
 };
 
 #endif /* __SOUND_H */
