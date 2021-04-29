@@ -312,7 +312,7 @@ int main(void)
 	piezoInit();
 
 	piezoSetMaxCount(BUZZER_ARR);
-	piezoSetRatio(BUZZER_ARR / 10);
+	piezoSetRatio(BUZZER_ARR / 50);
 
 	ledInit(); // uses htim1
 
