@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <export version="D">
   <design>
-    <source>/Users/hoffet/Documents/LCAV_Repo/crazyflie-audio/hardware/audio_shield_V2/audio_shield.sch</source>
-    <date>2020 October 14, Wednesday 13:50:12</date>
+    <source>/Users/hoffet/Documents/LCAV_Repo/audioROS/crazyflie-audio/hardware/audio_shield_V3/audio_shield.sch</source>
+    <date>2021 March 11, Thursday 16:56:29</date>
     <tool>Eeschema (5.1.6-0-10_14)</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -17,7 +17,72 @@
         <comment number="4" value=""/>
       </title_block>
     </sheet>
-    <sheet number="2" name="/stm32f446re/" tstamps="/5EF054A6/">
+    <sheet number="2" name="/sheet5F096C0C/" tstamps="/5F096C14/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="3" name="/sheet5F09509A/" tstamps="/5F0950A2/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="4" name="/sheet5F0936FD/" tstamps="/5F093705/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="5" name="/sheet5F046037/" tstamps="/5F04603F/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>SPH0645LM4H-B .sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="6" name="/Sheet6053D7A9/" tstamps="/6053D7AA/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>leds.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="7" name="/stm32f446re/" tstamps="/5EF054A6/">
       <title_block>
         <title/>
         <company/>
@@ -30,81 +95,18 @@
         <comment number="4" value=""/>
       </title_block>
     </sheet>
-    <sheet number="3" name="/sheet5F096C0C/" tstamps="/5F096C14/">
-      <title_block>
-        <title/>
-        <company/>
-        <rev/>
-        <date/>
-        <source>SPH0645LM4H-B .sch</source>
-        <comment number="1" value=""/>
-        <comment number="2" value=""/>
-        <comment number="3" value=""/>
-        <comment number="4" value=""/>
-      </title_block>
-    </sheet>
-    <sheet number="4" name="/sheet5F09509A/" tstamps="/5F0950A2/">
-      <title_block>
-        <title/>
-        <company/>
-        <rev/>
-        <date/>
-        <source>SPH0645LM4H-B .sch</source>
-        <comment number="1" value=""/>
-        <comment number="2" value=""/>
-        <comment number="3" value=""/>
-        <comment number="4" value=""/>
-      </title_block>
-    </sheet>
-    <sheet number="5" name="/sheet5F0936FD/" tstamps="/5F093705/">
-      <title_block>
-        <title/>
-        <company/>
-        <rev/>
-        <date/>
-        <source>SPH0645LM4H-B .sch</source>
-        <comment number="1" value=""/>
-        <comment number="2" value=""/>
-        <comment number="3" value=""/>
-        <comment number="4" value=""/>
-      </title_block>
-    </sheet>
-    <sheet number="6" name="/sheet5F046037/" tstamps="/5F04603F/">
-      <title_block>
-        <title/>
-        <company/>
-        <rev/>
-        <date/>
-        <source>SPH0645LM4H-B .sch</source>
-        <comment number="1" value=""/>
-        <comment number="2" value=""/>
-        <comment number="3" value=""/>
-        <comment number="4" value=""/>
-      </title_block>
-    </sheet>
   </design>
   <components>
-    <comp ref="J9">
-      <value>SWD_TC2030</value>
-      <footprint>Connector:Tag-Connect_TC2030-IDC-FP_2x03_P1.27mm_Vertical</footprint>
-      <datasheet>https://www.digikey.ch/htmldatasheets/production/2094258/0/0/1/tc2030-ctx-datasheet.html</datasheet>
-      <fields>
-        <field name="Price">51.01</field>
-        <field name="Supplier">Digikey</field>
-        <field name="Supplier ref.">TC2030-CTX-ND </field>
-      </fields>
-      <libsource lib="audio_shield" part="SWD_TC2030" description=""/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5EFDB2F4</tstamp>
-    </comp>
     <comp ref="J2">
       <value>CONN_10_RIGHT</value>
       <footprint>audio_shield:BF090-10-X-B1</footprint>
       <datasheet>http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Price">1.46</field>
         <field name="Supplier">Farnell</field>
         <field name="Supplier ref.">2751429 </field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector_Generic" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -115,9 +117,11 @@
       <footprint>audio_shield:BF090-10-X-B1</footprint>
       <datasheet>http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Price">1.46</field>
         <field name="Supplier">Farnell</field>
         <field name="Supplier ref.">2751429 </field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector_Generic" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -128,7 +132,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -139,7 +145,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -150,7 +158,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -161,7 +171,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -172,7 +184,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -183,7 +197,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -194,7 +210,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -205,7 +223,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -216,7 +236,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -227,7 +249,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -238,7 +262,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -249,7 +275,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -260,7 +288,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -271,7 +301,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -282,7 +314,9 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
@@ -292,20 +326,24 @@
       <value>STLINK-V3MINI Placeholder</value>
       <datasheet>https://www.digikey.ch/product-detail/fr/STLINK-V3MINI/497-19530-ND/10266291/?itemSeq=333705927 ~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="AVR-JTAG-10" description="Atmel 10-pin JTAG connector"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F223B53</tstamp>
     </comp>
     <comp ref="U2">
-      <value>DS28E05P</value>
+      <value>DS28E05R+T</value>
       <footprint>Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm</footprint>
       <datasheet>https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price"> 0.73</field>
         <field name="Supplier">Mouser</field>
-        <field name="Supplier ref.">700-DS28E05P+</field>
+        <field name="Supplier ref.">700-DS28E05R+T</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="audio_shield" part="DS28E05P" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -316,11 +354,496 @@
       <footprint>audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">not placed</field>
         <field name="Supplier">np</field>
+        <field name="Type">THT</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F815185</tstamp>
+    </comp>
+    <comp ref="R10">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.0084</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-56-687</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>604AB1B8</tstamp>
+    </comp>
+    <comp ref="BZ1">
+      <value>KXG1201B</value>
+      <footprint>Buzzer_Beeper:MagneticBuzzer_ProSignal_ABT-410-RC</footprint>
+      <datasheet>https://www.distrelec.ch/fr/vibreur-electromagnetique-86-db-khz-vdc-kingstate-kxg1201b/p/13787249?track=true&amp;no-cache=true&amp;marketingPopup=false</datasheet>
+      <fields>
+        <field name="Mount">not placed</field>
+        <field name="Price">2.45</field>
+        <field name="Supplier">np</field>
+        <field name="Type">THT</field>
+      </fields>
+      <libsource lib="Device" part="Buzzer" description="Buzzer, polarized"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>604C2FB7</tstamp>
+    </comp>
+    <comp ref="Q1">
+      <value>BS170F</value>
+      <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
+      <datasheet>https://www.distrelec.ch/fr/mosfet-60-sot-23-diodes-incorporated-mmbf170/p/30041455?track=true&amp;no-cache=true&amp;marketingPopup=false</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">0.1937</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-41-455</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Transistor_FET" part="BS170F" description="0.15A Id, 60V Vds, N-Channel MOSFET, SOT-23"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>604D2928</tstamp>
+    </comp>
+    <comp ref="U3">
+      <value>DS28E05R+T</value>
+      <footprint>Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm</footprint>
+      <datasheet>https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price"> 0.73</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">700-DS28E05R+T</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="audio_shield" part="DS28E05P" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>604E5C19</tstamp>
+    </comp>
+    <comp ref="JP3">
+      <value>Jumper_2_Bridged</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">not placed</field>
+        <field name="Type">THT</field>
+      </fields>
+      <libsource lib="Jumper" part="Jumper_2_Bridged" description="Jumper, 2-pole, closed/bridged"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>604F84EB</tstamp>
+    </comp>
+    <comp ref="JP1">
+      <value>Jumper_2_Open</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">not placed</field>
+        <field name="Type">THT</field>
+      </fields>
+      <libsource lib="Jumper" part="Jumper_2_Open" description="Jumper, 2-pole, open"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>604F6CE1</tstamp>
+    </comp>
+    <comp ref="JP2">
+      <value>Jumper_3_Bridged12</value>
+      <footprint>Jumper:SolderJumper-3_P1.3mm_Bridged12_RoundedPad1.0x1.5mm_NumberLabels</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">not placed</field>
+        <field name="Type">THT</field>
+      </fields>
+      <libsource lib="Jumper" part="Jumper_3_Bridged12" description="Jumper, 3-pole, pins 1+2 closed/bridged"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>6052495A</tstamp>
+    </comp>
+    <comp ref="J9">
+      <value>SWD_TC2030</value>
+      <footprint>Connector:Tag-Connect_TC2030-IDC-FP_2x03_P1.27mm_Vertical</footprint>
+      <datasheet>https://www.digikey.ch/htmldatasheets/production/2094258/0/0/1/tc2030-ctx-datasheet.html</datasheet>
+      <fields>
+        <field name="Mount">not placed</field>
+        <field name="Price">51.01</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">TC2030-CTX-ND </field>
+        <field name="Type">THT</field>
+      </fields>
+      <libsource lib="audio_shield" part="SWD_TC2030" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFDB2F4</tstamp>
+    </comp>
+    <comp ref="MK4">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="C17">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C16">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R9">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="MK3">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="C15">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C14">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R7">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="MK2">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="C13">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C12">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R5">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="MK1">
+      <value>SPH0645LM4H-B</value>
+      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
+      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">2.84</field>
+        <field name="Supplier">Digikey</field>
+        <field name="Supplier ref.">423-1405-1-ND </field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F09357C</tstamp>
+    </comp>
+    <comp ref="C11">
+      <value>100n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price">0.0093</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F09559C</tstamp>
+    </comp>
+    <comp ref="C10">
+      <value>220p</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Mount">placed</field>
+        <field name="Price"> 0.0135</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">300-86-545</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F096212</tstamp>
+    </comp>
+    <comp ref="R3">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
+      <tstamp>5F0963B1</tstamp>
+    </comp>
+    <comp ref="R11">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>6055427C</tstamp>
+    </comp>
+    <comp ref="D1">
+      <value>LED_G</value>
+      <footprint>Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder</footprint>
+      <datasheet>https://www.distrelec.ch/fr/led-cms-565nm-1206-12mcd-20ma-kingbright-kp-3216sgd/p/17510257?q=&amp;pos=1&amp;origPos=2&amp;origPageSize=50&amp;track=true</datasheet>
+      <fields>
+        <field name="Description">Green LED</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.186</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">175-10-257</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="LED" description="Light emitting diode"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>60554B2F</tstamp>
+    </comp>
+    <comp ref="R12">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>60557B91</tstamp>
+    </comp>
+    <comp ref="R13">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>60558AAF</tstamp>
+    </comp>
+    <comp ref="D3">
+      <value>LED_R</value>
+      <footprint>Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder</footprint>
+      <datasheet>https://www.distrelec.ch/fr/led-cms-700nm-1206-2mcd-20ma-kingbright-kp-3216hd/p/17510254?q=&amp;pos=2&amp;origPos=225&amp;origPageSize=50&amp;track=true</datasheet>
+      <fields>
+        <field name="Description">RED LED</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.186</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">175-10-254</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="LED" description="Light emitting diode"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>60558AB9</tstamp>
+    </comp>
+    <comp ref="R14">
+      <value>68</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.mouser.ch/ProductDetail/KOA-Speer/RN73H1JTTD68R0F100?qs=Tw8F%252BABiY2pf0RdHKbTSZA%3D%3D</datasheet>
+      <fields>
+        <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.283	</field>
+        <field name="Supplier">Mouser</field>
+        <field name="Supplier ref.">660-RN73H1JT68R0F100</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>605593C0</tstamp>
+    </comp>
+    <comp ref="D4">
+      <value>LED_R</value>
+      <footprint>Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder</footprint>
+      <datasheet>https://www.distrelec.ch/fr/led-cms-700nm-1206-2mcd-20ma-kingbright-kp-3216hd/p/17510254?q=&amp;pos=2&amp;origPos=225&amp;origPageSize=50&amp;track=true</datasheet>
+      <fields>
+        <field name="Description">RED LED</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.186</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">175-10-254</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="LED" description="Light emitting diode"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>60559AD0</tstamp>
+    </comp>
+    <comp ref="D2">
+      <value>LED_R</value>
+      <footprint>Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder</footprint>
+      <datasheet>https://www.distrelec.ch/fr/led-cms-700nm-1206-2mcd-20ma-kingbright-kp-3216hd/p/17510254?q=&amp;pos=2&amp;origPos=225&amp;origPageSize=50&amp;track=true</datasheet>
+      <fields>
+        <field name="Description">RED LED</field>
+        <field name="Mount">placed</field>
+        <field name="Price">0.186</field>
+        <field name="Supplier">Distrelec</field>
+        <field name="Supplier ref.">175-10-254</field>
+        <field name="Type">SMD</field>
+      </fields>
+      <libsource lib="Device" part="LED" description="Light emitting diode"/>
+      <sheetpath names="/Sheet6053D7A9/" tstamps="/6053D7AA/"/>
+      <tstamp>6055B1AE</tstamp>
     </comp>
     <comp ref="R1">
       <value>10k</value>
@@ -328,9 +851,11 @@
       <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
       <fields>
         <field name="Description">Thick film resistor 0.1W 1%</field>
+        <field name="Mount">placed</field>
         <field name="Price">0.0084</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-56-687</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -341,9 +866,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0093</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -354,9 +881,11 @@
       <footprint>Inductor_SMD:L_0603_1608Metric</footprint>
       <datasheet>https://www.distrelec.ch/fr/inductance-cms-2uh-10-prefix-prefix-15-suffix-suffix-ma-kemet-l0603c2r2ksmst/p/30143947?track=true&amp;no-cache=true</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.3708</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">301-43-947</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="L" description="Inductor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -367,9 +896,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0093</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -380,9 +911,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0093</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -393,9 +926,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0093</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -406,9 +941,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0093</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -419,9 +956,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.3896</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-31-676</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -433,9 +972,11 @@
       <datasheet>http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00141306.pdf</datasheet>
       <fields>
         <field name="Description">Microcontrôleur 32bit 512KB LQFP-64</field>
+        <field name="Mount">placed</field>
         <field name="Price">8.63</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">301-70-759</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="MCU_ST_STM32F4" part="STM32F446RETx" description="ARM Cortex-M4 MCU, 512KB flash, 128KB RAM, 180MHz, 1.8-3.6V, 50 GPIO, LQFP-64"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -446,9 +987,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0629</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">301-44-765</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -459,9 +1002,11 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.0093</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-86-429</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
@@ -472,281 +1017,15 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
       <fields>
+        <field name="Mount">placed</field>
         <field name="Price">0.3896</field>
         <field name="Supplier">Distrelec</field>
         <field name="Supplier ref.">300-31-676</field>
+        <field name="Type">SMD</field>
       </fields>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <sheetpath names="/stm32f446re/" tstamps="/5EF054A6/"/>
       <tstamp>5EF31DDB</tstamp>
-    </comp>
-    <comp ref="MK4">
-      <value>SPH0645LM4H-B</value>
-      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
-      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
-      <fields>
-        <field name="Price">2.84</field>
-        <field name="Supplier">Digikey</field>
-        <field name="Supplier ref.">423-1405-1-ND </field>
-      </fields>
-      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
-      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
-      <tstamp>5F09357C</tstamp>
-    </comp>
-    <comp ref="R8">
-      <value>10k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price">0.0084</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-56-687</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
-      <tstamp>5F0947D1</tstamp>
-    </comp>
-    <comp ref="C17">
-      <value>100n</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price">0.0093</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-429</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
-      <tstamp>5F09559C</tstamp>
-    </comp>
-    <comp ref="C16">
-      <value>220p</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price"> 0.0135</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-545</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
-      <tstamp>5F096212</tstamp>
-    </comp>
-    <comp ref="R9">
-      <value>68</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price"> 0.0265</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">301-49-821</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F096C0C/" tstamps="/5F096C14/"/>
-      <tstamp>5F0963B1</tstamp>
-    </comp>
-    <comp ref="MK3">
-      <value>SPH0645LM4H-B</value>
-      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
-      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
-      <fields>
-        <field name="Price">2.84</field>
-        <field name="Supplier">Digikey</field>
-        <field name="Supplier ref.">423-1405-1-ND </field>
-      </fields>
-      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
-      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
-      <tstamp>5F09357C</tstamp>
-    </comp>
-    <comp ref="R6">
-      <value>10k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price">0.0084</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-56-687</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
-      <tstamp>5F0947D1</tstamp>
-    </comp>
-    <comp ref="C15">
-      <value>100n</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price">0.0093</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-429</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
-      <tstamp>5F09559C</tstamp>
-    </comp>
-    <comp ref="C14">
-      <value>220p</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price"> 0.0135</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-545</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
-      <tstamp>5F096212</tstamp>
-    </comp>
-    <comp ref="R7">
-      <value>68</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price"> 0.0265</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">301-49-821</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F09509A/" tstamps="/5F0950A2/"/>
-      <tstamp>5F0963B1</tstamp>
-    </comp>
-    <comp ref="MK2">
-      <value>SPH0645LM4H-B</value>
-      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
-      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
-      <fields>
-        <field name="Price">2.84</field>
-        <field name="Supplier">Digikey</field>
-        <field name="Supplier ref.">423-1405-1-ND </field>
-      </fields>
-      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
-      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
-      <tstamp>5F09357C</tstamp>
-    </comp>
-    <comp ref="R4">
-      <value>10k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price">0.0084</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-56-687</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
-      <tstamp>5F0947D1</tstamp>
-    </comp>
-    <comp ref="C13">
-      <value>100n</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price">0.0093</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-429</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
-      <tstamp>5F09559C</tstamp>
-    </comp>
-    <comp ref="C12">
-      <value>220p</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price"> 0.0135</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-545</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
-      <tstamp>5F096212</tstamp>
-    </comp>
-    <comp ref="R5">
-      <value>68</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price"> 0.0265</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">301-49-821</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F0936FD/" tstamps="/5F093705/"/>
-      <tstamp>5F0963B1</tstamp>
-    </comp>
-    <comp ref="MK1">
-      <value>SPH0645LM4H-B</value>
-      <footprint>audio_shield:MIC_SPH0645LM4H-B</footprint>
-      <datasheet>https://www.digikey.ch/product-detail/en/knowles/SPH0645LM4H-B/423-1405-1-ND/5332432</datasheet>
-      <fields>
-        <field name="Price">2.84</field>
-        <field name="Supplier">Digikey</field>
-        <field name="Supplier ref.">423-1405-1-ND </field>
-      </fields>
-      <libsource lib="SPH0645LM4H-B" part="SPH0645LM4H-B" description=""/>
-      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
-      <tstamp>5F09357C</tstamp>
-    </comp>
-    <comp ref="R2">
-      <value>10k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-couche-epaisse-resistance-cms-0603-10kohm-100mw-rnd-components-rnd-1550603saj0103t5e/p/30056687?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price">0.0084</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-56-687</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
-      <tstamp>5F0947D1</tstamp>
-    </comp>
-    <comp ref="C11">
-      <value>100n</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price">0.0093</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-429</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
-      <tstamp>5F09559C</tstamp>
-    </comp>
-    <comp ref="C10">
-      <value>220p</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <fields>
-        <field name="Price"> 0.0135</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">300-86-545</field>
-      </fields>
-      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
-      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
-      <tstamp>5F096212</tstamp>
-    </comp>
-    <comp ref="R3">
-      <value>68</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>https://www.distrelec.ch/fr/resistance-cms-couche-epaisse-haute-precision-protegees-contre-les-surtensions-68ohm-0603-rnd-components-rnd-155ps03w4f680jt5e/p/30149821?track=true&amp;no-cache=true</datasheet>
-      <fields>
-        <field name="Description">Thick film resistor 0.1W 1%</field>
-        <field name="Price"> 0.0265</field>
-        <field name="Supplier">Distrelec</field>
-        <field name="Supplier ref.">301-49-821</field>
-      </fields>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/sheet5F046037/" tstamps="/5F04603F/"/>
-      <tstamp>5F0963B1</tstamp>
     </comp>
   </components>
   <libparts>
@@ -812,6 +1091,21 @@
         <pin num="10" name="Pin_10" type="passive"/>
       </pins>
     </libpart>
+    <libpart lib="Device" part="Buzzer">
+      <description>Buzzer, polarized</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>*Buzzer*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">BZ</field>
+        <field name="Value">Buzzer</field>
+      </fields>
+      <pins>
+        <pin num="1" name="-" type="passive"/>
+        <pin num="2" name="+" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="Device" part="C">
       <description>Unpolarized capacitor</description>
       <docs>~</docs>
@@ -845,6 +1139,23 @@
         <pin num="2" name="2" type="passive"/>
       </pins>
     </libpart>
+    <libpart lib="Device" part="LED">
+      <description>Light emitting diode</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>LED*</fp>
+        <fp>LED_SMD:*</fp>
+        <fp>LED_THT:*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">LED</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="Device" part="R">
       <description>Resistor</description>
       <docs>~</docs>
@@ -858,6 +1169,58 @@
       <pins>
         <pin num="1" name="~" type="passive"/>
         <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="Jumper_2_Bridged">
+      <description>Jumper, 2-pole, closed/bridged</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Jumper*</fp>
+        <fp>TestPoint*2Pads*</fp>
+        <fp>TestPoint*Bridge*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">Jumper_2_Bridged</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="Jumper_2_Open">
+      <description>Jumper, 2-pole, open</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Jumper*</fp>
+        <fp>TestPoint*2Pads*</fp>
+        <fp>TestPoint*Bridge*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">Jumper_2_Open</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="Jumper_3_Bridged12">
+      <description>Jumper, 3-pole, pins 1+2 closed/bridged</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Jumper*</fp>
+        <fp>TestPoint*3Pads*</fp>
+        <fp>TestPoint*Bridge*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">Jumper_3_Bridged12</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="C" type="input"/>
+        <pin num="3" name="B" type="passive"/>
       </pins>
     </libpart>
     <libpart lib="MCU_ST_STM32F4" part="STM32F446RCTx">
@@ -962,6 +1325,86 @@
         <pin num="6" name="DATA_OUT" type="output"/>
       </pins>
     </libpart>
+    <libpart lib="Transistor_FET" part="BSS138">
+      <aliases>
+        <alias>2N7002</alias>
+        <alias>2N7002E</alias>
+        <alias>2N7002H</alias>
+        <alias>2N7002K</alias>
+        <alias>BS170F</alias>
+        <alias>BS870</alias>
+        <alias>BSN20</alias>
+        <alias>BSS123</alias>
+        <alias>BSS127S</alias>
+        <alias>DMG2302U</alias>
+        <alias>DMG3402L</alias>
+        <alias>DMG3404L</alias>
+        <alias>DMG3406L</alias>
+        <alias>DMG3414U</alias>
+        <alias>DMG3418L</alias>
+        <alias>DMN10H220L</alias>
+        <alias>DMN10H700S</alias>
+        <alias>DMN13H750S</alias>
+        <alias>DMN2041L</alias>
+        <alias>DMN2050L</alias>
+        <alias>DMN2056U</alias>
+        <alias>DMN2058U</alias>
+        <alias>DMN2075U</alias>
+        <alias>DMN2230U</alias>
+        <alias>DMN24H11DS</alias>
+        <alias>DMN24H3D5L</alias>
+        <alias>DMN3042L</alias>
+        <alias>DMN3051L</alias>
+        <alias>DMN30H4D0L</alias>
+        <alias>DMN3110S</alias>
+        <alias>DMN3150L</alias>
+        <alias>DMN3300U</alias>
+        <alias>DMN3404L</alias>
+        <alias>DMN6075S</alias>
+        <alias>DMN6140L</alias>
+        <alias>DMN67D7L</alias>
+        <alias>DMN67D8L</alias>
+        <alias>MMBF170</alias>
+        <alias>VN10LF</alias>
+        <alias>ZVN3306F</alias>
+        <alias>ZVN3310F</alias>
+        <alias>ZVN3320F</alias>
+        <alias>ZVN4106F</alias>
+        <alias>ZXM61N02F</alias>
+        <alias>ZXM61N03F</alias>
+        <alias>ZXMN10A07F</alias>
+        <alias>ZXMN2A01F</alias>
+        <alias>ZXMN2A14F</alias>
+        <alias>ZXMN2B01F</alias>
+        <alias>ZXMN2B14FH</alias>
+        <alias>ZXMN2F30FH</alias>
+        <alias>ZXMN2F34FH</alias>
+        <alias>ZXMN3A01F</alias>
+        <alias>ZXMN3A14F</alias>
+        <alias>ZXMN3B01F</alias>
+        <alias>ZXMN3B14F</alias>
+        <alias>ZXMN3F30FH</alias>
+        <alias>ZXMN6A07F</alias>
+        <alias>IRLML0030</alias>
+        <alias>IRLML2060</alias>
+        <alias>TSM2302CX</alias>
+      </aliases>
+      <description>50V Vds, 0.22A Id, N-Channel MOSFET, SOT-23</description>
+      <docs>https://www.fairchildsemi.com/datasheets/BS/BSS138.pdf</docs>
+      <footprints>
+        <fp>SOT?23*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">Q</field>
+        <field name="Value">BSS138</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23</field>
+      </fields>
+      <pins>
+        <pin num="1" name="G" type="input"/>
+        <pin num="2" name="S" type="passive"/>
+        <pin num="3" name="D" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="audio_shield" part="DS28E05P">
       <fields>
         <field name="Reference">U</field>
@@ -1001,137 +1444,48 @@
     <library logical="Device">
       <uri>/Library/Application Support/kicad/library/Device.lib</uri>
     </library>
+    <library logical="Jumper">
+      <uri>/Library/Application Support/kicad/library/Jumper.lib</uri>
+    </library>
     <library logical="MCU_ST_STM32F4">
       <uri>/Library/Application Support/kicad/library/MCU_ST_STM32F4.lib</uri>
     </library>
     <library logical="SPH0645LM4H-B">
-      <uri>/Users/hoffet/Documents/LCAV_Repo/crazyflie-audio/hardware/audio_shield_V2/SPH0645LM4H-B.lib</uri>
+      <uri>/Users/hoffet/Documents/LCAV_Repo/audioROS/crazyflie-audio/hardware/audio_shield_V3/SPH0645LM4H-B.lib</uri>
+    </library>
+    <library logical="Transistor_FET">
+      <uri>/Library/Application Support/kicad/library/Transistor_FET.lib</uri>
     </library>
     <library logical="audio_shield">
-      <uri>/Users/hoffet/Documents/LCAV_Repo/crazyflie-audio/hardware/audio_shield_V2/audio_shield.lib</uri>
+      <uri>/Users/hoffet/Documents/LCAV_Repo/audioROS/crazyflie-audio/hardware/audio_shield_V3/audio_shield.lib</uri>
     </library>
   </libraries>
   <nets>
-    <net code="1" name="/SWCLK">
-      <node ref="J9" pin="4"/>
-      <node ref="U1" pin="49"/>
-    </net>
-    <net code="2" name="/SWDIO">
-      <node ref="J9" pin="2"/>
-      <node ref="U1" pin="46"/>
-    </net>
-    <net code="3" name="/nRESET">
-      <node ref="U1" pin="7"/>
-      <node ref="J9" pin="3"/>
-    </net>
-    <net code="4" name="/RX1">
-      <node ref="U1" pin="14"/>
-      <node ref="RX1" pin="1"/>
-      <node ref="J1" pin="2"/>
-    </net>
-    <net code="5" name="/TX1">
-      <node ref="J1" pin="3"/>
-      <node ref="U1" pin="15"/>
-      <node ref="TX1" pin="1"/>
-    </net>
-    <net code="6" name="/SDA">
-      <node ref="U1" pin="59"/>
-    </net>
-    <net code="7" name="/SCL">
-      <node ref="U1" pin="58"/>
-    </net>
-    <net code="8" name="+3V0">
-      <node ref="MK4" pin="5"/>
-      <node ref="C17" pin="2"/>
-      <node ref="C16" pin="2"/>
-      <node ref="R6" pin="1"/>
-      <node ref="MK3" pin="5"/>
-      <node ref="C15" pin="2"/>
-      <node ref="C14" pin="2"/>
-      <node ref="C8" pin="1"/>
-      <node ref="C7" pin="1"/>
-      <node ref="C6" pin="1"/>
-      <node ref="C5" pin="1"/>
-      <node ref="MK3" pin="2"/>
-      <node ref="L1" pin="2"/>
-      <node ref="U1" pin="1"/>
-      <node ref="U1" pin="19"/>
-      <node ref="U1" pin="32"/>
-      <node ref="MK2" pin="5"/>
-      <node ref="U1" pin="48"/>
-      <node ref="C13" pin="2"/>
-      <node ref="U1" pin="64"/>
-      <node ref="C9" pin="1"/>
-      <node ref="C12" pin="2"/>
-      <node ref="C4" pin="1"/>
-      <node ref="3V0_2" pin="1"/>
-      <node ref="J9" pin="1"/>
-      <node ref="J1" pin="1"/>
-      <node ref="MK1" pin="2"/>
-      <node ref="MK1" pin="5"/>
-      <node ref="R2" pin="1"/>
-      <node ref="C11" pin="2"/>
-      <node ref="C10" pin="2"/>
-    </net>
-    <net code="9" name="Net-(J9-Pad6)">
-      <node ref="J9" pin="6"/>
-    </net>
-    <net code="10" name="/I2S1_SD">
-      <node ref="R9" pin="2"/>
-      <node ref="U1" pin="23"/>
-      <node ref="I2S3_SD1" pin="1"/>
-      <node ref="R7" pin="2"/>
-    </net>
-    <net code="11" name="/I2S1_CK">
-      <node ref="MK4" pin="4"/>
-      <node ref="I2S3_CK1" pin="1"/>
-      <node ref="MK3" pin="4"/>
-      <node ref="U1" pin="55"/>
-    </net>
-    <net code="12" name="/I2S3_WS">
-      <node ref="MK1" pin="1"/>
-      <node ref="MK2" pin="1"/>
-      <node ref="U1" pin="50"/>
-      <node ref="I2S1_WS1" pin="1"/>
-    </net>
-    <net code="13" name="/I2S3_CK">
-      <node ref="I2S1_CK1" pin="1"/>
-      <node ref="MK1" pin="4"/>
-      <node ref="U1" pin="51"/>
-      <node ref="MK2" pin="4"/>
-    </net>
-    <net code="14" name="/I2S3_SD">
-      <node ref="R3" pin="2"/>
-      <node ref="U1" pin="26"/>
-      <node ref="I2S1_SD1" pin="1"/>
-      <node ref="R5" pin="2"/>
-    </net>
-    <net code="15" name="/I2S1_WS">
-      <node ref="MK4" pin="1"/>
-      <node ref="I2S3_WS1" pin="1"/>
-      <node ref="U1" pin="20"/>
-      <node ref="MK3" pin="1"/>
-    </net>
-    <net code="16" name="GND">
-      <node ref="C8" pin="2"/>
-      <node ref="C7" pin="2"/>
-      <node ref="C6" pin="2"/>
-      <node ref="C5" pin="2"/>
-      <node ref="C3" pin="2"/>
-      <node ref="J9" pin="5"/>
-      <node ref="MK4" pin="2"/>
-      <node ref="MK4" pin="3"/>
-      <node ref="C1" pin="2"/>
-      <node ref="R8" pin="1"/>
-      <node ref="R8" pin="2"/>
-      <node ref="C17" pin="1"/>
-      <node ref="R1" pin="2"/>
+    <net code="1" name="GND">
+      <node ref="U2" pin="1"/>
+      <node ref="D2" pin="2"/>
+      <node ref="R10" pin="2"/>
+      <node ref="Q1" pin="2"/>
+      <node ref="D4" pin="2"/>
+      <node ref="D3" pin="2"/>
+      <node ref="D1" pin="2"/>
       <node ref="C16" pin="1"/>
-      <node ref="R6" pin="2"/>
+      <node ref="C17" pin="1"/>
+      <node ref="MK4" pin="3"/>
+      <node ref="MK4" pin="2"/>
       <node ref="MK3" pin="3"/>
       <node ref="C15" pin="1"/>
       <node ref="C14" pin="1"/>
+      <node ref="MK2" pin="2"/>
+      <node ref="MK2" pin="3"/>
+      <node ref="C13" pin="1"/>
+      <node ref="C12" pin="1"/>
+      <node ref="MK1" pin="3"/>
+      <node ref="C11" pin="1"/>
+      <node ref="C10" pin="1"/>
       <node ref="U1" pin="18"/>
+      <node ref="C1" pin="2"/>
+      <node ref="R1" pin="2"/>
       <node ref="U1" pin="31"/>
       <node ref="U1" pin="47"/>
       <node ref="U1" pin="63"/>
@@ -1139,250 +1493,397 @@
       <node ref="C2" pin="2"/>
       <node ref="C9" pin="2"/>
       <node ref="C4" pin="2"/>
-      <node ref="U2" pin="1"/>
-      <node ref="MK2" pin="2"/>
-      <node ref="MK2" pin="3"/>
-      <node ref="R4" pin="1"/>
-      <node ref="R4" pin="2"/>
-      <node ref="C13" pin="1"/>
-      <node ref="C12" pin="1"/>
-      <node ref="GND2" pin="1"/>
       <node ref="J1" pin="10"/>
-      <node ref="MK1" pin="3"/>
-      <node ref="R2" pin="2"/>
-      <node ref="C11" pin="1"/>
-      <node ref="C10" pin="1"/>
+      <node ref="U3" pin="1"/>
+      <node ref="C8" pin="2"/>
+      <node ref="C7" pin="2"/>
+      <node ref="C6" pin="2"/>
+      <node ref="C5" pin="2"/>
+      <node ref="GND2" pin="1"/>
+      <node ref="J9" pin="5"/>
+      <node ref="C3" pin="2"/>
     </net>
-    <net code="17" name="/SPI2_NSS">
-      <node ref="U1" pin="33"/>
+    <net code="2" name="/SWCLK">
+      <node ref="J9" pin="4"/>
+      <node ref="U1" pin="49"/>
+    </net>
+    <net code="3" name="/SWDIO">
+      <node ref="U1" pin="46"/>
+      <node ref="J9" pin="2"/>
+    </net>
+    <net code="4" name="/nRESET">
+      <node ref="U1" pin="7"/>
+      <node ref="J9" pin="3"/>
+    </net>
+    <net code="5" name="/RX1">
+      <node ref="RX1" pin="1"/>
+      <node ref="U1" pin="14"/>
+      <node ref="J1" pin="2"/>
+    </net>
+    <net code="6" name="/TX1">
+      <node ref="J1" pin="3"/>
+      <node ref="U1" pin="15"/>
+      <node ref="TX1" pin="1"/>
+    </net>
+    <net code="7" name="/SDA">
+      <node ref="U1" pin="59"/>
+    </net>
+    <net code="8" name="/SCL">
+      <node ref="U1" pin="58"/>
+    </net>
+    <net code="9" name="+3V0">
+      <node ref="MK1" pin="2"/>
+      <node ref="MK1" pin="5"/>
+      <node ref="C11" pin="2"/>
+      <node ref="C10" pin="2"/>
+      <node ref="BZ1" pin="1"/>
+      <node ref="L1" pin="2"/>
+      <node ref="C9" pin="1"/>
+      <node ref="C4" pin="1"/>
+      <node ref="J1" pin="1"/>
+      <node ref="3V0_2" pin="1"/>
+      <node ref="C8" pin="1"/>
+      <node ref="C7" pin="1"/>
+      <node ref="C6" pin="1"/>
+      <node ref="C5" pin="1"/>
+      <node ref="C16" pin="2"/>
+      <node ref="C17" pin="2"/>
+      <node ref="MK4" pin="5"/>
+      <node ref="MK3" pin="2"/>
+      <node ref="MK3" pin="5"/>
+      <node ref="C15" pin="2"/>
+      <node ref="J9" pin="1"/>
+      <node ref="C12" pin="2"/>
+      <node ref="C13" pin="2"/>
+      <node ref="C14" pin="2"/>
+      <node ref="MK2" pin="5"/>
+      <node ref="U1" pin="1"/>
+      <node ref="U1" pin="19"/>
+      <node ref="U1" pin="32"/>
+      <node ref="U1" pin="48"/>
+      <node ref="U1" pin="64"/>
+    </net>
+    <net code="10" name="/I2S1_SD">
+      <node ref="R9" pin="2"/>
+      <node ref="I2S3_SD1" pin="1"/>
+      <node ref="U1" pin="23"/>
+      <node ref="R7" pin="2"/>
+    </net>
+    <net code="11" name="/I2S1_CK">
+      <node ref="MK4" pin="4"/>
+      <node ref="U1" pin="55"/>
+      <node ref="MK3" pin="4"/>
+      <node ref="I2S3_CK1" pin="1"/>
+    </net>
+    <net code="12" name="/I2S3_WS">
+      <node ref="I2S1_WS1" pin="1"/>
+      <node ref="MK2" pin="1"/>
+      <node ref="U1" pin="50"/>
+      <node ref="MK1" pin="1"/>
+    </net>
+    <net code="13" name="/I2S3_CK">
+      <node ref="MK1" pin="4"/>
+      <node ref="U1" pin="51"/>
+      <node ref="I2S1_CK1" pin="1"/>
+      <node ref="MK2" pin="4"/>
+    </net>
+    <net code="14" name="/I2S3_SD">
+      <node ref="U1" pin="26"/>
+      <node ref="I2S1_SD1" pin="1"/>
+      <node ref="R5" pin="2"/>
+      <node ref="R3" pin="2"/>
+    </net>
+    <net code="15" name="/I2S1_WS">
+      <node ref="I2S3_WS1" pin="1"/>
+      <node ref="MK3" pin="1"/>
+      <node ref="U1" pin="20"/>
+      <node ref="MK4" pin="1"/>
+    </net>
+    <net code="16" name="/SPI2_NSS">
       <node ref="J1" pin="9"/>
+      <node ref="U1" pin="33"/>
     </net>
-    <net code="18" name="/SPI2_CK">
+    <net code="17" name="/SPI2_CK">
       <node ref="J2" pin="3"/>
-      <node ref="U1" pin="29"/>
       <node ref="SPI2_CK1" pin="1"/>
+      <node ref="U1" pin="29"/>
     </net>
-    <net code="19" name="/SPI2_MOSI">
-      <node ref="U1" pin="9"/>
+    <net code="18" name="/SPI2_MOSI">
       <node ref="J2" pin="5"/>
       <node ref="SPI2_MOSI1" pin="1"/>
+      <node ref="U1" pin="9"/>
     </net>
-    <net code="20" name="/SPI2_MISO">
-      <node ref="J2" pin="4"/>
+    <net code="19" name="/SPI2_MISO">
       <node ref="SPI2_MISO1" pin="1"/>
       <node ref="U1" pin="10"/>
+      <node ref="J2" pin="4"/>
     </net>
-    <net code="21" name="Net-(J2-Pad1)">
+    <net code="20" name="/CF_Buzzer">
       <node ref="J2" pin="1"/>
+      <node ref="JP2" pin="1"/>
     </net>
-    <net code="22" name="Net-(J2-Pad10)">
+    <net code="21" name="Net-(J2-Pad10)">
       <node ref="J2" pin="10"/>
     </net>
-    <net code="23" name="Net-(J2-Pad2)">
+    <net code="22" name="Net-(J2-Pad2)">
       <node ref="J2" pin="2"/>
     </net>
-    <net code="24" name="Net-(J2-Pad6)">
+    <net code="23" name="Net-(J2-Pad6)">
       <node ref="J2" pin="6"/>
     </net>
-    <net code="25" name="Net-(J2-Pad7)">
+    <net code="24" name="Net-(J2-Pad7)">
       <node ref="J2" pin="7"/>
     </net>
-    <net code="26" name="Net-(J2-Pad9)">
+    <net code="25" name="Net-(J2-Pad9)">
       <node ref="J2" pin="9"/>
     </net>
-    <net code="27" name="Net-(J1-Pad4)">
+    <net code="26" name="Net-(J1-Pad4)">
       <node ref="J1" pin="4"/>
     </net>
-    <net code="28" name="Net-(J1-Pad5)">
+    <net code="27" name="Net-(J1-Pad5)">
       <node ref="J1" pin="5"/>
     </net>
-    <net code="29" name="Net-(J1-Pad6)">
+    <net code="28" name="Net-(J1-Pad6)">
       <node ref="J1" pin="6"/>
     </net>
-    <net code="30" name="Net-(J1-Pad7)">
+    <net code="29" name="Net-(J1-Pad7)">
       <node ref="J1" pin="7"/>
     </net>
-    <net code="31" name="Net-(J1-Pad8)">
+    <net code="30" name="Net-(J1-Pad8)">
       <node ref="J1" pin="8"/>
     </net>
-    <net code="32" name="/PC3">
+    <net code="31" name="/PC3">
       <node ref="U1" pin="11"/>
       <node ref="PC3" pin="1"/>
     </net>
-    <net code="33" name="/PA2">
+    <net code="32" name="/PA2">
       <node ref="PA2" pin="1"/>
       <node ref="U1" pin="16"/>
     </net>
-    <net code="34" name="Net-(J48-Pad1)">
+    <net code="33" name="Net-(J48-Pad1)">
       <node ref="J48" pin="1"/>
     </net>
-    <net code="35" name="Net-(J48-Pad10)">
+    <net code="34" name="Net-(J48-Pad10)">
       <node ref="J48" pin="2"/>
       <node ref="J48" pin="10"/>
     </net>
-    <net code="36" name="Net-(J48-Pad3)">
+    <net code="35" name="Net-(J48-Pad3)">
       <node ref="J48" pin="3"/>
     </net>
-    <net code="37" name="Net-(J48-Pad4)">
+    <net code="36" name="Net-(J48-Pad4)">
       <node ref="J48" pin="4"/>
     </net>
-    <net code="38" name="Net-(J48-Pad5)">
+    <net code="37" name="Net-(J48-Pad5)">
       <node ref="J48" pin="5"/>
     </net>
-    <net code="39" name="Net-(J48-Pad6)">
+    <net code="38" name="Net-(J48-Pad6)">
       <node ref="J48" pin="6"/>
     </net>
-    <net code="40" name="Net-(J48-Pad7)">
+    <net code="39" name="Net-(J48-Pad7)">
       <node ref="J48" pin="7"/>
     </net>
-    <net code="41" name="Net-(J48-Pad8)">
+    <net code="40" name="Net-(J48-Pad8)">
       <node ref="J48" pin="8"/>
     </net>
-    <net code="42" name="Net-(J48-Pad9)">
+    <net code="41" name="Net-(J48-Pad9)">
       <node ref="J48" pin="9"/>
     </net>
-    <net code="43" name="Net-(U2-Pad3)">
+    <net code="42" name="Net-(U2-Pad3)">
       <node ref="U2" pin="3"/>
     </net>
-    <net code="44" name="Net-(U2-Pad4)">
+    <net code="43" name="Net-(U2-Pad4)">
       <node ref="U2" pin="4"/>
     </net>
-    <net code="45" name="Net-(U2-Pad5)">
+    <net code="44" name="Net-(U2-Pad5)">
       <node ref="U2" pin="5"/>
     </net>
-    <net code="46" name="Net-(U2-Pad6)">
+    <net code="45" name="Net-(U2-Pad6)">
       <node ref="U2" pin="6"/>
     </net>
-    <net code="47" name="/EEPROM">
-      <node ref="EE1" pin="1"/>
+    <net code="46" name="/EEPROM">
+      <node ref="JP3" pin="1"/>
       <node ref="J2" pin="8"/>
+      <node ref="JP1" pin="1"/>
+      <node ref="EE1" pin="1"/>
+    </net>
+    <net code="47" name="Net-(JP2-Pad2)">
+      <node ref="Q1" pin="1"/>
+      <node ref="R10" pin="1"/>
+      <node ref="JP2" pin="2"/>
+    </net>
+    <net code="48" name="Net-(BZ1-Pad2)">
+      <node ref="BZ1" pin="2"/>
+      <node ref="Q1" pin="3"/>
+    </net>
+    <net code="49" name="Net-(U3-Pad3)">
+      <node ref="U3" pin="3"/>
+    </net>
+    <net code="50" name="Net-(U3-Pad4)">
+      <node ref="U3" pin="4"/>
+    </net>
+    <net code="51" name="Net-(U3-Pad5)">
+      <node ref="U3" pin="5"/>
+    </net>
+    <net code="52" name="Net-(U3-Pad6)">
+      <node ref="U3" pin="6"/>
+    </net>
+    <net code="53" name="Net-(JP3-Pad2)">
+      <node ref="JP3" pin="2"/>
+      <node ref="U3" pin="2"/>
+    </net>
+    <net code="54" name="Net-(JP1-Pad2)">
+      <node ref="JP1" pin="2"/>
       <node ref="U2" pin="2"/>
     </net>
-    <net code="48" name="Net-(C3-Pad1)">
-      <node ref="U1" pin="30"/>
-      <node ref="C3" pin="1"/>
-    </net>
-    <net code="49" name="Net-(R1-Pad1)">
-      <node ref="R1" pin="1"/>
-      <node ref="U1" pin="60"/>
-    </net>
-    <net code="50" name="Net-(U1-Pad43)">
-      <node ref="U1" pin="43"/>
-    </net>
-    <net code="51" name="Net-(U1-Pad44)">
-      <node ref="U1" pin="44"/>
-    </net>
-    <net code="52" name="Net-(U1-Pad45)">
-      <node ref="U1" pin="45"/>
-    </net>
-    <net code="53" name="Net-(U1-Pad17)">
-      <node ref="U1" pin="17"/>
-    </net>
-    <net code="54" name="Net-(U1-Pad21)">
-      <node ref="U1" pin="21"/>
-    </net>
-    <net code="55" name="Net-(U1-Pad22)">
+    <net code="55" name="/AD_Buzzer">
       <node ref="U1" pin="22"/>
+      <node ref="JP2" pin="3"/>
     </net>
-    <net code="56" name="Net-(U1-Pad41)">
+    <net code="56" name="/LED1">
+      <node ref="R12" pin="2"/>
       <node ref="U1" pin="41"/>
     </net>
-    <net code="57" name="Net-(U1-Pad42)">
+    <net code="57" name="/LED2">
+      <node ref="R13" pin="2"/>
       <node ref="U1" pin="42"/>
     </net>
-    <net code="58" name="Net-(U1-Pad27)">
-      <node ref="U1" pin="27"/>
+    <net code="58" name="/LED3">
+      <node ref="U1" pin="43"/>
+      <node ref="R11" pin="2"/>
     </net>
-    <net code="59" name="Net-(U1-Pad34)">
-      <node ref="U1" pin="34"/>
+    <net code="59" name="/LED4">
+      <node ref="R14" pin="2"/>
+      <node ref="U1" pin="44"/>
     </net>
-    <net code="60" name="Net-(U1-Pad35)">
-      <node ref="U1" pin="35"/>
+    <net code="60" name="Net-(J9-Pad6)">
+      <node ref="J9" pin="6"/>
     </net>
-    <net code="61" name="Net-(U1-Pad36)">
-      <node ref="U1" pin="36"/>
+    <net code="61" name="Net-(C3-Pad1)">
+      <node ref="C3" pin="1"/>
+      <node ref="U1" pin="30"/>
     </net>
-    <net code="62" name="Net-(U1-Pad28)">
-      <node ref="U1" pin="28"/>
-    </net>
-    <net code="63" name="Net-(U1-Pad56)">
-      <node ref="U1" pin="56"/>
-    </net>
-    <net code="64" name="Net-(U1-Pad57)">
-      <node ref="U1" pin="57"/>
-    </net>
-    <net code="65" name="Net-(U1-Pad61)">
-      <node ref="U1" pin="61"/>
-    </net>
-    <net code="66" name="Net-(U1-Pad62)">
-      <node ref="U1" pin="62"/>
-    </net>
-    <net code="67" name="Net-(U1-Pad8)">
-      <node ref="U1" pin="8"/>
-    </net>
-    <net code="68" name="Net-(U1-Pad52)">
-      <node ref="U1" pin="52"/>
-    </net>
-    <net code="69" name="Net-(U1-Pad53)">
-      <node ref="U1" pin="53"/>
-    </net>
-    <net code="70" name="Net-(U1-Pad2)">
-      <node ref="U1" pin="2"/>
-    </net>
-    <net code="71" name="Net-(U1-Pad3)">
-      <node ref="U1" pin="3"/>
-    </net>
-    <net code="72" name="Net-(U1-Pad4)">
-      <node ref="U1" pin="4"/>
-    </net>
-    <net code="73" name="Net-(U1-Pad24)">
-      <node ref="U1" pin="24"/>
-    </net>
-    <net code="74" name="Net-(U1-Pad25)">
-      <node ref="U1" pin="25"/>
-    </net>
-    <net code="75" name="Net-(U1-Pad37)">
-      <node ref="U1" pin="37"/>
-    </net>
-    <net code="76" name="Net-(U1-Pad38)">
-      <node ref="U1" pin="38"/>
-    </net>
-    <net code="77" name="Net-(U1-Pad39)">
-      <node ref="U1" pin="39"/>
-    </net>
-    <net code="78" name="Net-(U1-Pad40)">
-      <node ref="U1" pin="40"/>
-    </net>
-    <net code="79" name="Net-(U1-Pad54)">
-      <node ref="U1" pin="54"/>
-    </net>
-    <net code="80" name="Net-(U1-Pad5)">
-      <node ref="U1" pin="5"/>
-    </net>
-    <net code="81" name="Net-(U1-Pad6)">
+    <net code="62" name="Net-(U1-Pad6)">
       <node ref="U1" pin="6"/>
     </net>
-    <net code="82" name="Net-(C1-Pad1)">
+    <net code="63" name="Net-(U1-Pad5)">
+      <node ref="U1" pin="5"/>
+    </net>
+    <net code="64" name="Net-(U1-Pad54)">
+      <node ref="U1" pin="54"/>
+    </net>
+    <net code="65" name="Net-(U1-Pad40)">
+      <node ref="U1" pin="40"/>
+    </net>
+    <net code="66" name="Net-(U1-Pad39)">
+      <node ref="U1" pin="39"/>
+    </net>
+    <net code="67" name="Net-(U1-Pad38)">
+      <node ref="U1" pin="38"/>
+    </net>
+    <net code="68" name="Net-(U1-Pad37)">
+      <node ref="U1" pin="37"/>
+    </net>
+    <net code="69" name="Net-(U1-Pad25)">
+      <node ref="U1" pin="25"/>
+    </net>
+    <net code="70" name="Net-(U1-Pad24)">
+      <node ref="U1" pin="24"/>
+    </net>
+    <net code="71" name="Net-(U1-Pad4)">
+      <node ref="U1" pin="4"/>
+    </net>
+    <net code="72" name="Net-(U1-Pad3)">
+      <node ref="U1" pin="3"/>
+    </net>
+    <net code="73" name="Net-(U1-Pad2)">
+      <node ref="U1" pin="2"/>
+    </net>
+    <net code="74" name="Net-(U1-Pad53)">
+      <node ref="U1" pin="53"/>
+    </net>
+    <net code="75" name="Net-(U1-Pad52)">
+      <node ref="U1" pin="52"/>
+    </net>
+    <net code="76" name="Net-(U1-Pad8)">
+      <node ref="U1" pin="8"/>
+    </net>
+    <net code="77" name="Net-(U1-Pad62)">
+      <node ref="U1" pin="62"/>
+    </net>
+    <net code="78" name="Net-(U1-Pad61)">
+      <node ref="U1" pin="61"/>
+    </net>
+    <net code="79" name="Net-(U1-Pad57)">
+      <node ref="U1" pin="57"/>
+    </net>
+    <net code="80" name="Net-(U1-Pad56)">
+      <node ref="U1" pin="56"/>
+    </net>
+    <net code="81" name="Net-(U1-Pad28)">
+      <node ref="U1" pin="28"/>
+    </net>
+    <net code="82" name="Net-(U1-Pad36)">
+      <node ref="U1" pin="36"/>
+    </net>
+    <net code="83" name="Net-(U1-Pad35)">
+      <node ref="U1" pin="35"/>
+    </net>
+    <net code="84" name="Net-(U1-Pad34)">
+      <node ref="U1" pin="34"/>
+    </net>
+    <net code="85" name="Net-(U1-Pad27)">
+      <node ref="U1" pin="27"/>
+    </net>
+    <net code="86" name="Net-(U1-Pad21)">
+      <node ref="U1" pin="21"/>
+    </net>
+    <net code="87" name="Net-(U1-Pad17)">
+      <node ref="U1" pin="17"/>
+    </net>
+    <net code="88" name="Net-(U1-Pad45)">
+      <node ref="U1" pin="45"/>
+    </net>
+    <net code="89" name="Net-(R1-Pad1)">
+      <node ref="U1" pin="60"/>
+      <node ref="R1" pin="1"/>
+    </net>
+    <net code="90" name="Net-(C1-Pad1)">
       <node ref="U1" pin="13"/>
       <node ref="C2" pin="1"/>
       <node ref="C1" pin="1"/>
       <node ref="L1" pin="1"/>
     </net>
-    <net code="83" name="Net-(MK1-Pad6)">
-      <node ref="MK1" pin="6"/>
+    <net code="91" name="Net-(MK1-Pad6)">
       <node ref="R3" pin="1"/>
+      <node ref="MK1" pin="6"/>
     </net>
-    <net code="84" name="Net-(MK2-Pad6)">
+    <net code="92" name="Net-(MK2-Pad6)">
       <node ref="MK2" pin="6"/>
       <node ref="R5" pin="1"/>
     </net>
-    <net code="85" name="Net-(MK3-Pad6)">
+    <net code="93" name="Net-(MK3-Pad6)">
       <node ref="MK3" pin="6"/>
       <node ref="R7" pin="1"/>
     </net>
-    <net code="86" name="Net-(MK4-Pad6)">
+    <net code="94" name="Net-(MK4-Pad6)">
       <node ref="R9" pin="1"/>
       <node ref="MK4" pin="6"/>
+    </net>
+    <net code="95" name="Net-(D1-Pad1)">
+      <node ref="D1" pin="1"/>
+      <node ref="R11" pin="1"/>
+    </net>
+    <net code="96" name="Net-(D2-Pad1)">
+      <node ref="R12" pin="1"/>
+      <node ref="D2" pin="1"/>
+    </net>
+    <net code="97" name="Net-(D3-Pad1)">
+      <node ref="D3" pin="1"/>
+      <node ref="R13" pin="1"/>
+    </net>
+    <net code="98" name="Net-(D4-Pad1)">
+      <node ref="R14" pin="1"/>
+      <node ref="D4" pin="1"/>
     </net>
   </nets>
 </export>

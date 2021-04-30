@@ -25,6 +25,8 @@ F 4 "Distrelec" H 4450 2250 50  0001 C CNN "Supplier"
 F 5 "300-56-687" H 4450 2250 50  0001 C CNN "Supplier ref."
 F 6 "0.0084" H 4450 2250 50  0001 C CNN "Price"
 F 7 "Thick film resistor 0.1W 1%" H 4450 2250 50  0001 C CNN "Description"
+F 8 "placed" H 4450 2250 50  0001 C CNN "Mount"
+F 9 "SMD" H 4450 2250 50  0001 C CNN "Type"
 	1    4450 2250
 	1    0    0    -1  
 $EndComp
@@ -39,6 +41,8 @@ F 3 "~" H 6600 1150 50  0001 C CNN
 F 4 "Distrelec" H 6600 1150 50  0001 C CNN "Supplier"
 F 5 "300-86-429" H 6600 1150 50  0001 C CNN "Supplier ref."
 F 6 "0.0093" H 6600 1150 50  0001 C CNN "Price"
+F 7 "placed" H 6600 1150 50  0001 C CNN "Mount"
+F 8 "SMD" H 6600 1150 50  0001 C CNN "Type"
 	1    6600 1150
 	1    0    0    -1  
 $EndComp
@@ -53,6 +57,8 @@ F 3 "https://www.distrelec.ch/fr/inductance-cms-2uh-10-prefix-prefix-15-suffix-s
 F 4 "Distrelec" V 6100 1000 50  0001 C CNN "Supplier"
 F 5 "301-43-947" V 6100 1000 50  0001 C CNN "Supplier ref."
 F 6 "0.3708" V 6100 1000 50  0001 C CNN "Price"
+F 7 "placed" H 6100 1000 50  0001 C CNN "Mount"
+F 8 "SMD" H 6100 1000 50  0001 C CNN "Type"
 	1    6100 1000
 	0    1    1    0   
 $EndComp
@@ -150,6 +156,8 @@ F 3 "~" H 4200 6450 50  0001 C CNN
 F 4 "Distrelec" H 4200 6450 50  0001 C CNN "Supplier"
 F 5 "300-86-429" H 4200 6450 50  0001 C CNN "Supplier ref."
 F 6 "0.0093" H 4200 6450 50  0001 C CNN "Price"
+F 7 "placed" H 4200 6450 50  0001 C CNN "Mount"
+F 8 "SMD" H 4200 6450 50  0001 C CNN "Type"
 	1    4200 6450
 	1    0    0    -1  
 $EndComp
@@ -164,6 +172,8 @@ F 3 "~" H 3800 6450 50  0001 C CNN
 F 4 "Distrelec" H 3800 6450 50  0001 C CNN "Supplier"
 F 5 "300-86-429" H 3800 6450 50  0001 C CNN "Supplier ref."
 F 6 "0.0093" H 3800 6450 50  0001 C CNN "Price"
+F 7 "placed" H 3800 6450 50  0001 C CNN "Mount"
+F 8 "SMD" H 3800 6450 50  0001 C CNN "Type"
 	1    3800 6450
 	1    0    0    -1  
 $EndComp
@@ -178,6 +188,8 @@ F 3 "~" H 3400 6450 50  0001 C CNN
 F 4 "Distrelec" H 3400 6450 50  0001 C CNN "Supplier"
 F 5 "300-86-429" H 3400 6450 50  0001 C CNN "Supplier ref."
 F 6 "0.0093" H 3400 6450 50  0001 C CNN "Price"
+F 7 "placed" H 3400 6450 50  0001 C CNN "Mount"
+F 8 "SMD" H 3400 6450 50  0001 C CNN "Type"
 	1    3400 6450
 	1    0    0    -1  
 $EndComp
@@ -192,6 +204,8 @@ F 3 "~" H 3000 6450 50  0001 C CNN
 F 4 "Distrelec" H 3000 6450 50  0001 C CNN "Supplier"
 F 5 "300-86-429" H 3000 6450 50  0001 C CNN "Supplier ref."
 F 6 "0.0093" H 3000 6450 50  0001 C CNN "Price"
+F 7 "placed" H 3000 6450 50  0001 C CNN "Mount"
+F 8 "SMD" H 3000 6450 50  0001 C CNN "Type"
 	1    3000 6450
 	1    0    0    -1  
 $EndComp
@@ -238,6 +252,8 @@ F 3 "~" H 4750 2350 50  0001 C CNN
 F 4 "Distrelec" H 4750 2350 50  0001 C CNN "Supplier"
 F 5 "300-31-676" H 4750 2350 50  0001 C CNN "Supplier ref."
 F 6 "0.3896" H 4750 2350 50  0001 C CNN "Price"
+F 7 "placed" H 4750 2350 50  0001 C CNN "Mount"
+F 8 "SMD" H 4750 2350 50  0001 C CNN "Type"
 	1    4750 2350
 	1    0    0    -1  
 $EndComp
@@ -287,6 +303,8 @@ F 4 "Distrelec" H 5600 3250 50  0001 C CNN "Supplier"
 F 5 "301-70-759" H 5600 3250 50  0001 C CNN "Supplier ref."
 F 6 "8.63" H 5600 3250 50  0001 C CNN "Price"
 F 7 "Microcontrôleur 32bit 512KB LQFP-64" H 5600 3250 50  0001 C CNN "Description"
+F 8 "placed" H 5600 3250 50  0001 C CNN "Mount"
+F 9 "SMD" H 5600 3250 50  0001 C CNN "Type"
 	1    5600 3250
 	1    0    0    -1  
 $EndComp
@@ -301,6 +319,8 @@ F 3 "~" H 7050 1150 50  0001 C CNN
 F 4 "Distrelec" H 7050 1150 50  0001 C CNN "Supplier"
 F 5 "301-44-765" H 7050 1150 50  0001 C CNN "Supplier ref."
 F 6 "0.0629" H 7050 1150 50  0001 C CNN "Price"
+F 7 "placed" H 7050 1150 50  0001 C CNN "Mount"
+F 8 "SMD" H 7050 1150 50  0001 C CNN "Type"
 	1    7050 1150
 	1    0    0    -1  
 $EndComp
@@ -329,6 +349,8 @@ F 3 "~" H 4600 6450 50  0001 C CNN
 F 4 "Distrelec" H 4600 6450 50  0001 C CNN "Supplier"
 F 5 "300-86-429" H 4600 6450 50  0001 C CNN "Supplier ref."
 F 6 "0.0093" H 4600 6450 50  0001 C CNN "Price"
+F 7 "placed" H 4600 6450 50  0001 C CNN "Mount"
+F 8 "SMD" H 4600 6450 50  0001 C CNN "Type"
 	1    4600 6450
 	1    0    0    -1  
 $EndComp
@@ -365,6 +387,8 @@ F 3 "~" H 2400 6450 50  0001 C CNN
 F 4 "Distrelec" H 2400 6450 50  0001 C CNN "Supplier"
 F 5 "300-31-676" H 2400 6450 50  0001 C CNN "Supplier ref."
 F 6 "0.3896" H 2400 6450 50  0001 C CNN "Price"
+F 7 "placed" H 2400 6450 50  0001 C CNN "Mount"
+F 8 "SMD" H 2400 6450 50  0001 C CNN "Type"
 	1    2400 6450
 	1    0    0    -1  
 $EndComp

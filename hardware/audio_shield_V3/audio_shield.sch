@@ -440,6 +440,8 @@ F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.159
 F 4 "Farnell" H 10350 2550 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 2550 50  0001 C CNN "Supplier ref."
 F 6 "1.46" H 10350 2550 50  0001 C CNN "Price"
+F 7 "not placed" H 10350 2550 50  0001 C CNN "Mount"
+F 8 "THT" H 10350 2550 50  0001 C CNN "Type"
 	1    10350 2550
 	1    0    0    -1  
 $EndComp
@@ -454,6 +456,8 @@ F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.159
 F 4 "Farnell" H 10350 1450 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 1450 50  0001 C CNN "Supplier ref."
 F 6 "1.46" H 10350 1450 50  0001 C CNN "Price"
+F 7 "THT" H 10350 1450 50  0001 C CNN "Type"
+F 8 "not placed" H 10350 1450 50  0001 C CNN "Mount"
 	1    10350 1450
 	1    0    0    -1  
 $EndComp
@@ -515,6 +519,8 @@ F 1 "TestPoint" H 10108 3427 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 3400 50  0001 C CNN
 F 3 "~" H 10250 3400 50  0001 C CNN
 F 4 "np" H 10050 3400 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10050 3400 50  0001 C CNN "Mount"
+F 6 "THT" H 10050 3400 50  0001 C CNN "Type"
 	1    10050 3400
 	1    0    0    -1  
 $EndComp
@@ -545,6 +551,8 @@ F 1 "TestPoint" H 9608 3977 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9750 3950 50  0001 C CNN
 F 3 "~" H 9750 3950 50  0001 C CNN
 F 4 "np" H 9550 3950 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9550 3950 50  0001 C CNN "Mount"
+F 6 "THT" H 9550 3950 50  0001 C CNN "Type"
 	1    9550 3950
 	1    0    0    -1  
 $EndComp
@@ -557,6 +565,8 @@ F 1 "TestPoint" H 10108 3977 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10250 3950 50  0001 C CNN
 F 3 "~" H 10250 3950 50  0001 C CNN
 F 4 "np" H 10050 3950 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10050 3950 50  0001 C CNN "Mount"
+F 6 "THT" H 10050 3950 50  0001 C CNN "Type"
 	1    10050 3950
 	1    0    0    -1  
 $EndComp
@@ -569,6 +579,8 @@ F 1 "TestPoint" H 10608 3977 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 3950 50  0001 C CNN
 F 3 "~" H 10750 3950 50  0001 C CNN
 F 4 "np" H 10550 3950 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10550 3950 50  0001 C CNN "Mount"
+F 6 "THT" H 10550 3950 50  0001 C CNN "Type"
 	1    10550 3950
 	1    0    0    -1  
 $EndComp
@@ -597,6 +609,8 @@ F 1 "TestPoint" H 9308 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9450 4450 50  0001 C CNN
 F 3 "~" H 9450 4450 50  0001 C CNN
 F 4 "np" H 9250 4450 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9250 4450 50  0001 C CNN "Mount"
+F 6 "THT" H 9250 4450 50  0001 C CNN "Type"
 	1    9250 4450
 	1    0    0    -1  
 $EndComp
@@ -609,6 +623,8 @@ F 1 "TestPoint" H 9808 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9950 4450 50  0001 C CNN
 F 3 "~" H 9950 4450 50  0001 C CNN
 F 4 "np" H 9750 4450 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9750 4450 50  0001 C CNN "Mount"
+F 6 "THT" H 9750 4450 50  0001 C CNN "Type"
 	1    9750 4450
 	1    0    0    -1  
 $EndComp
@@ -655,6 +671,8 @@ F 1 "TestPoint" H 9608 3427 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9750 3400 50  0001 C CNN
 F 3 "~" H 9750 3400 50  0001 C CNN
 F 4 "np" H 9550 3400 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9550 3400 50  0001 C CNN "Mount"
+F 6 "THT" H 9550 3400 50  0001 C CNN "Type"
 	1    9550 3400
 	1    0    0    -1  
 $EndComp
@@ -673,6 +691,8 @@ F 1 "TestPoint" H 9708 6027 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9850 6000 50  0001 C CNN
 F 3 "~" H 9850 6000 50  0001 C CNN
 F 4 "np" H 9650 6000 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9650 6000 50  0001 C CNN "Mount"
+F 6 "THT" H 9650 6000 50  0001 C CNN "Type"
 	1    9650 6000
 	1    0    0    -1  
 $EndComp
@@ -685,6 +705,8 @@ F 1 "TestPoint" H 10208 6027 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10350 6000 50  0001 C CNN
 F 3 "~" H 10350 6000 50  0001 C CNN
 F 4 "np" H 10150 6000 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10150 6000 50  0001 C CNN "Mount"
+F 6 "THT" H 10150 6000 50  0001 C CNN "Type"
 	1    10150 6000
 	1    0    0    -1  
 $EndComp
@@ -701,6 +723,8 @@ F 1 "TestPoint" H 10658 6027 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10800 6000 50  0001 C CNN
 F 3 "~" H 10800 6000 50  0001 C CNN
 F 4 "np" H 10600 6000 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10600 6000 50  0001 C CNN "Mount"
+F 6 "THT" H 10600 6000 50  0001 C CNN "Type"
 	1    10600 6000
 	1    0    0    -1  
 $EndComp
@@ -735,6 +759,8 @@ F 1 "TestPoint" H 7808 6227 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 7950 6200 50  0001 C CNN
 F 3 "~" H 7950 6200 50  0001 C CNN
 F 4 "np" H 7750 6200 50  0001 C CNN "Supplier"
+F 5 "not placed" H 7750 6200 50  0001 C CNN "Mount"
+F 6 "THT" H 7750 6200 50  0001 C CNN "Type"
 	1    7750 6200
 	1    0    0    -1  
 $EndComp
@@ -747,6 +773,8 @@ F 1 "TestPoint" H 8308 6227 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 8450 6200 50  0001 C CNN
 F 3 "~" H 8450 6200 50  0001 C CNN
 F 4 "np" H 8250 6200 50  0001 C CNN "Supplier"
+F 5 "not placed" H 8250 6200 50  0001 C CNN "Mount"
+F 6 "THT" H 8250 6200 50  0001 C CNN "Type"
 	1    8250 6200
 	1    0    0    -1  
 $EndComp
@@ -767,6 +795,8 @@ F 1 "TestPoint" H 10608 3427 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10750 3400 50  0001 C CNN
 F 3 "~" H 10750 3400 50  0001 C CNN
 F 4 "np" H 10550 3400 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10550 3400 50  0001 C CNN "Mount"
+F 6 "THT" H 10550 3400 50  0001 C CNN "Type"
 	1    10550 3400
 	1    0    0    -1  
 $EndComp
@@ -779,6 +809,8 @@ F 1 "TestPoint" H 9208 5177 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9350 5150 50  0001 C CNN
 F 3 "~" H 9350 5150 50  0001 C CNN
 F 4 "np" H 9150 5150 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9150 5150 50  0001 C CNN "Mount"
+F 6 "THT" H 9150 5150 50  0001 C CNN "Type"
 	1    9150 5150
 	1    0    0    -1  
 $EndComp
@@ -791,6 +823,8 @@ F 1 "TestPoint" H 9208 5627 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 9350 5600 50  0001 C CNN
 F 3 "~" H 9350 5600 50  0001 C CNN
 F 4 "np" H 9150 5600 50  0001 C CNN "Supplier"
+F 5 "not placed" H 9150 5600 50  0001 C CNN "Mount"
+F 6 "THT" H 9150 5600 50  0001 C CNN "Type"
 	1    9150 5600
 	1    0    0    -1  
 $EndComp
@@ -809,6 +843,8 @@ F 1 "STLINK-V3MINI Placeholder" H -1879 1405 50  0000 R CNN
 F 2 "" V -1600 1600 50  0001 C CNN
 F 3 "https://www.digikey.ch/product-detail/fr/STLINK-V3MINI/497-19530-ND/10266291/?itemSeq=333705927 ~" H -2725 900 50  0001 C CNN
 F 4 "np" H -1450 1450 50  0001 C CNN "Supplier"
+F 5 "not placed" H -1450 1450 50  0001 C CNN "Mount"
+F 6 "THT" H -1450 1450 50  0001 C CNN "Type"
 	1    -1450 1450
 	1    0    0    -1  
 $EndComp
@@ -823,6 +859,8 @@ F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6150 50  0
 F 4 "Mouser" H 2700 6100 50  0001 C CNN "Supplier"
 F 5 "700-DS28E05R+T" H 2700 6100 50  0001 C CNN "Supplier ref."
 F 6 " 0.73" H 2700 6100 50  0001 C CNN "Price"
+F 7 "placed" H 2700 6100 50  0001 C CNN "Mount"
+F 8 "SMD" H 2700 6100 50  0001 C CNN "Type"
 	1    2700 6100
 	1    0    0    -1  
 $EndComp
@@ -847,6 +885,8 @@ F 1 "TestPoint" H 10308 4477 50  0000 L CNN
 F 2 "audio_shield:TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile" H 10450 4450 50  0001 C CNN
 F 3 "~" H 10450 4450 50  0001 C CNN
 F 4 "np" H 10250 4450 50  0001 C CNN "Supplier"
+F 5 "not placed" H 10250 4450 50  0001 C CNN "Mount"
+F 6 "THT" H 10250 4450 50  0001 C CNN "Type"
 	1    10250 4450
 	1    0    0    -1  
 $EndComp
@@ -928,6 +968,8 @@ F 4 "Distrelec" H 4750 6800 50  0001 C CNN "Supplier"
 F 5 "300-56-687" H 4750 6800 50  0001 C CNN "Supplier ref."
 F 6 "0.0084" H 4750 6800 50  0001 C CNN "Price"
 F 7 "Thick film resistor 0.1W 1%" H 4750 6800 50  0001 C CNN "Description"
+F 8 "placed" H 4750 6800 50  0001 C CNN "Mount"
+F 9 "SMD" H 4750 6800 50  0001 C CNN "Type"
 	1    4750 6800
 	1    0    0    -1  
 $EndComp
@@ -988,6 +1030,8 @@ F 2 "Buzzer_Beeper:MagneticBuzzer_ProSignal_ABT-410-RC" V 5375 5900 50  0001 C C
 F 3 "https://www.distrelec.ch/fr/vibreur-electromagnetique-86-db-khz-vdc-kingstate-kxg1201b/p/13787249?track=true&no-cache=true&marketingPopup=false" V 5375 5900 50  0001 C CNN
 F 4 "2.45" H 5400 5800 50  0001 C CNN "Price"
 F 5 "np" H 5400 5800 50  0001 C CNN "Supplier"
+F 6 "not placed" H 5400 5800 50  0001 C CNN "Mount"
+F 7 "THT" H 5400 5800 50  0001 C CNN "Type"
 	1    5400 5800
 	1    0    0    -1  
 $EndComp
@@ -1006,6 +1050,8 @@ F 3 "https://www.distrelec.ch/fr/mosfet-60-sot-23-diodes-incorporated-mmbf170/p/
 F 4 "0.1937" H 5200 6350 50  0001 C CNN "Price"
 F 5 "Distrelec" H 5200 6350 50  0001 C CNN "Supplier"
 F 6 "300-41-455" H 5200 6350 50  0001 C CNN "Supplier ref."
+F 7 "placed" H 5200 6350 50  0001 C CNN "Mount"
+F 8 "SMD" H 5200 6350 50  0001 C CNN "Type"
 	1    5200 6350
 	1    0    0    -1  
 $EndComp
@@ -1020,6 +1066,8 @@ F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6800 50  0
 F 4 "Mouser" H 2700 6750 50  0001 C CNN "Supplier"
 F 5 "700-DS28E05R+T" H 2700 6750 50  0001 C CNN "Supplier ref."
 F 6 " 0.73" H 2700 6750 50  0001 C CNN "Price"
+F 7 "placed" H 2700 6750 50  0001 C CNN "Mount"
+F 8 "SMD" H 2700 6750 50  0001 C CNN "Type"
 	1    2700 6750
 	1    0    0    -1  
 $EndComp
@@ -1042,6 +1090,8 @@ F 0 "JP3" H 1900 7145 50  0000 C CNN
 F 1 "Jumper_2_Bridged" H 1900 7054 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm" H 1900 6950 50  0001 C CNN
 F 3 "~" H 1900 6950 50  0001 C CNN
+F 4 "not placed" H 1900 6950 50  0001 C CNN "Mount"
+F 5 "THT" H 1900 6950 50  0001 C CNN "Type"
 	1    1900 6950
 	1    0    0    -1  
 $EndComp
@@ -1053,6 +1103,8 @@ F 0 "JP1" H 1900 6535 50  0000 C CNN
 F 1 "Jumper_2_Open" H 1900 6444 50  0000 C CNN
 F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 1900 6300 50  0001 C CNN
 F 3 "~" H 1900 6300 50  0001 C CNN
+F 4 "not placed" H 1900 6300 50  0001 C CNN "Mount"
+F 5 "THT" H 1900 6300 50  0001 C CNN "Type"
 	1    1900 6300
 	1    0    0    -1  
 $EndComp
@@ -1074,6 +1126,8 @@ F 0 "JP2" V 4296 6417 50  0000 L CNN
 F 1 "Jumper_3_Bridged12" V 4650 5600 50  0000 L CNN
 F 2 "Jumper:SolderJumper-3_P1.3mm_Bridged12_RoundedPad1.0x1.5mm_NumberLabels" H 4250 6350 50  0001 C CNN
 F 3 "~" H 4250 6350 50  0001 C CNN
+F 4 "not placed" H 4250 6350 50  0001 C CNN "Mount"
+F 5 "THT" H 4250 6350 50  0001 C CNN "Type"
 	1    4250 6350
 	0    -1   -1   0   
 $EndComp
@@ -1166,7 +1220,11 @@ F 3 "https://www.digikey.ch/htmldatasheets/production/2094258/0/0/1/tc2030-ctx-d
 F 4 "Digikey" H 1450 900 50  0001 C CNN "Supplier"
 F 5 "TC2030-CTX-ND " H 1450 900 50  0001 C CNN "Supplier ref."
 F 6 "51.01" H 1450 900 50  0001 C CNN "Price"
+F 7 "not placed" H 1450 900 50  0001 C CNN "Mount"
+F 8 "THT" H 1450 900 50  0001 C CNN "Type"
 	1    1450 900 
 	1    0    0    -1  
 $EndComp
+Text Notes 8750 4250 1    50   ~ 0
+Fix label error at next version\n
 $EndSCHEMATC

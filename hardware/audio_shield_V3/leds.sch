@@ -43,6 +43,8 @@ F 4 "Mouser" H 4300 1850 50  0001 C CNN "Supplier"
 F 5 "660-RN73H1JT68R0F100" H 4300 1850 50  0001 C CNN "Supplier ref."
 F 6 "0.283	" H 4300 1850 50  0001 C CNN "Price"
 F 7 "Thick film resistor 0.1W 1%" H 4300 1850 50  0001 C CNN "Description"
+F 8 "placed" H 4300 1850 50  0001 C CNN "Mount"
+F 9 "SMD" H 4300 1850 50  0001 C CNN "Type"
 	1    4300 1850
 	0    1    1    0   
 $EndComp
@@ -58,8 +60,10 @@ F 4 "Green LED" H 4950 1850 50  0001 C CNN "Description"
 F 5 "0.186" H 4950 1850 50  0001 C CNN "Price"
 F 6 "Distrelec" H 4950 1850 50  0001 C CNN "Supplier"
 F 7 "175-10-257" H 4950 1850 50  0001 C CNN "Supplier ref."
+F 8 "placed" H 4950 1850 50  0001 C CNN "Mount"
+F 9 "SMD" H 4950 1850 50  0001 C CNN "Type"
 	1    4950 1850
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 $Comp
 L Device:R R?
@@ -91,6 +95,8 @@ F 4 "Mouser" H 4300 2300 50  0001 C CNN "Supplier"
 F 5 "660-RN73H1JT68R0F100" H 4300 2300 50  0001 C CNN "Supplier ref."
 F 6 "0.283	" H 4300 2300 50  0001 C CNN "Price"
 F 7 "Thick film resistor 0.1W 1%" H 4300 2300 50  0001 C CNN "Description"
+F 8 "placed" H 4300 2300 50  0001 C CNN "Mount"
+F 9 "SMD" H 4300 2300 50  0001 C CNN "Type"
 	1    4300 2300
 	0    1    1    0   
 $EndComp
@@ -124,6 +130,8 @@ F 4 "Mouser" H 4300 2700 50  0001 C CNN "Supplier"
 F 5 "660-RN73H1JT68R0F100" H 4300 2700 50  0001 C CNN "Supplier ref."
 F 6 "0.283	" H 4300 2700 50  0001 C CNN "Price"
 F 7 "Thick film resistor 0.1W 1%" H 4300 2700 50  0001 C CNN "Description"
+F 8 "placed" H 4300 2700 50  0001 C CNN "Mount"
+F 9 "SMD" H 4300 2700 50  0001 C CNN "Type"
 	1    4300 2700
 	0    1    1    0   
 $EndComp
@@ -139,8 +147,10 @@ F 4 "RED LED" H 4950 2700 50  0001 C CNN "Description"
 F 5 "0.186" H 4950 2700 50  0001 C CNN "Price"
 F 6 "Distrelec" H 4950 2700 50  0001 C CNN "Supplier"
 F 7 "175-10-254" H 4950 2700 50  0001 C CNN "Supplier ref."
+F 8 "placed" H 4950 2700 50  0001 C CNN "Mount"
+F 9 "SMD" H 4950 2700 50  0001 C CNN "Type"
 	1    4950 2700
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 $Comp
 L Device:R R?
@@ -172,6 +182,8 @@ F 4 "Mouser" H 4300 3100 50  0001 C CNN "Supplier"
 F 5 "660-RN73H1JT68R0F100" H 4300 3100 50  0001 C CNN "Supplier ref."
 F 6 "0.283	" H 4300 3100 50  0001 C CNN "Price"
 F 7 "Thick film resistor 0.1W 1%" H 4300 3100 50  0001 C CNN "Description"
+F 8 "placed" H 4300 3100 50  0001 C CNN "Mount"
+F 9 "SMD" H 4300 3100 50  0001 C CNN "Type"
 	1    4300 3100
 	0    1    1    0   
 $EndComp
@@ -187,8 +199,10 @@ F 4 "RED LED" H 4950 3100 50  0001 C CNN "Description"
 F 5 "0.186" H 4950 3100 50  0001 C CNN "Price"
 F 6 "Distrelec" H 4950 3100 50  0001 C CNN "Supplier"
 F 7 "175-10-254" H 4950 3100 50  0001 C CNN "Supplier ref."
+F 8 "placed" H 4950 3100 50  0001 C CNN "Mount"
+F 9 "SMD" H 4950 3100 50  0001 C CNN "Type"
 	1    4950 3100
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 Text Notes 5500 1900 0    50   ~ 0
 Front LEDs
@@ -252,8 +266,10 @@ F 4 "RED LED" H 4950 2300 50  0001 C CNN "Description"
 F 5 "0.186" H 4950 2300 50  0001 C CNN "Price"
 F 6 "Distrelec" H 4950 2300 50  0001 C CNN "Supplier"
 F 7 "175-10-254" H 4950 2300 50  0001 C CNN "Supplier ref."
+F 8 "placed" H 4950 2300 50  0001 C CNN "Mount"
+F 9 "SMD" H 4950 2300 50  0001 C CNN "Type"
 	1    4950 2300
-	1    0    0    -1  
+	-1   0    0    1   
 $EndComp
 Wire Wire Line
 	3700 1850 4150 1850
