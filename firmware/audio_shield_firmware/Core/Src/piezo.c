@@ -37,13 +37,13 @@
 
 // HW defines
 //#define PIEZO_TIM_PERIF       			RCC_APB1Periph_TIM5
-#define PIEZO_TIM             			TIM5
-#define PIEZO_hTIM             			htim5
-#define PIEZO_CHANNEL					TIM_CHANNEL_3
+#define PIEZO_TIM             			TIM3
+#define PIEZO_hTIM             			htim3
+#define PIEZO_CHANNEL					TIM_CHANNEL_1
 #define PIEZO_TIM_DBG         			DBGMCU_TIM5_STOP
-#define PIEZO_TIM_SETCOMPARE(VAL) 		PIEZO_TIM->CCR3  = VAL;
+#define PIEZO_TIM_SETCOMPARE(VAL) 		PIEZO_TIM->CCR1  = VAL;
 #define PIEZO_TIM_SETARR(VAL) 			PIEZO_TIM->ARR  = VAL;
-#define PIEZO_TIM_GETCOMPARE 			PIEZO_TIM->CCR3;
+#define PIEZO_TIM_GETCOMPARE 			PIEZO_TIM->CCR1;
 #define PIEZO_TIM_SETPSC(VAL)			PIEZO_TIM->PSC = VAL;
 
 
@@ -87,13 +87,13 @@ void piezoInit()
 	sConfigOC.OCPolarity 	= TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode 	= TIM_OCFAST_DISABLE;
 
-	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+	if (HAL_TIM_PWM_ConfigChannel(&PIEZO_hTIM, &sConfigOC, PIEZO_CHANNEL) != HAL_OK)
 	{
 		//return -1;
 	}
 
 	// Restart the PWM since it is automatically disabled when modified
-	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&PIEZO_hTIM, PIEZO_CHANNEL);
 
   isInit = true;
 }

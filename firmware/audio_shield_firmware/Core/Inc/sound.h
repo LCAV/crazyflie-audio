@@ -5,6 +5,11 @@
 #define STOP -1
 #define REPEAT -2
 #define BUZZER_ARR 256
+#define BUZZER_RATIO 2
+#define BUZZER_DELAY 10
+#define NOTE_LENGTH 300
+#define N_SPI_PER_NOTE 1
+
 
 typedef const struct {
 	uint16_t f;
@@ -13,12 +18,24 @@ typedef const struct {
 	uint32_t ERR;
 } freq_list_t;
 
+
 typedef const struct {
 	uint16_t index;
 	int16_t* notes;
 } melody;
 
-/*
+
+typedef enum {
+	BUZZER_IDLE,
+	BUZZER_WAIT_REC,
+	BUZZER_RECORD,
+	BUZZER_PLAY_NEXT,
+	BUZZER_CHOOSE_NEXT,
+	BUZZER_STOP
+} state_note_t;
+
+
+/* optimal combinations found by Adrien
 freq_list_t freq_list_tim[] = {
 		{3000, 26, 1038, 35 },
 		{3125, 0, 26879, 0 },
@@ -38,32 +55,45 @@ freq_list_t freq_list_tim[] = {
 		{4875, 3445, 4, 45 }
 };
 */
+// combinations found by frederike, with fixed ARR.
+// ERR corresponds to deviation from uniform frequencies between 3000, 4875
 freq_list_t freq_list_tim[] = {
-        {3010, 109, 256, -10},
-        {3125, 105, 256, 0},
-        {3249, 101, 256, 1},
-        {3383, 97, 256, -8},
-        {3491, 94, 256, 9},
-        {3606, 91, 256, 19},
-        {3729, 88, 256, 21},
-        {3860, 85, 256, 15},
-        {4002, 82, 256, -2},
-        {4102, 80, 256, 23},
-        {4261, 77, 256, -11},
-        {4375, 75, 256, 0},
-        {4495, 73, 256, 5},
-        {4621, 71, 256, 4},
-        {4755, 69, 256, -5},
-        {4825, 68, 256, 50},
+        {2999, 108, 256, -1},
+        {3113, 104, 256, -12},
+        {3236, 100, 256, -14},
+        {3370, 96, 256, -5},
+        {3514, 92, 256, 14},
+        {3632, 89, 256, 7},
+        {3757, 86, 256, 7},
+        {3891, 83, 256, 16},
+        {3986, 81, 256, -14},
+        {4137, 78, 256, 12},
+        {4245, 76, 256, -5},
+        {4358, 74, 256, -17},
+        {4477, 72, 256, -23},
+        {4603, 70, 256, -22},
+        {4737, 68, 256, -13},
+        {4878, 66, 256, 3},
 };
 
 
 int16_t sweep[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, REPEAT};
+int16_t sweep_three[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		STOP
+};
 int16_t mono3000[] = {0, REPEAT};
+int16_t mono4000[] = {8, REPEAT};
+int16_t mono5000[] = {15, REPEAT};
 
 melody melodies[] = {
 	{1, sweep},
-	{3000, mono3000}
+	{3, sweep_three},
+	{3000, mono3000},
+	{4000, mono4000},
+	{5000, mono5000}
 };
 
 #endif /* __SOUND_H */

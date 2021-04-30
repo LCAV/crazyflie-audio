@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pdb
 import logging
 import time
+import warnings
 
 import numpy as np
 
@@ -229,6 +229,11 @@ class ReaderCRTP(object):
         log_status=True,
         log_motors=False,
     ):
+
+        warnings.warn(
+            "Use the class in src/crazyflie_crtp/crazyflie_crtp/reader_crtp.py instead of this one",
+            DeprecationWarning,
+        )
 
         test_logging_size()
         self.start_time = time.time()

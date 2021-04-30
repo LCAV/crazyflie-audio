@@ -30,7 +30,6 @@
 #include "hann_window.h"
 #include "flattop_window.h"
 #include "tukey_window.h"
-#include "buzzer.h"
 #include "sound.h"
 #include "led.h"
 
@@ -132,28 +131,18 @@ float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
 float mics_f_sum[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
-uint16_t f_avg_counter = 0;
+uint16_t sum_counter = 0;
+uint16_t sum_counter_max = 0;
+
 uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
-typedef enum {
-	BUZZER_IDLE,
-	BUZZER_RECORD,
-	BUZZER_PLAY_NEXT,
-	BUZZER_CHOOSE_NEXT,
-	BUZZER_STOP
-} state_note_t;
 
-uint8_t flag_spi_recieved = 0;
+uint8_t flag_package_sent = 0;
 uint8_t spi_counter = 0;
 uint32_t note_tickstart;
-uint8_t melody_index = 0;
+int8_t melody_index = 0;
 uint8_t note_index = 0;
-int16_t current_note_index;
-
-#define NOTE_SEQUENCE_LENGTH 16
-#define NOTE_LENGTH 300
-#define N_SPI_PER_NOTE 50
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
@@ -184,6 +173,8 @@ uint16_t n_added = 0; // counter of how many samples were averaged.
 float prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
 int16_t *tapering_window;
+uint16_t buzzer_idx_old = 0;
+
 
 // debugging
 uint32_t last_update_spi = 0;
@@ -191,8 +182,8 @@ uint8_t retval = 0;
 uint32_t counter_error = 0;
 uint32_t counter_ok = 0;
 volatile int32_t time_us;
-volatile int32_t time_spi_error;
-volatile int32_t time_spi_ok;
+//volatile int32_t time_spi_error;
+//volatile int32_t time_spi_ok;
 
 /* USER CODE END PV */
 
@@ -242,68 +233,64 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	}
 }
 
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-	STOPCHRONO;
-	time_spi_error = time_us;
-	counter_error += 1;
-}
-
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-
-	last_update_spi = HAL_GetTick();
-
 	if ((spi_rx_buffer[SPI_N_BYTES - 1] != CHECKSUM_VALUE)) {
-		STOPCHRONO;
-		time_spi_error = time_us;
+		//STOPCHRONO;
+		//time_spi_error = time_us;
 		counter_error += 1;
 	} else {
-		flag_spi_recieved = 1;
-		STOPCHRONO;
-		time_spi_ok = time_us;
+		last_update_spi = HAL_GetTick();
+
+		if (sum_counter > 0) {
+			flag_package_sent = 1;
+		}
+		//STOPCHRONO;
+		//time_spi_ok = time_us;
 		counter_ok += 1;
 	}
-	// Note that we do not need to restart the transmission by caling
+	// Note that we do not need to restart the transmission by calling
 	// HAL_SPI_TransmitReceive_DMA again, because the buffer is circular.
 }
 
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
-int main(void) {
-	/* USER CODE BEGIN 1 */
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_DMA_Init();
-	MX_I2S3_Init();
-	MX_TIM2_Init();
-	MX_I2S1_Init();
-	MX_SPI2_Init();
-	MX_TIM5_Init();
-	MX_TIM1_Init();
-	MX_TIM3_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_I2S3_Init();
+  MX_TIM2_Init();
+  MX_I2S1_Init();
+  MX_SPI2_Init();
+  MX_TIM5_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
+  /* USER CODE BEGIN 2 */
 
 	// Start DMAs
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
@@ -312,29 +299,27 @@ int main(void) {
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-	HAL_TIM_Base_Init(&htim3);
-	HAL_TIM_Base_Start(&htim3);
+	HAL_TIM_Base_Init(&htim2); // debug timer
+	HAL_TIM_Base_Start(&htim2);
 	timestamp = 0;
+	
+    HAL_TIM_Base_Init(&htim3); // debug timer
+	HAL_TIM_Base_Start(&htim3);
 
-	// Super important! We need to wait until the bus is idle, otherwise
-	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	};
-	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
-	SPI_N_BYTES);
+
+	ledInit(); // uses htim1
 
 	piezoInit();
 
-	HAL_TIM_Base_Init(&htim5);
 	piezoSetMaxCount(BUZZER_ARR);
-	piezoSetRatio(BUZZER_ARR / 10);
-	HAL_TIM_Base_Start(&htim5);
-
-	ledInit();
+	piezoSetRatio(BUZZER_ARR / BUZZER_RATIO - 1);
 
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
+		piezoSetPSC(freq_list_tim[melodies[0].notes[i-1]].PSC);
+
 		for (uint8_t j = 0; j < 100; j++) {
 			ledSetRatio(j, i);
 			HAL_Delay(1);
@@ -346,15 +331,24 @@ int main(void) {
 		ledSetRatio(0, i);
 	}
 
-	/* USER CODE END 2 */
+	piezoSetPSC(0);
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
+	// Super important! We need to wait until the bus is idle, otherwise
+	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	};
+	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
+	SPI_N_BYTES);
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 
 	while (1) {
-		/* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-		/* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 		read_rx_buffer();
 
 		if (buzzer_idx == 0 && state_note_sm != BUZZER_IDLE) {
@@ -377,46 +371,54 @@ int main(void) {
 		case BUZZER_IDLE:
 
 			// start condition detection
-			if (buzzer_idx > 0) {
-				// TODO(FD) check for invalid index.
+			if ((buzzer_idx > 0) & (buzzer_idx != buzzer_idx_old)) {
+				melody_index = -1;
 				for (int i = 0; i < sizeof(melodies); i++) {
 					if (melodies[i].index == buzzer_idx) {
 						melody_index = i;
 					}
 				}
-				note_index = 0;
-				state_note_sm = BUZZER_PLAY_NEXT;
+
+				if (melody_index >= 0){
+					note_index = 0;
+					state_note_sm = BUZZER_PLAY_NEXT;
+				}
 			}
+			buzzer_idx_old = buzzer_idx;
 
 			break;
-		case BUZZER_PLAY_NEXT:
-			;
-
-			// TODO(FD) for readability, create function that takes
-			// current_melody[note_index] as in put and plays
-			// the given note.
-			freq_list_t next_note =
-					freq_list_tim[melodies[melody_index].notes[note_index]];
+		case BUZZER_PLAY_NEXT: ;
+			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
-			//HAL_TIM_Base_Init(&htim5);
-			//piezoSetMaxCount(next_note.ARR);
-			//piezoSetRatio(next_note.ARR / 2);
 			piezoSetPSC(next_note.PSC);
-			//HAL_TIM_Base_Start(&htim5);
 
+
+			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
-			f_avg_counter = 0;
+			sum_counter = 0;
 
 			note_tickstart = HAL_GetTick();
-			state_note_sm = BUZZER_RECORD;
+			state_note_sm = BUZZER_WAIT_REC;
 
+			break;
+		case BUZZER_WAIT_REC:
+			if (note_tickstart + BUZZER_DELAY < HAL_GetTick()) {
+				note_tickstart = HAL_GetTick();
+
+				// make sure we don't use the sample from the
+				// frequency that played before.
+				new_sample_to_process = 0;
+				flag_package_sent = 0;
+				state_note_sm = BUZZER_RECORD;
+			}
 			break;
 		case BUZZER_RECORD:
 			// we have a new sample to process and want to add it to the buffer
 			if (new_sample_to_process) {
 				flag_fft_processing = 1;
-				timestamp = __HAL_TIM_GET_COUNTER(&htim3);
+				timestamp = __HAL_TIM_GET_COUNTER(&htim2);
 
 				// Compute FFT
 				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
@@ -432,57 +434,51 @@ int main(void) {
 				if (init_stage_iir) {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = abs_value_squared(&mic0_f[i * 2])
-								+ abs_value_squared(&mic1_f[i * 2])
-								+ abs_value_squared(&mic2_f[i * 2])
-								+ abs_value_squared(&mic3_f[i * 2]);
+										 + abs_value_squared(&mic1_f[i * 2])
+										 + abs_value_squared(&mic2_f[i * 2])
+										 + abs_value_squared(&mic3_f[i * 2]);
 					}
 					init_stage_iir = 0;
 				} else {
 					for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
 						amplitude_avg[i] = (1 - IIR_ALPHA) * amplitude_avg[i]
-								+ IIR_ALPHA
-										* (abs_value_squared(&mic0_f[i * 2])
-												+ abs_value_squared(
-														&mic1_f[i * 2])
-												+ abs_value_squared(
-														&mic2_f[i * 2])
-												+ abs_value_squared(
-														&mic3_f[i * 2]));
+							   + IIR_ALPHA * (abs_value_squared(&mic0_f[i * 2])
+											+ abs_value_squared(&mic1_f[i * 2])
+											+ abs_value_squared(&mic2_f[i * 2])
+											+ abs_value_squared(&mic3_f[i * 2]));
 					}
 				}
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
-			}
-			frequency_bin_selection(selected_indices);
 
-			// Averaging between SPI communications
-			// The buffer will be filled like
-			// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-			//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-			//  ...
-			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-			//  where N is FFTSIZE_SENT-1
-			uint16_t i_array = 0;
-			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_sum[i_array++] +=
-						mic0_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] +=
-						mic1_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] +=
-						mic2_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] +=
-						mic3_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] += mic0_f[2 * selected_indices[i_fbin]
-						+ 1];
-				mics_f_sum[i_array++] += mic1_f[2 * selected_indices[i_fbin]
-						+ 1];
-				mics_f_sum[i_array++] += mic2_f[2 * selected_indices[i_fbin]
-						+ 1];
-				mics_f_sum[i_array++] += mic3_f[2 * selected_indices[i_fbin]
-						+ 1];
+				frequency_bin_selection(selected_indices);
+
+				// Averaging between SPI communications
+				// The buffer will be filled like
+				// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+				//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+				//  ...
+				//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+				//  where N is FFTSIZE_SENT-1
+				uint16_t i_array = 0;
+
+				// TODO(FD) the plan here was to do an averaging, but we need to
+				// decompose in magnitude and phase to do this, which is currently
+				// out of the scope of this application. So instead we use the latest
+				// value.
+				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+					mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin] + 1];
+				}
+				sum_counter++;
+				fill_tx_buffer();
 			}
-			f_avg_counter++;
-			fill_tx_buffer();
 
 			// TODO(FD) check that this still works.
 #ifdef BUZZER_CHANGE_BY_TIMER
@@ -491,9 +487,18 @@ int main(void) {
 			}
 #else
 			// play new note for each new communication.
-			if (flag_spi_recieved) {
-				flag_spi_recieved = 0;
+			if (flag_package_sent) {
+
+				flag_package_sent = 0;
 				spi_counter++;
+
+				if (sum_counter == 0) {
+					counter_error = 1;
+				}
+				if (sum_counter >= sum_counter_max) {
+					sum_counter_max = sum_counter;
+				}
+
 				if (spi_counter == N_SPI_PER_NOTE) {
 					state_note_sm = BUZZER_CHOOSE_NEXT;
 					spi_counter = 0;
@@ -523,12 +528,9 @@ int main(void) {
 		case BUZZER_STOP:
 
 			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-			//HAL_TIM_Base_Init(&htim5);
-			//piezoSetMaxCount(0);
-			//piezoSetRatio(0);
 			piezoSetPSC(0);
-			//HAL_TIM_Base_Start(&htim5);
 
 			state_note_sm = BUZZER_IDLE;
 
@@ -537,451 +539,477 @@ int main(void) {
 			break;
 		}
 	}
-	/* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
-	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-	/** Configure the main internal regulator output voltage
-	 */
-	__HAL_RCC_PWR_CLK_ENABLE();
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-	/** Initializes the RCC Oscillators according to the specified parameters
-	 * in the RCC_OscInitTypeDef structure.
-	 */
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = 16;
-	RCC_OscInitStruct.PLL.PLLN = 336;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-	RCC_OscInitStruct.PLL.PLLQ = 2;
-	RCC_OscInitStruct.PLL.PLLR = 2;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
-	/** Initializes the CPU, AHB and APB buses clocks
-	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
-		Error_Handler();
-	}
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1
-			| RCC_PERIPHCLK_I2S_APB2;
-	PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
-	PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
-	PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
-	PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
-	PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
-	PeriphClkInitStruct.PLLI2SDivQ = 1;
-	PeriphClkInitStruct.I2sApb2ClockSelection = RCC_I2SAPB2CLKSOURCE_PLLI2S;
-	PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1|RCC_PERIPHCLK_I2S_APB2;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
+  PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
+  PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
+  PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+  PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
+  PeriphClkInitStruct.PLLI2SDivQ = 1;
+  PeriphClkInitStruct.I2sApb2ClockSelection = RCC_I2SAPB2CLKSOURCE_PLLI2S;
+  PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**
- * @brief I2S1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_I2S1_Init(void) {
+  * @brief I2S1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2S1_Init(void)
+{
 
-	/* USER CODE BEGIN I2S1_Init 0 */
+  /* USER CODE BEGIN I2S1_Init 0 */
 
-	/* USER CODE END I2S1_Init 0 */
+  /* USER CODE END I2S1_Init 0 */
 
-	/* USER CODE BEGIN I2S1_Init 1 */
+  /* USER CODE BEGIN I2S1_Init 1 */
 
-	/* USER CODE END I2S1_Init 1 */
-	hi2s1.Instance = SPI1;
-	hi2s1.Init.Mode = I2S_MODE_MASTER_RX;
-	hi2s1.Init.Standard = I2S_STANDARD_PHILIPS;
-	hi2s1.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
-	hi2s1.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-	hi2s1.Init.AudioFreq = I2S_AUDIOFREQ_32K;
-	hi2s1.Init.CPOL = I2S_CPOL_LOW;
-	hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
-	hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-	if (HAL_I2S_Init(&hi2s1) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN I2S1_Init 2 */
+  /* USER CODE END I2S1_Init 1 */
+  hi2s1.Instance = SPI1;
+  hi2s1.Init.Mode = I2S_MODE_MASTER_RX;
+  hi2s1.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s1.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
+  hi2s1.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  hi2s1.Init.AudioFreq = I2S_AUDIOFREQ_32K;
+  hi2s1.Init.CPOL = I2S_CPOL_LOW;
+  hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&hi2s1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2S1_Init 2 */
 
-	/* USER CODE END I2S1_Init 2 */
-
-}
-
-/**
- * @brief I2S3 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_I2S3_Init(void) {
-
-	/* USER CODE BEGIN I2S3_Init 0 */
-
-	/* USER CODE END I2S3_Init 0 */
-
-	/* USER CODE BEGIN I2S3_Init 1 */
-
-	/* USER CODE END I2S3_Init 1 */
-	hi2s3.Instance = SPI3;
-	hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
-	hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
-	hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
-	hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-	hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_32K;
-	hi2s3.Init.CPOL = I2S_CPOL_LOW;
-	hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
-	hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-	if (HAL_I2S_Init(&hi2s3) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN I2S3_Init 2 */
-
-	/* USER CODE END I2S3_Init 2 */
+  /* USER CODE END I2S1_Init 2 */
 
 }
 
 /**
- * @brief SPI2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_SPI2_Init(void) {
+  * @brief I2S3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2S3_Init(void)
+{
 
-	/* USER CODE BEGIN SPI2_Init 0 */
+  /* USER CODE BEGIN I2S3_Init 0 */
 
-	/* USER CODE END SPI2_Init 0 */
+  /* USER CODE END I2S3_Init 0 */
 
-	/* USER CODE BEGIN SPI2_Init 1 */
+  /* USER CODE BEGIN I2S3_Init 1 */
 
-	/* USER CODE END SPI2_Init 1 */
-	/* SPI2 parameter configuration*/
-	hspi2.Instance = SPI2;
-	hspi2.Init.Mode = SPI_MODE_SLAVE;
-	hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-	hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-	hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-	hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
-	hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-	hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	hspi2.Init.CRCPolynomial = 10;
-	if (HAL_SPI_Init(&hspi2) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN SPI2_Init 2 */
+  /* USER CODE END I2S3_Init 1 */
+  hi2s3.Instance = SPI3;
+  hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
+  hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
+  hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_32K;
+  hi2s3.Init.CPOL = I2S_CPOL_LOW;
+  hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&hi2s3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2S3_Init 2 */
 
-	/* USER CODE END SPI2_Init 2 */
-
-}
-
-/**
- * @brief TIM1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM1_Init(void) {
-
-	/* USER CODE BEGIN TIM1_Init 0 */
-
-	/* USER CODE END TIM1_Init 0 */
-
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-	TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
-
-	/* USER CODE BEGIN TIM1_Init 1 */
-
-	/* USER CODE END TIM1_Init 1 */
-	htim1.Instance = TIM1;
-	htim1.Init.Prescaler = 1000;
-	htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim1.Init.Period = 1000;
-	htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim1.Init.RepetitionCounter = 0;
-	htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim1) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_Init(&htim1) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-	sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-	sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-	sBreakDeadTimeConfig.DeadTime = 0;
-	sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-	sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-	sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-	if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM1_Init 2 */
-
-	/* USER CODE END TIM1_Init 2 */
-	HAL_TIM_MspPostInit(&htim1);
+  /* USER CODE END I2S3_Init 2 */
 
 }
 
 /**
- * @brief TIM2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM2_Init(void) {
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
 
-	/* USER CODE BEGIN TIM2_Init 0 */
+  /* USER CODE BEGIN SPI2_Init 0 */
 
-	/* USER CODE END TIM2_Init 0 */
+  /* USER CODE END SPI2_Init 0 */
 
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+  /* USER CODE BEGIN SPI2_Init 1 */
 
-	/* USER CODE BEGIN TIM2_Init 1 */
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_SLAVE;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
 
-	/* USER CODE END TIM2_Init 1 */
-	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 84;
-	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 0xFFFFFFFF;
-	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM2_Init 2 */
-
-	/* USER CODE END TIM2_Init 2 */
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
 /**
- * @brief TIM3 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM3_Init(void) {
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
 
-	/* USER CODE BEGIN TIM3_Init 0 */
+  /* USER CODE BEGIN TIM1_Init 0 */
 
-	/* USER CODE END TIM3_Init 0 */
+  /* USER CODE END TIM1_Init 0 */
 
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
-	/* USER CODE BEGIN TIM3_Init 1 */
+  /* USER CODE BEGIN TIM1_Init 1 */
 
-	/* USER CODE END TIM3_Init 1 */
-	htim3.Instance = TIM3;
-	htim3.Init.Prescaler = 0;
-	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim3.Init.Period = 65535;
-	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM3_Init 2 */
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 1000;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 1000;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
 
-	/* USER CODE END TIM3_Init 2 */
-	HAL_TIM_MspPostInit(&htim3);
-
-}
-
-/**
- * @brief TIM5 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM5_Init(void) {
-
-	/* USER CODE BEGIN TIM5_Init 0 */
-
-	/* USER CODE END TIM5_Init 0 */
-
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-
-	/* USER CODE BEGIN TIM5_Init 1 */
-
-	/* USER CODE END TIM5_Init 1 */
-	htim5.Instance = TIM5;
-	htim5.Init.Prescaler = 1;
-	htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim5.Init.Period = 100;
-	htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim5) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_Init(&htim5) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_4)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM5_Init 2 */
-
-	/* USER CODE END TIM5_Init 2 */
-	HAL_TIM_MspPostInit(&htim5);
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
 
 }
 
 /**
- * Enable DMA controller clock
- */
-static void MX_DMA_Init(void) {
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
 
-	/* DMA controller clock enable */
-	__HAL_RCC_DMA1_CLK_ENABLE();
-	__HAL_RCC_DMA2_CLK_ENABLE();
+  /* USER CODE BEGIN TIM2_Init 0 */
 
-	/* DMA interrupt init */
-	/* DMA1_Stream0_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-	/* DMA1_Stream3_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-	/* DMA1_Stream4_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-	/* DMA2_Stream0_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 84;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 0xFFFFFFFF;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
 
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOH_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+  /* USER CODE BEGIN TIM3_Init 0 */
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(PC3_GPIO_Port, PC3_Pin, GPIO_PIN_RESET);
+  /* USER CODE END TIM3_Init 0 */
 
-	/*Configure GPIO pin : PC3_Pin */
-	GPIO_InitStruct.Pin = PC3_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(PC3_GPIO_Port, &GPIO_InitStruct);
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 1;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 100;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 1;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 100;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+  HAL_TIM_MspPostInit(&htim5);
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PC3_GPIO_Port, PC3_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC3_Pin */
+  GPIO_InitStruct.Pin = PC3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(PC3_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -1213,28 +1241,24 @@ void fill_tx_buffer() {
 	// the package is not valid.
 	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
-	// NOTE: cannot do this inplace because we call fill_tx_buffer
-	// multiple times on the same buffer.
-/*
-	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
-		mics_f_sum[i] /= f_avg_counter;
-	}
-
-	*/
 	memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
 	i_array = sizeof(mics_f_sum);
 
-	/*
+	/* can be used when magnitude averaging is implemented.
 	i_array = 0;
-
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-		averaged_value = mics_f_sum[i]/f_avg_counter;
-		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
-		i_array += sizeof(mics_f_sum[i]);
-	}
-*/
 
+		if (sum_counter > 1)
+			averaged_value = mics_f_sum[i]/sum_counter;
+		else
+			averaged_value = mics_f_sum[i];
+
+		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(averaged_value));
+		i_array += sizeof(averaged_value);
+	}
+	assert(i_array == sizeof(mics_f_sum));
+	*/
 
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
@@ -1304,14 +1328,15 @@ float abs_value_squared(float real_imag[]) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
-void Error_Handler(void) {
-	/* USER CODE BEGIN Error_Handler_Debug */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 
-	/* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT

@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 
-TARGET_F = 3250  # In Hz so 50.0 is 0.020 seconds period and 0.25 is 4 seconds period
+TARGET_F = (
+    3250  # In Hz so 50.0 is 0.020 seconds period and 0.25 is 4 seconds period
+)
 CLOCK_MCU = 84000000  # corresponds to ca. 329500 * 255
 TOLERANCE = 0.0001
 PERIOD = 255
@@ -110,32 +112,40 @@ def print_frequencies(period=PERIOD, fmin=0, fmax=np.inf, n_freqs=None):
 
     prescalers = np.arange(1, MAX_INT, step=1)
     for psc in prescalers:
-        f = get_frequency(psc, period)
-        if fmax >= f >= fmin:
-            df.loc[len(df), :] = dict(PSC=psc, ARR=period, F=int(round(f)), ERROR=0)
+        f = int(round(get_frequency(psc, period)))
+        if (
+            fmax + 1000 >= f >= fmin - 1000
+        ):  # add window because best fit might lie slightly outside the desired window (see below)
+            df.loc[len(df), :] = dict(PSC=psc, ARR=period, F=f, ERROR=0)
+
     df.sort_values("F", axis=0, inplace=True)
     n_total = len(df)
     if n_freqs is not None:
-        # keep_indices = np.linspace(0, n_total-1, n_freqs).astype(int)
         keep_frequencies = np.linspace(fmin, fmax, n_freqs)
         keep_indices = np.argmin(
             np.abs(keep_frequencies[None, :] - df.F[:, None]), axis=0
         )
         df = df.iloc[keep_indices]
-        df.loc[:, "ERROR"] = keep_frequencies - df.F
+        df.loc[:, "ERROR"] = df.F - keep_frequencies
     df = df.astype(np.int)
+
+    #  Adjust PSC and ARR values by -1 to reflect the way you'd code them.
+    df["PSC"] = df["PSC"] - 1
+    df["ARR"] = df["ARR"] - 1
     return df
 
 
 def print_correct_format(df):
     print(r"freq_list_t freq_list_tim[] = {")
     for i, row in df.iterrows():
-        print("\t" + r"{" + f"{row.F}, {row.PSC}, {row.ARR}, {row.ERROR}" + r"},")
+        print(
+            "\t" + r"{" + f"{row.F}, {row.PSC}, {row.ARR}, {row.ERROR}" + r"},"
+        )
     print(r"};")
 
 
 if __name__ == "__main__":
     # print_errors()
-    df = print_frequencies(period=256, fmin=3000, fmax=4875, n_freqs=16)
-    print(df)
+    df = print_frequencies(period=257, fmin=3000, fmax=4875, n_freqs=16)
+    print(f"std of diff {np.std(df.F.values[:-1] - df.F.values[1:]):.1f}")
     print_correct_format(df)

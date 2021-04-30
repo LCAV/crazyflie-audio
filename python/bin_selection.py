@@ -306,7 +306,6 @@ def select_frequencies(
     if verbose:
         print(f"selecting {FFTSIZE} from {len(potential_indices)}")
     if not potential_indices:
-        print(f"Warning: did not find any potential indices. using min_freq={min_freq}")
         potential_indices = [min_index]
 
     # Select indices based on snr or uniformly.
