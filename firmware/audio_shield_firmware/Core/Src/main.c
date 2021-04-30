@@ -300,8 +300,8 @@ int main(void)
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-	//HAL_TIM_Base_Init(&htim2); // debug timer
-	//HAL_TIM_Base_Start(&htim2);
+	HAL_TIM_Base_Init(&htim2); // debug timer
+	HAL_TIM_Base_Start(&htim2);
 	timestamp = 0;
 	
     HAL_TIM_Base_Init(&htim3); // debug timer
