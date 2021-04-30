@@ -30,7 +30,6 @@
 #include "hann_window.h"
 #include "flattop_window.h"
 #include "tukey_window.h"
-#include "buzzer.h"
 #include "sound.h"
 #include "led.h"
 
