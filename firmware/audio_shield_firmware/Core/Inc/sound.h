@@ -5,6 +5,8 @@
 #define STOP -1
 #define REPEAT -2
 #define BUZZER_ARR 256
+#define BUZZER_RATIO 2
+#define BUZZER_DELAY 10
 #define NOTE_LENGTH 300
 #define N_SPI_PER_NOTE 1
 
@@ -25,6 +27,7 @@ typedef const struct {
 
 typedef enum {
 	BUZZER_IDLE,
+	BUZZER_WAIT_REC,
 	BUZZER_RECORD,
 	BUZZER_PLAY_NEXT,
 	BUZZER_CHOOSE_NEXT,
@@ -75,12 +78,17 @@ freq_list_t freq_list_tim[] = {
 
 
 int16_t sweep[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, REPEAT};
+int16_t sweep_five[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		STOP
+};
 int16_t mono3000[] = {0, REPEAT};
 int16_t mono4000[] = {8, REPEAT};
 int16_t mono5000[] = {15, REPEAT};
 
 melody melodies[] = {
 	{1, sweep},
+	{5, sweep_five},
 	{3000, mono3000},
 	{4000, mono4000},
 	{5000, mono5000}

@@ -137,7 +137,7 @@ uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
 
-uint8_t flag_spi_recieved = 0;
+uint8_t flag_package_sent = 0;
 uint8_t spi_counter = 0;
 uint32_t note_tickstart;
 uint8_t melody_index = 0;
@@ -172,6 +172,8 @@ uint16_t n_added = 0; // counter of how many samples were averaged.
 float prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
 int16_t *tapering_window;
+uint16_t buzzer_idx_old = 0;
+
 
 // debugging
 uint32_t last_update_spi = 0;
@@ -237,7 +239,10 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 		counter_error += 1;
 	} else {
 		last_update_spi = HAL_GetTick();
-		flag_spi_recieved = 1;
+
+		if (sum_counter > 0) {
+			flag_package_sent = 1;
+		}
 		//STOPCHRONO;
 		//time_spi_ok = time_us;
 		counter_ok += 1;
@@ -308,7 +313,7 @@ int main(void)
 	piezoInit();
 
 	piezoSetMaxCount(BUZZER_ARR);
-	piezoSetRatio(BUZZER_ARR / 2 - 1);
+	piezoSetRatio(BUZZER_ARR / BUZZER_RATIO - 1);
 
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
@@ -365,7 +370,7 @@ int main(void)
 		case BUZZER_IDLE:
 
 			// start condition detection
-			if (buzzer_idx > 0) {
+			if ((buzzer_idx > 0) & (buzzer_idx != buzzer_idx_old)) {
 				melody_index = -1;
 				for (int i = 0; i < sizeof(melodies); i++) {
 					if (melodies[i].index == buzzer_idx) {
@@ -378,22 +383,35 @@ int main(void)
 					state_note_sm = BUZZER_PLAY_NEXT;
 				}
 			}
+			buzzer_idx_old = buzzer_idx;
 
 			break;
 		case BUZZER_PLAY_NEXT: ;
 			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
-			//HAL_TIM_Base_Init(&htim3); 
 			piezoSetPSC(next_note.PSC);
-			//HAL_TIM_Base_Start(&htim3);
 
+
+			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
 			sum_counter = 0;
 
 			note_tickstart = HAL_GetTick();
-			state_note_sm = BUZZER_RECORD;
+			state_note_sm = BUZZER_WAIT_REC;
 
+			break;
+		case BUZZER_WAIT_REC:
+			if (note_tickstart + BUZZER_DELAY < HAL_GetTick()) {
+				note_tickstart = HAL_GetTick();
+
+				// make sure we don't use the sample from the
+				// frequency that played before.
+				new_sample_to_process = 0;
+
+				state_note_sm = BUZZER_RECORD;
+			}
 			break;
 		case BUZZER_RECORD:
 			// we have a new sample to process and want to add it to the buffer
@@ -431,31 +449,32 @@ int main(void)
 				}
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
-			}
-			frequency_bin_selection(selected_indices);
 
-			// Averaging between SPI communications
-			// The buffer will be filled like
-			// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-			//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-			//  ...
-			//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-			//  where N is FFTSIZE_SENT-1
-			uint16_t i_array = 0;
+				frequency_bin_selection(selected_indices);
 
-			// TODO(FD) change back to average
-			for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin]];
-				mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin] + 1];
-				mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin] + 1];
-				mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin] + 1];
-				mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin] + 1];
+				// Averaging between SPI communications
+				// The buffer will be filled like
+				// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+				//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+				//  ...
+				//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+				//  where N is FFTSIZE_SENT-1
+				uint16_t i_array = 0;
+
+				// TODO(FD) change back to average
+				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+					mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin]];
+					mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin] + 1];
+					mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin] + 1];
+				}
+				fill_tx_buffer();
+				sum_counter++;
 			}
-			sum_counter++;
-			fill_tx_buffer();
 
 			// TODO(FD) check that this still works.
 #ifdef BUZZER_CHANGE_BY_TIMER
@@ -464,9 +483,11 @@ int main(void)
 			}
 #else
 			// play new note for each new communication.
-			if (flag_spi_recieved) {
-				flag_spi_recieved = 0;
+			if (flag_package_sent) {
+
+				flag_package_sent = 0;
 				spi_counter++;
+
 				if (spi_counter == N_SPI_PER_NOTE) {
 					state_note_sm = BUZZER_CHOOSE_NEXT;
 					spi_counter = 0;
