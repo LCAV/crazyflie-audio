@@ -435,7 +435,7 @@ U 1 1 5EE8979D
 P 10350 2550
 F 0 "J2" H 10430 2542 50  0000 L CNN
 F 1 "CONN_10_RIGHT" H 10430 2451 50  0000 L CNN
-F 2 "audio_shield:BF090-10-X-B1" H 10350 2550 50  0001 C CNN
+F 2 "audio_shield:BF090-10-X-B2" H 10350 2550 50  0001 C CNN
 F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 2550 50  0001 C CNN
 F 4 "Farnell" H 10350 2550 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 2550 50  0001 C CNN "Supplier ref."
@@ -451,7 +451,7 @@ U 1 1 5EE88981
 P 10350 1450
 F 0 "J1" H 10430 1442 50  0000 L CNN
 F 1 "CONN_10_LEFT" H 10430 1351 50  0000 L CNN
-F 2 "audio_shield:BF090-10-X-B1" H 10350 1450 50  0001 C CNN
+F 2 "audio_shield:BF090-10-X-B2" H 10350 1450 50  0001 C CNN
 F 3 "http://www.farnell.com/datasheets/2342918.pdf?_ga=2.210943958.293929472.1593689991-1142544513.1588679285" H 10350 1450 50  0001 C CNN
 F 4 "Farnell" H 10350 1450 50  0001 C CNN "Supplier"
 F 5 "2751429 " H 10350 1450 50  0001 C CNN "Supplier ref."
@@ -848,22 +848,6 @@ F 6 "THT" H -1450 1450 50  0001 C CNN "Type"
 	1    -1450 1450
 	1    0    0    -1  
 $EndComp
-$Comp
-L audio_shield:DS28E05P U2
-U 1 1 5F3EF92F
-P 2700 6100
-F 0 "U2" H 2700 6265 50  0000 C CNN
-F 1 "DS28E05R+T" H 2700 6174 50  0000 C CNN
-F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 2700 6150 50  0001 C CNN
-F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6150 50  0001 C CNN
-F 4 "Mouser" H 2700 6100 50  0001 C CNN "Supplier"
-F 5 "700-DS28E05R+T" H 2700 6100 50  0001 C CNN "Supplier ref."
-F 6 " 0.73" H 2700 6100 50  0001 C CNN "Price"
-F 7 "placed" H 2700 6100 50  0001 C CNN "Mount"
-F 8 "SMD" H 2700 6100 50  0001 C CNN "Type"
-	1    2700 6100
-	1    0    0    -1  
-$EndComp
 Text Label 9750 2850 0    50   ~ 0
 EEPROM
 Wire Wire Line
@@ -901,25 +885,16 @@ EEPROM for deck identification
 $Comp
 L power:GND #PWR0104
 U 1 1 6047F8A6
-P 2300 7250
-F 0 "#PWR0104" H 2300 7000 50  0001 C CNN
-F 1 "GND" H 2305 7077 50  0000 C CNN
-F 2 "" H 2300 7250 50  0001 C CNN
-F 3 "" H 2300 7250 50  0001 C CNN
-	1    2300 7250
+P 2300 7550
+F 0 "#PWR0104" H 2300 7300 50  0001 C CNN
+F 1 "GND" H 2305 7377 50  0000 C CNN
+F 2 "" H 2300 7550 50  0001 C CNN
+F 3 "" H 2300 7550 50  0001 C CNN
+	1    2300 7550
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	2300 6850 2400 6850
 Text Label 950  6600 0    50   ~ 0
 EEPROM
-Wire Wire Line
-	2300 7250 2300 6850
-Wire Wire Line
-	2300 6850 2300 6200
-Wire Wire Line
-	2300 6200 2400 6200
-Connection ~ 2300 6850
 Wire Wire Line
 	10150 2150 9650 2150
 Text Label 9650 2150 0    50   ~ 0
@@ -1036,9 +1011,9 @@ F 7 "THT" H 5400 5800 50  0001 C CNN "Type"
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5300 5700 5300 5450
+	5300 5700 5300 5500
 Wire Wire Line
-	5300 5900 5300 6150
+	5300 5900 5300 6050
 $Comp
 L Transistor_FET:BS170F Q1
 U 1 1 604D2928
@@ -1055,26 +1030,10 @@ F 8 "SMD" H 5200 6350 50  0001 C CNN "Type"
 	1    5200 6350
 	1    0    0    -1  
 $EndComp
-$Comp
-L audio_shield:DS28E05P U3
-U 1 1 604E5C19
-P 2700 6750
-F 0 "U3" H 2700 6915 50  0000 C CNN
-F 1 "DS28E05R+T" H 2700 6824 50  0000 C CNN
-F 2 "Package_SO_J-Lead:TSOC-6_3.76x3.94mm_P1.27mm" H 2700 6800 50  0001 C CNN
-F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6800 50  0001 C CNN
-F 4 "Mouser" H 2700 6750 50  0001 C CNN "Supplier"
-F 5 "700-DS28E05R+T" H 2700 6750 50  0001 C CNN "Supplier ref."
-F 6 " 0.73" H 2700 6750 50  0001 C CNN "Price"
-F 7 "placed" H 2700 6750 50  0001 C CNN "Mount"
-F 8 "SMD" H 2700 6750 50  0001 C CNN "Type"
-	1    2700 6750
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
-	1700 6950 1500 6950
+	1700 7100 1500 7100
 Wire Wire Line
-	1500 6950 1500 6600
+	1500 7100 1500 6600
 Wire Wire Line
 	950  6600 1500 6600
 Wire Wire Line
@@ -1085,14 +1044,14 @@ Connection ~ 1500 6600
 $Comp
 L Jumper:Jumper_2_Bridged JP3
 U 1 1 604F84EB
-P 1900 6950
-F 0 "JP3" H 1900 7145 50  0000 C CNN
-F 1 "Jumper_2_Bridged" H 1900 7054 50  0000 C CNN
-F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm" H 1900 6950 50  0001 C CNN
-F 3 "~" H 1900 6950 50  0001 C CNN
-F 4 "not placed" H 1900 6950 50  0001 C CNN "Mount"
-F 5 "THT" H 1900 6950 50  0001 C CNN "Type"
-	1    1900 6950
+P 1900 7100
+F 0 "JP3" H 1900 7295 50  0000 C CNN
+F 1 "Jumper_2_Bridged" H 1900 7204 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm" H 1900 7100 50  0001 C CNN
+F 3 "~" H 1900 7100 50  0001 C CNN
+F 4 "not placed" H 1900 7100 50  0001 C CNN "Mount"
+F 5 "THT" H 1900 7100 50  0001 C CNN "Type"
+	1    1900 7100
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1109,9 +1068,7 @@ F 5 "THT" H 1900 6300 50  0001 C CNN "Type"
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2100 6950 2400 6950
-Wire Wire Line
-	2100 6300 2400 6300
+	2100 7100 2400 7100
 Text Label 2350 3550 0    50   ~ 0
 AD_Buzzer
 Wire Wire Line
@@ -1227,4 +1184,74 @@ F 8 "THT" H 1450 900 50  0001 C CNN "Type"
 $EndComp
 Text Notes 8750 4250 1    50   ~ 0
 Fix label error at next version\n
+$Comp
+L Memory_UniqueID:DS2401Z U2
+U 1 1 608D0E38
+P 2700 6300
+F 0 "U2" H 2456 6289 50  0000 R CNN
+F 1 "DS2401Z" H 2456 6198 50  0000 R CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 3300 5950 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2550 6550 50  0001 C CNN
+F 4 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 6300 50  0001 C CNN "Mount"
+F 5 " 0.73" H 2700 6300 50  0001 C CNN "Price"
+F 6 "Mouser" H 2700 6300 50  0001 C CNN "Supplier"
+F 7 "700-DS28E05R+T" H 2700 6300 50  0001 C CNN "Supplier ref."
+F 8 "SMD" H 2700 6300 50  0001 C CNN "Type"
+	1    2700 6300
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Memory_UniqueID:DS2401Z U3
+U 1 1 608D40B5
+P 2700 7100
+F 0 "U3" H 2456 7089 50  0000 R CNN
+F 1 "DS2401Z" H 2456 6998 50  0000 R CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 3300 6750 50  0001 C CNN
+F 3 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2550 7350 50  0001 C CNN
+F 4 "https://datasheets.maximintegrated.com/en/ds/DS28E05.pdf" H 2700 7100 50  0001 C CNN "Mount"
+F 5 " 0.73" H 2700 7100 50  0001 C CNN "Price"
+F 6 "Mouser" H 2700 7100 50  0001 C CNN "Supplier"
+F 7 "700-DS28E05R+T" H 2700 7100 50  0001 C CNN "Supplier ref."
+F 8 "SMD" H 2700 7100 50  0001 C CNN "Type"
+	1    2700 7100
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	2100 6300 2400 6300
+Wire Wire Line
+	2700 6700 2300 6700
+Wire Wire Line
+	2300 6700 2300 7500
+Wire Wire Line
+	2700 7500 2300 7500
+Connection ~ 2300 7500
+Wire Wire Line
+	2300 7500 2300 7550
+$Comp
+L pspice:DIODE D5
+U 1 1 609442E0
+P 6300 5800
+F 0 "D5" V 6346 5672 50  0000 R CNN
+F 1 "DIODE" V 6255 5672 50  0000 R CNN
+F 2 "Diode_SMD:D_0603_1608Metric" H 6300 5800 50  0001 C CNN
+F 3 "~" H 6300 5800 50  0001 C CNN
+	1    6300 5800
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	6300 5600 6300 5500
+Wire Wire Line
+	6300 5500 5300 5500
+Connection ~ 5300 5500
+Wire Wire Line
+	5300 5500 5300 5450
+Wire Wire Line
+	6300 6000 6300 6050
+Wire Wire Line
+	6300 6050 5300 6050
+Connection ~ 5300 6050
+Wire Wire Line
+	5300 6050 5300 6150
+Text Notes 6450 5950 0    50   ~ 0
+Very important otherwise no SPI
 $EndSCHEMATC
