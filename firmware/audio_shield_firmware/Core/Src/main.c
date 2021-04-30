@@ -133,6 +133,8 @@ float mic3_f[N_ACTUAL_SAMPLES];
 
 float mics_f_sum[N_MICS * 2 * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
 uint16_t sum_counter = 0;
+uint16_t sum_counter_max = 0;
+
 uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
@@ -140,7 +142,7 @@ uint16_t current_frequency = 0;
 uint8_t flag_package_sent = 0;
 uint8_t spi_counter = 0;
 uint32_t note_tickstart;
-uint8_t melody_index = 0;
+int8_t melody_index = 0;
 uint8_t note_index = 0;
 
 state_note_t state_note_sm = BUZZER_IDLE;
@@ -409,7 +411,7 @@ int main(void)
 				// make sure we don't use the sample from the
 				// frequency that played before.
 				new_sample_to_process = 0;
-
+				flag_package_sent = 0;
 				state_note_sm = BUZZER_RECORD;
 			}
 			break;
@@ -461,7 +463,10 @@ int main(void)
 				//  where N is FFTSIZE_SENT-1
 				uint16_t i_array = 0;
 
-				// TODO(FD) change back to average
+				// TODO(FD) the plan here was to do an averaging, but we need to
+				// decompose in magnitude and phase to do this, which is currently
+				// out of the scope of this application. So instead we use the latest
+				// value.
 				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
 					mics_f_sum[i_array++] = mic0_f[2 * selected_indices[i_fbin]];
 					mics_f_sum[i_array++] = mic1_f[2 * selected_indices[i_fbin]];
@@ -472,8 +477,8 @@ int main(void)
 					mics_f_sum[i_array++] = mic2_f[2 * selected_indices[i_fbin] + 1];
 					mics_f_sum[i_array++] = mic3_f[2 * selected_indices[i_fbin] + 1];
 				}
-				fill_tx_buffer();
 				sum_counter++;
+				fill_tx_buffer();
 			}
 
 			// TODO(FD) check that this still works.
@@ -487,6 +492,13 @@ int main(void)
 
 				flag_package_sent = 0;
 				spi_counter++;
+
+				if (sum_counter == 0) {
+					counter_error = 1;
+				}
+				if (sum_counter >= sum_counter_max) {
+					sum_counter_max = sum_counter;
+				}
 
 				if (spi_counter == N_SPI_PER_NOTE) {
 					state_note_sm = BUZZER_CHOOSE_NEXT;
@@ -519,9 +531,7 @@ int main(void)
 			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-			//HAL_TIM_Base_Init(&htim3); 
 			piezoSetPSC(0);
-			//HAL_TIM_Base_Start(&htim3);
 
 			state_note_sm = BUZZER_IDLE;
 
@@ -1230,30 +1240,26 @@ uint16_t i_array;
 void fill_tx_buffer() {
 	// set the CHECKSUM to 0 so that if we communicate during filling,
 	// the package is not valid.
-	//spi_tx_buffer[SPI_N_BYTES - 1] = 0;
+	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
-	// NOTE: cannot do this inplace because we call fill_tx_buffer
-	// multiple times on the same buffer.
-	/*
-	for (int i = 0; i < 4 * 2 * FFTSIZE_SENT; i++) {
-		mics_f_sum[i] /= sum_counter;
-	}
-
-	*/
 	memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
 	i_array = sizeof(mics_f_sum);
 
-	/*
+	/* can be used when magnitude averaging is implemented.
 	i_array = 0;
-
 	float averaged_value;
 	for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-		averaged_value = mics_f_sum[i]/sum_counter;
-		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(mics_f_sum[i]));
-		i_array += sizeof(mics_f_sum[i]);
-	}
-*/
 
+		if (sum_counter > 1)
+			averaged_value = mics_f_sum[i]/sum_counter;
+		else
+			averaged_value = mics_f_sum[i];
+
+		memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(averaged_value));
+		i_array += sizeof(averaged_value);
+	}
+	assert(i_array == sizeof(mics_f_sum));
+	*/
 
 	// Fill with bins indices
 	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));

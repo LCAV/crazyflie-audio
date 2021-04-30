@@ -78,7 +78,9 @@ freq_list_t freq_list_tim[] = {
 
 
 int16_t sweep[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, REPEAT};
-int16_t sweep_five[] = {
+int16_t sweep_three[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 		STOP
 };
@@ -88,7 +90,7 @@ int16_t mono5000[] = {15, REPEAT};
 
 melody melodies[] = {
 	{1, sweep},
-	{5, sweep_five},
+	{3, sweep_three},
 	{3000, mono3000},
 	{4000, mono4000},
 	{5000, mono5000}
