@@ -328,7 +328,7 @@ int main(void)
 			ledSetRatio(j, i);
 			HAL_Delay(1);
 		}
-		ledSetRatio(0, i);
+		ledSetRatio(100, i);
 	}
 
 	piezoSetPSC(0);
