@@ -336,7 +336,8 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -357,6 +358,7 @@ int main(void) {
 
 		// Monitoring
 		// TODO: Upgrade led reactions
+
 		ledSetMaxCount(2000);
 		if (last_update_spi > (HAL_GetTick() - 3000)) {
 			ledSetRatio((uint16_t) abs(dma_1[0]), 1);
@@ -373,7 +375,7 @@ int main(void) {
 			// start condition detection
 			if ((buzzer_idx > 0) & (buzzer_idx != buzzer_idx_old)) {
 				melody_index = -1;
-				for (int i = 0; i < sizeof(melodies); i++) {
+				for (int i = 0; i < MELODIES_COUNT; i++) {
 					if (melodies[i].index == buzzer_idx) {
 						melody_index = i;
 					}
@@ -389,7 +391,8 @@ int main(void) {
 			break;
 		case BUZZER_PLAY_NEXT:
 			;
-			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
+			freq_list_t next_note =
+					freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
 			piezoSetPSC(next_note.PSC);
@@ -440,38 +443,39 @@ int main(void) {
 				//  ...
 				//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
 				//  where N is FFTSIZE_SENT-1
-				uint16_t i_array = 0;
-
-				// TODO(FD) the plan here was to do an averaging, but we need to
-				// decompose in magnitude and phase to do this, which is currently
-				// out of the scope of this application. So instead we use the latest
-				// value.
-				for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-					mics_f_sum[i_array++] =
-							mic0_f[N_COMPLEX * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] =
-							mic1_f[N_COMPLEX * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] =
-							mic2_f[N_COMPLEX * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] =
-							mic3_f[N_COMPLEX * selected_indices[i_fbin]];
-					mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]
-							+ 1];
-					mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]
-							+ 1];
-					mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]
-							+ 1];
-					mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]
-							+ 1];
-				}
-
+				//uint16_t i_array = 0;
+				/*
+				 // TODO(FD) the plan here was to do an averaging, but we need to
+				 // decompose in magnitude and phase to do this, which is currently
+				 // out of the scope of this application. So instead we use the latest
+				 // value.
+				 for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+				 mics_f_sum[i_array++] =
+				 mic0_f[N_COMPLEX * selected_indices[i_fbin]];
+				 mics_f_sum[i_array++] =
+				 mic1_f[N_COMPLEX * selected_indices[i_fbin]];
+				 mics_f_sum[i_array++] =
+				 mic2_f[N_COMPLEX * selected_indices[i_fbin]];
+				 mics_f_sum[i_array++] =
+				 mic3_f[N_COMPLEX * selected_indices[i_fbin]];
+				 mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]
+				 + 1];
+				 mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]
+				 + 1];
+				 mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]
+				 + 1];
+				 mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]
+				 + 1];
+				 }
+				 */
 				sum_counter++;
 				fill_tx_buffer();
 				state_note_sm = BUZZER_CHOOSE_NEXT;
 			}
 
 			// Reset after successful communication
-			if (flag_package_sent & (spi_tx_buffer[SPI_N_BYTES - 1] == CHECKSUM_VALUE)) {
+			if (flag_package_sent
+					& (spi_tx_buffer[SPI_N_BYTES - 1] == CHECKSUM_VALUE)) {
 
 				flag_package_sent = 0;
 				spi_counter++;
@@ -1005,11 +1009,15 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 #ifdef DCNotchActivated
 			if (pIn == dma_1) {
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16
+						* window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16
+						* window_value;
 			} else { // pIn == dma_3
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16
+						* window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16
+						* window_value;
 			};
 #else // not DCNotchActivated
 			*pOut1++ = (float) *pIn++ /  MAX_INT16 * window_value;
@@ -1230,14 +1238,32 @@ uint8_t fill_tx_buffer() {
 
 	uint16_t freq_idx = (uint16_t) round(current_frequency / DF);
 
-	memcpy(&spi_tx_buffer[note_index * N_MICS * N_COMPLEX * sizeof(mics_f_sum[freq_idx])], &mics_f_sum[freq_idx], N_MICS * N_COMPLEX * sizeof(mics_f_sum[freq_idx]));
+	i_array = note_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
 
-	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
+	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
+	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	i_array += FLOAT_PRECISION;
 
-	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
+	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)],
+			&freq_idx, sizeof(freq_idx));
 
+	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp,
+			sizeof(timestamp));
 
-	if(i_array == SPI_N_BYTES - 1){
+	if (note_index == melodies[melody_index].length - 1) {
 		spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 		return 1;
 	}

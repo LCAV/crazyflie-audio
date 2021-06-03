@@ -22,6 +22,7 @@ typedef const struct {
 typedef const struct {
 	uint16_t index;
 	int16_t* notes;
+	uint8_t length;
 } melody;
 
 
@@ -88,12 +89,14 @@ int16_t mono3000[] = {0, REPEAT};
 int16_t mono4000[] = {8, REPEAT};
 int16_t mono5000[] = {15, REPEAT};
 
+#define MELODIES_COUNT 5
+
 melody melodies[] = {
-	{1, sweep},
-	{3, sweep_three},
-	{3000, mono3000},
-	{4000, mono4000},
-	{5000, mono5000}
+	{1, sweep, 16},
+	{3, sweep_three, 48},
+	{3000, mono3000, 1},
+	{4000, mono4000, 1},
+	{5000, mono5000, 1}
 };
 
 #endif /* __SOUND_H */
