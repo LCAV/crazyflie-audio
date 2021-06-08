@@ -294,15 +294,17 @@ int main(void) {
 	MX_TIM3_Init();
 	/* USER CODE BEGIN 2 */
 
-	// Start DMAs
+	// Start audio capture
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
+	// Reset memory
 	memset(selected_indices, 0x00, sizeof(selected_indices));
 	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
+	// Start timers
 	HAL_TIM_Base_Init(&htim2); // debug timer
 	HAL_TIM_Base_Start(&htim2);
 	timestamp = 0;
@@ -310,16 +312,18 @@ int main(void) {
 	HAL_TIM_Base_Init(&htim3); // debug timer
 	HAL_TIM_Base_Start(&htim3);
 
-	ledInit(); // uses htim1
-
+	// Piezo buzzer initialisation
 	piezoInit();
 
 	piezoSetMaxCount(BUZZER_ARR);
 	piezoSetRatio(BUZZER_ARR / BUZZER_RATIO - 1);
 
+	// Led initialisation and wake-up sequence
+	ledInit(); // uses htim1
+
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
-		piezoSetPSC(freq_list_tim[melodies[0].notes[i - 1]].PSC);
+		piezoSetPSC(freq_list_tim[melodies[0].notes[i - 1]].PSC); // Buzzer follows led sequence
 
 		for (uint8_t j = 0; j < 100; j++) {
 			ledSetRatio(j, i);
@@ -373,7 +377,7 @@ int main(void) {
 		case BUZZER_IDLE:
 
 			// start condition detection
-			if ((buzzer_idx > 0) & (buzzer_idx != buzzer_idx_old)) {
+			if ((buzzer_idx != 0) & (buzzer_idx != buzzer_idx_old)) {
 				melody_index = -1;
 				for (int i = 0; i < MELODIES_COUNT; i++) {
 					if (melodies[i].index == buzzer_idx) {
@@ -391,8 +395,7 @@ int main(void) {
 			break;
 		case BUZZER_PLAY_NEXT:
 			;
-			freq_list_t next_note =
-					freq_list_tim[melodies[melody_index].notes[note_index]];
+			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
 			piezoSetPSC(next_note.PSC);
@@ -434,48 +437,13 @@ int main(void) {
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
 
-//				frequency_bin_selection(selected_indices);
-
-				// Averaging between SPI communications
-				// The buffer will be filled like
-				// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-				//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-				//  ...
-				//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-				//  where N is FFTSIZE_SENT-1
-				//uint16_t i_array = 0;
-				/*
-				 // TODO(FD) the plan here was to do an averaging, but we need to
-				 // decompose in magnitude and phase to do this, which is currently
-				 // out of the scope of this application. So instead we use the latest
-				 // value.
-				 for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-				 mics_f_sum[i_array++] =
-				 mic0_f[N_COMPLEX * selected_indices[i_fbin]];
-				 mics_f_sum[i_array++] =
-				 mic1_f[N_COMPLEX * selected_indices[i_fbin]];
-				 mics_f_sum[i_array++] =
-				 mic2_f[N_COMPLEX * selected_indices[i_fbin]];
-				 mics_f_sum[i_array++] =
-				 mic3_f[N_COMPLEX * selected_indices[i_fbin]];
-				 mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]
-				 + 1];
-				 mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]
-				 + 1];
-				 mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]
-				 + 1];
-				 mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]
-				 + 1];
-				 }
-				 */
 				sum_counter++;
 				fill_tx_buffer();
 				state_note_sm = BUZZER_CHOOSE_NEXT;
 			}
 
 			// Reset after successful communication
-			if (flag_package_sent
-					& (spi_tx_buffer[SPI_N_BYTES - 1] == CHECKSUM_VALUE)) {
+			if (flag_package_sent & (spi_tx_buffer[SPI_N_BYTES - 1] == CHECKSUM_VALUE)) {
 
 				flag_package_sent = 0;
 				spi_counter++;
@@ -559,8 +527,7 @@ void SystemClock_Config(void) {
 	}
 	/** Initializes the CPU, AHB and APB buses clocks
 	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -569,8 +536,7 @@ void SystemClock_Config(void) {
 	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
 		Error_Handler();
 	}
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1
-			| RCC_PERIPHCLK_I2S_APB2;
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1 | RCC_PERIPHCLK_I2S_APB2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
 	PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
 	PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
@@ -721,8 +687,7 @@ static void MX_TIM1_Init(void) {
 	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig)
-			!= HAL_OK) {
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -732,20 +697,16 @@ static void MX_TIM1_Init(void) {
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
 	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
 		Error_Handler();
 	}
 	sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
@@ -755,8 +716,7 @@ static void MX_TIM1_Init(void) {
 	sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
 	sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
 	sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-	if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig)
-			!= HAL_OK) {
+	if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM1_Init 2 */
@@ -798,8 +758,7 @@ static void MX_TIM2_Init(void) {
 	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
-			!= HAL_OK) {
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM2_Init 2 */
@@ -844,16 +803,14 @@ static void MX_TIM3_Init(void) {
 	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig)
-			!= HAL_OK) {
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse = 0;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM3_Init 2 */
@@ -899,20 +856,17 @@ static void MX_TIM5_Init(void) {
 	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig)
-			!= HAL_OK) {
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse = 0;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_4)
-			!= HAL_OK) {
+	if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM5_Init 2 */
@@ -983,8 +937,7 @@ static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
 		memset(y_prev, 0x00, sizeof(y_prev));
 	}
 
-	y_prev[filter_index] = (((int32_t) y_prev[filter_index] * 0x00007999) >> 16)
-			- x_prev[filter_index] + x;
+	y_prev[filter_index] = (((int32_t) y_prev[filter_index] * 0x00007999) >> 16) - x_prev[filter_index] + x;
 	x_prev[filter_index] = x;
 	return y_prev[filter_index];
 }
@@ -1009,15 +962,11 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 #ifdef DCNotchActivated
 			if (pIn == dma_1) {
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16
-						* window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16
-						* window_value;
+				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
 			} else { // pIn == dma_3
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16
-						* window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16
-						* window_value;
+				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
+				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
 			};
 #else // not DCNotchActivated
 			*pOut1++ = (float) *pIn++ /  MAX_INT16 * window_value;
@@ -1065,9 +1014,8 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		return;
 	}
 
-	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7,
-			8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-			25, 26, 27, 28 };
+	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+			18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 };
 
 	// TODO(FD): for the moment we just use the average thrust here. We could
 	// also loop through all propeller frequencies and not use any of them,
@@ -1115,8 +1063,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		uint8_t use_this = 1;
 		if (filter_prop_enable) {
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
-				if (fabs(((i * DF) - (prop_factors[j] * prop_freq)))
-						< delta_freq) {
+				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < delta_freq) {
 					use_this = 0;
 
 					// For the next potential bins we only need
@@ -1135,8 +1082,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	// if we have less candidates than required, we simply send all candidates
 	if (potential_count <= FFTSIZE_SENT) {
 		if (!filter_snr_enable) {
-			memcpy(selected_indices, potential_indices,
-					potential_count * INT16_PRECISION);
+			memcpy(selected_indices, potential_indices, potential_count * INT16_PRECISION);
 		}
 		// we still do the sorting for consistency (for instance, if down the line
 		// we rely on the first index to be the strongest)
@@ -1146,8 +1092,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 				sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
 				sort_this[i].index = potential_indices[i];
 			}
-			qsort(sort_this, potential_count, sizeof(sort_this[0]),
-					compare_amplitudes);
+			qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
 			for (int i = 0; i < potential_count; i++) {
 				selected_indices[i] = sort_this[i].index;
 			}
@@ -1163,8 +1108,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		// sample uniformly among remaining candidates
 		float decimation = (float) potential_count / FFTSIZE_SENT;
 		for (int i = 0; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] =
-					potential_indices[(int) round(i * decimation)];
+			selected_indices[i] = potential_indices[(int) round(i * decimation)];
 		}
 		return;
 	}
@@ -1185,8 +1129,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 			sort_this[i].index = potential_indices[i];
 		}
 
-		qsort(sort_this, potential_count, sizeof(sort_this[0]),
-				compare_amplitudes);
+		qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
 		for (int i = start_idx; i < FFTSIZE_SENT; i++) {
 			selected_indices[i] = sort_this[i - start_idx].index;
 		}
@@ -1197,11 +1140,40 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 uint16_t i_array;
 
 uint8_t fill_tx_buffer() {
-#if 0
+#if 1
+	// MODE "32 Bins, with selection schemes"
+
+	frequency_bin_selection(selected_indices);
+
+	// Averaging between SPI communications
+	// The buffer will be filled like
+	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+	//  ...
+	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+	//  where N is FFTSIZE_SENT-1
+	uint16_t i_array = 0;
+
+	// TODO(FD) the plan here was to do an averaging, but we need to
+	// decompose in magnitude and phase to do this, which is currently
+	// out of the scope of this application. So instead we use the latest
+	// value.
+	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+		mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]];
+		mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]];
+		mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]];
+		mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]];
+		mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+		mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+		mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+		mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+	}
+
 	// set the CHECKSUM to 0 so that if we communicate during filling,
 	// the package is not valid.
 	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
+	// Fill buffer with audio data
 	memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
 	i_array = sizeof(mics_f_sum);
 
@@ -1231,45 +1203,52 @@ uint8_t fill_tx_buffer() {
 
 	assert(i_array == SPI_N_BYTES - 1);
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
+
 #else
-	// set the CHECKSUM to 0 so that if we communicate during filling,
-	// the package is not valid.
+	// MODE "ONE BUFFER, ONE SWEEP"
+
+	// set the CHECKSUM to 0 so that if we communicate during filling, the package is not valid.
 	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
+	// Calculate current "step" on the sweep
 	uint16_t freq_idx = (uint16_t) round(current_frequency / DF);
 
+	// Variable for memory indexing
 	i_array = note_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
 
-	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	// Fill buffer with audio data
+	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx + 1],  FLOAT_PRECISION);
+	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
 	i_array += FLOAT_PRECISION;
 
-	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)],
-			&freq_idx, sizeof(freq_idx));
+	// Fill with bins indices
+	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
 
-	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp,
-			sizeof(timestamp));
+	// Fill with timestamp
+	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
 
+	// Activate Checksum only if sweep is completed
 	if (note_index == melodies[melody_index].length - 1) {
 		spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 		return 1;
 	}
 
-	return 0;
 #endif
+
+	return 0;
 }
 
 void read_rx_buffer() {

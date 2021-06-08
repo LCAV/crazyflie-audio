@@ -5,7 +5,7 @@
 #define STOP -1
 #define REPEAT -2
 #define BUZZER_ARR 256
-#define BUZZER_RATIO 20 // Volume -> 2 = average, bigger -> quieter
+#define BUZZER_RATIO 25 // Volume -> 2 = minimum, bigger -> quieter
 #define BUZZER_DELAY 10
 #define NOTE_LENGTH 300
 #define N_SPI_PER_NOTE 1
@@ -20,7 +20,7 @@ typedef const struct {
 
 
 typedef const struct {
-	uint16_t index;
+	int16_t index;
 	int16_t* notes;
 	uint8_t length;
 } melody;
@@ -75,6 +75,7 @@ freq_list_t freq_list_tim[] = {
         {4603, 70, 256, -22},
         {4737, 68, 256, -13},
         {4878, 66, 256, 3},
+        {2000, 0, 0, 0},
 };
 
 
@@ -85,18 +86,21 @@ int16_t sweep_three[] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 		STOP
 };
+
 int16_t mono3000[] = {0, REPEAT};
 int16_t mono4000[] = {8, REPEAT};
 int16_t mono5000[] = {15, REPEAT};
+int16_t monoBLANK2000[] = {16, REPEAT};
 
-#define MELODIES_COUNT 5
+#define MELODIES_COUNT 6
 
 melody melodies[] = {
 	{1, sweep, 16},
 	{3, sweep_three, 48},
 	{3000, mono3000, 1},
 	{4000, mono4000, 1},
-	{5000, mono5000, 1}
+	{5000, mono5000, 1},
+	{12000, monoBLANK2000, 1}
 };
 
 #endif /* __SOUND_H */
