@@ -1081,7 +1081,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 
 	// if we have less candidates than required, we simply send all candidates
 	if (potential_count <= FFTSIZE_SENT) {
-		if (!filter_snr_enable) {
+		if (filter_snr_enable == 0) {
 			memcpy(selected_indices, potential_indices, potential_count * INT16_PRECISION);
 		}
 		// we still do the sorting for consistency (for instance, if down the line
@@ -1140,113 +1140,113 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 uint16_t i_array;
 
 uint8_t fill_tx_buffer() {
-#if 1
-	// MODE "32 Bins, with selection schemes"
+	if(filter_snr_enable != 5) {
+		// MODE "32 Bins, with selection schemes"
 
-	frequency_bin_selection(selected_indices);
+		frequency_bin_selection(selected_indices);
 
-	// Averaging between SPI communications
-	// The buffer will be filled like
-	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-	//  ...
-	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-	//  where N is FFTSIZE_SENT-1
-	uint16_t i_array = 0;
+		// Averaging between SPI communications
+		// The buffer will be filled like
+		// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+		//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+		//  ...
+		//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+		//  where N is FFTSIZE_SENT-1
+		uint16_t i_array = 0;
 
-	// TODO(FD) the plan here was to do an averaging, but we need to
-	// decompose in magnitude and phase to do this, which is currently
-	// out of the scope of this application. So instead we use the latest
-	// value.
-	for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-		mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]];
-		mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]];
-		mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]];
-		mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]];
-		mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-		mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-		mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-		mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-	}
+		// TODO(FD) the plan here was to do an averaging, but we need to
+		// decompose in magnitude and phase to do this, which is currently
+		// out of the scope of this application. So instead we use the latest
+		// value.
+		for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
+			mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+		}
 
-	// set the CHECKSUM to 0 so that if we communicate during filling,
-	// the package is not valid.
-	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
+		// set the CHECKSUM to 0 so that if we communicate during filling,
+		// the package is not valid.
+		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
-	// Fill buffer with audio data
-	memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
-	i_array = sizeof(mics_f_sum);
+		// Fill buffer with audio data
+		memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
+		i_array = sizeof(mics_f_sum);
 
-	/* can be used when magnitude averaging is implemented.
-	 i_array = 0;
-	 float averaged_value;
-	 for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
+		/* can be used when magnitude averaging is implemented.
+		 i_array = 0;
+		 float averaged_value;
+		 for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
 
-	 if (sum_counter > 1)
-	 averaged_value = mics_f_sum[i]/sum_counter;
-	 else
-	 averaged_value = mics_f_sum[i];
+		 if (sum_counter > 1)
+		 averaged_value = mics_f_sum[i]/sum_counter;
+		 else
+		 averaged_value = mics_f_sum[i];
 
-	 memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(averaged_value));
-	 i_array += sizeof(averaged_value);
-	 }
-	 assert(i_array == sizeof(mics_f_sum));
-	 */
+		 memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(averaged_value));
+		 i_array += sizeof(averaged_value);
+		 }
+		 assert(i_array == sizeof(mics_f_sum));
+		 */
 
-	// Fill with bins indices
-	memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
-	i_array += sizeof(selected_indices);
+		// Fill with bins indices
+		memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
+		i_array += sizeof(selected_indices);
 
-	// Fill with timestamp
-	memcpy(&spi_tx_buffer[i_array], &timestamp, sizeof(timestamp));
-	i_array += sizeof(timestamp);
+		// Fill with timestamp
+		memcpy(&spi_tx_buffer[i_array], &timestamp, sizeof(timestamp));
+		i_array += sizeof(timestamp);
 
-	assert(i_array == SPI_N_BYTES - 1);
-	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-
-#else
-	// MODE "ONE BUFFER, ONE SWEEP"
-
-	// set the CHECKSUM to 0 so that if we communicate during filling, the package is not valid.
-	spi_tx_buffer[SPI_N_BYTES - 1] = 0;
-
-	// Calculate current "step" on the sweep
-	uint16_t freq_idx = (uint16_t) round(current_frequency / DF);
-
-	// Variable for memory indexing
-	i_array = note_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
-
-	// Fill buffer with audio data
-	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-	memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
-	i_array += FLOAT_PRECISION;
-
-	// Fill with bins indices
-	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
-
-	// Fill with timestamp
-	memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
-
-	// Activate Checksum only if sweep is completed
-	if (note_index == melodies[melody_index].length - 1) {
+		assert(i_array == SPI_N_BYTES - 1);
 		spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-		return 1;
-	}
 
-#endif
+	} else {
+		// MODE "ONE BUFFER, ONE SWEEP"
+
+		// set the CHECKSUM to 0 so that if we communicate during filling, the package is not valid.
+		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
+
+		// Calculate current "step" on the sweep
+		uint16_t freq_idx = (uint16_t) round(current_frequency / DF);
+
+		// Variable for memory indexing
+		i_array = note_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
+
+		// Fill buffer with audio data
+		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+		memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		i_array += FLOAT_PRECISION;
+
+		// Fill with bins indices
+		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
+
+		// Fill with timestamp
+		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
+
+		// Activate Checksum only if sweep is completed
+		if (note_index == melodies[melody_index].length - 1) {
+			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
+			return 1;
+		}
+
+	}
 
 	return 0;
 }
