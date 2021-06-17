@@ -12,6 +12,9 @@ def get_frequencies():
 
 def generate_sweep(key):
     from crazyflie_description_py.parameters import SOUND_EFFECTS
+    from epuck_description_py.parameters import (
+        SOUND_EFFECTS as EPUCK_SOUND_EFFECTS,
+    )
 
     freqs = get_frequencies()
 
@@ -268,6 +271,12 @@ def generate_sweep(key):
         freqs_all = get_frequencies()
         bins = np.argmin(np.abs(freqs_all[:, None] - freqs[None, :]), axis=0)
         t_sec = 1e-2
+    elif key == "sweep_epuck":
+        t_sec = 0.1  # duration of each note in seconds
+        min_freq, max_freq = EPUCK_SOUND_EFFECTS[key][1]
+        bins = select_frequencies(
+            min_freq=min_freq, max_freq=max_freq, n_freqs=16
+        )
     else:
         t_sec = 1.0  # duration of each note in seconds
         min_freq, max_freq = SOUND_EFFECTS[key][1]
