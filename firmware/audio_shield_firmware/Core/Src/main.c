@@ -311,8 +311,8 @@ int main(void) {
 //	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 //	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
-	HAL_I2S_Receive_IT(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
-	HAL_I2S_Receive_IT(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
+	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
+	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
 	// Reset memory
 	memset(selected_indices, 0x00, sizeof(selected_indices));
@@ -356,8 +356,8 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	};
+	//while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	//};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -435,8 +435,8 @@ int main(void) {
 				state_note_sm = BUZZER_RECORD;
 
 				// Start aquisition process
-				HAL_I2S_Receive_IT(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
-				HAL_I2S_Receive_IT(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
+				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
+				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
 			}
 			break;
