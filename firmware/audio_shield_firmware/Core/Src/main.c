@@ -352,8 +352,8 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	//while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	//};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
+	};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
