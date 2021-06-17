@@ -50,7 +50,8 @@
 
 #define DCNotchActivated 1
 
-#define N_ACTUAL_SAMPLES (2048)//32
+//#define N_ACTUAL_SAMPLES (2048)//32
+#define N_ACTUAL_SAMPLES (2048/2)//32
 #define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
 #define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
 
