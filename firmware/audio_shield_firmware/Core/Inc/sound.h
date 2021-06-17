@@ -5,8 +5,8 @@
 #define STOP -1
 #define REPEAT -2
 #define BUZZER_ARR 256
-#define BUZZER_RATIO 2 // Volume -> 2 = minimum, bigger -> quieter
-#define BUZZER_DELAY 10
+#define BUZZER_RATIO 20 // Volume -> 2 = minimum, bigger -> quieter
+#define BUZZER_DELAY 33
 #define NOTE_LENGTH 300
 #define N_SPI_PER_NOTE 1
 
