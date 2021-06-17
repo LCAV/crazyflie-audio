@@ -96,7 +96,7 @@ int16_t monoBLANK2000[] = {16, REPEAT};
 
 melody melodies[] = {
 	{1, sweep, 16},
-	{3, sweep_three, 48},
+	{3, sweep_three, 16},
 	{3000, mono3000, 1},
 	{4000, mono4000, 1},
 	{5000, mono5000, 1},

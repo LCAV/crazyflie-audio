@@ -147,6 +147,7 @@ uint8_t spi_counter = 0;
 uint32_t note_tickstart;
 int8_t melody_index = 0;
 uint8_t note_index = 0;
+uint16_t buffer_index;
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
@@ -387,6 +388,7 @@ int main(void) {
 
 				if (melody_index >= 0) {
 					note_index = 0;
+					buffer_index = 0;
 					state_note_sm = BUZZER_PLAY_NEXT;
 				}
 			}
@@ -462,6 +464,7 @@ int main(void) {
 			break;
 		case BUZZER_CHOOSE_NEXT:
 			note_index++;
+			buffer_index++;
 
 			// point to next element and get its value.
 			int16_t frequency_index = melodies[melody_index].notes[note_index];
@@ -473,6 +476,7 @@ int main(void) {
 			} else if (frequency_index == REPEAT) {
 				// go back to beginning of melody
 				note_index = 0;
+				buffer_index = 0;
 
 				state_note_sm = BUZZER_PLAY_NEXT;
 			} else {
@@ -1140,7 +1144,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 uint16_t i_array;
 
 uint8_t fill_tx_buffer() {
-	if(filter_snr_enable != 5) {
+	if (filter_snr_enable != 5) {
 		// MODE "32 Bins, with selection schemes"
 
 		frequency_bin_selection(selected_indices);
@@ -1152,7 +1156,7 @@ uint8_t fill_tx_buffer() {
 		//  ...
 		//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
 		//  where N is FFTSIZE_SENT-1
-		uint16_t i_array = 0;
+		i_array = 0;
 
 		// TODO(FD) the plan here was to do an averaging, but we need to
 		// decompose in magnitude and phase to do this, which is currently
@@ -1213,8 +1217,26 @@ uint8_t fill_tx_buffer() {
 		// Calculate current "step" on the sweep
 		uint16_t freq_idx = (uint16_t) round(current_frequency / DF);
 
+#if 0
+		// Todo: chose frequency with max amplitude:
+
+		// put the sorted frequencies in the next bins
+		struct index_amplitude sort_this[potential_count];
+
+		for (int i = 0; i < potential_count; i++) {
+			// TODO: amplitude_avg never properly set
+			sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
+			sort_this[i].index = potential_indices[i];
+		}
+
+		qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
+		for (int i = start_idx; i < FFTSIZE_SENT; i++) {
+			selected_indices[i] = sort_this[i - start_idx].index;
+		}
+#endif
+
 		// Variable for memory indexing
-		i_array = note_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
+		i_array = buffer_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
 
 		// Fill buffer with audio data
 		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
@@ -1235,13 +1257,14 @@ uint8_t fill_tx_buffer() {
 		i_array += FLOAT_PRECISION;
 
 		// Fill with bins indices
-		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
+		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + buffer_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
 
 		// Fill with timestamp
 		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
 
 		// Activate Checksum only if sweep is completed
-		if (note_index == melodies[melody_index].length - 1) {
+		if (buffer_index == melodies[melody_index].length - 1) {
+			buffer_index = 0;
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 			return 1;
 		}
