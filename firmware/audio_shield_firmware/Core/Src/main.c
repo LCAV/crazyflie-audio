@@ -136,15 +136,12 @@ float mic1_f[N_ACTUAL_SAMPLES];
 float mic3_f[N_ACTUAL_SAMPLES];
 
 float mics_f_sum[N_MICS * N_COMPLEX * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
-uint16_t sum_counter = 0;
-uint16_t sum_counter_max = 0;
 
 uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
 
 uint8_t flag_package_sent = 0;
-uint8_t spi_counter = 0;
 uint32_t note_tickstart;
 int8_t melody_index = 0;
 uint8_t note_index = 0;
@@ -247,9 +244,8 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 	} else {
 		last_update_spi = HAL_GetTick();
 
-		if (sum_counter > 0) {
-			flag_package_sent = 1;
-		}
+		flag_package_sent = 1;
+
 		//STOPCHRONO;
 		//time_spi_ok = time_us;
 		counter_ok += 1;
@@ -406,7 +402,6 @@ int main(void)
 			piezoSetPSC(next_note.PSC);
 
 			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
-			sum_counter = 0;
 
 			note_tickstart = HAL_GetTick();
 			state_note_sm = BUZZER_WAIT_REC;
@@ -442,27 +437,15 @@ int main(void)
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
 
-				sum_counter++;
 				fill_tx_buffer();
 				state_note_sm = BUZZER_CHOOSE_NEXT;
 			}
 
 			// Reset after successful communication
-			if (flag_package_sent & (spi_tx_buffer[SPI_N_BYTES - 1] == CHECKSUM_VALUE)) {
-
-				flag_package_sent = 0;
-				spi_counter++;
-
-				if (sum_counter == 0) {
-					counter_error = 1;
-				}
-				if (sum_counter >= sum_counter_max) {
-					sum_counter_max = sum_counter;
-				}
-
-				memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
-				spi_tx_buffer[SPI_N_BYTES - 1] = 0;
-			}
+			//if (flag_package_sent) {
+			//	flag_package_sent = 0;
+			//	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+			//}
 
 			break;
 		case BUZZER_CHOOSE_NEXT:
@@ -488,12 +471,14 @@ int main(void)
 			break;
 		case BUZZER_STOP:
 
-			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
-			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-
 			piezoSetPSC(0);
 
-			state_note_sm = BUZZER_IDLE;
+			// wait until we sent also the last package
+			if (flag_package_sent) {
+				memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+				spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
+				state_note_sm = BUZZER_IDLE;
+			}
 
 			break;
 		default:
@@ -1318,7 +1303,9 @@ uint8_t fill_tx_buffer() {
 
 		// Activate Checksum only if sweep is completed
 		if (buffer_index == melodies[melody_index].length - 1) {
-			buffer_index = 0;
+			buffer_index = -1;
+			flag_package_sent = 0;
+
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 			return 1;
 		}
