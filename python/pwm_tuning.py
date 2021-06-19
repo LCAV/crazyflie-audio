@@ -153,10 +153,10 @@ def print_correct_format(df):
 
 if __name__ == "__main__":
     # sweep
-    params = dict(fmin=2500, fmax=5000, period=48, n_freqs=16)
+    params = dict(fmin=2500, fmax=4400, period=48, n_freqs=16)
 
     # mono
-    params = dict(fmin=2000, fmax=2001, period=48, n_freqs=1)
+    # params = dict(fmin=2000, fmax=2001, period=48, n_freqs=1)
 
     df = get_sweep_approximate_period(**params)
     print("approximate period:")

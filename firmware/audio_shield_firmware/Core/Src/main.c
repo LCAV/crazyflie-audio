@@ -194,6 +194,7 @@ float32_t prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
 int16_t *tapering_window;
 uint16_t buzzer_idx_old = 0;
+uint16_t buzzer_wait_counter;
 
 // debugging
 uint32_t last_update_spi = 0;
@@ -226,7 +227,7 @@ struct index_amplitude {
 
 void process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t size);
 void frequency_bin_selection(uint16_t *selected_indices);
-void fill_tx_buffer();
+uint8_t fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
 float32_t abs_value_squared(float32_t real_imag[]);
@@ -480,15 +481,29 @@ int main(void) {
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
 
-				fill_tx_buffer();
-				state_note_sm = BUZZER_CHOOSE_NEXT;
+				if (fill_tx_buffer()) {
+					state_note_sm = BUZZER_WAIT_SEND;
+					wait_to_send = 1;
+					buzzer_wait_counter = 0;
+				}
+				else {
+					state_note_sm = BUZZER_CHOOSE_NEXT;
+				}
 			}
 
 			break;
+		case BUZZER_WAIT_SEND:
+
+			if (wait_to_send & (buzzer_wait_counter < BUZZER_WAIT_TIMEOUT)) {
+				buzzer_wait_counter++;
+				break;
+			}
+
+			state_note_sm = BUZZER_CHOOSE_NEXT;
+
 		case BUZZER_CHOOSE_NEXT:
 
-			if (wait_to_send)
-				break;
+			// wait until we sent also the last package
 
 			note_index++;
 			buffer_index++;
@@ -514,12 +529,9 @@ int main(void) {
 
 			piezoSetPSC(0);
 
-			// wait until we sent also the last package
-			if (wait_to_send) {
-				memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
-				spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-				state_note_sm = BUZZER_IDLE;
-			}
+			memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
+			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
+			state_note_sm = BUZZER_IDLE;
 
 			break;
 		default:
@@ -1151,7 +1163,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	memset(&selected_indices[num_to_fill], 0x00, INT16_PRECISION * num_zeros);
 }
 
-void fill_tx_buffer() {
+uint8_t fill_tx_buffer() {
 	// The buffer will be filled like
 	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
 	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
@@ -1203,8 +1215,7 @@ void fill_tx_buffer() {
 
 
 		// now we wait until this package is sent to play next note.
-		wait_to_send = 1;
-
+		return 1;
 	} else {
 		// MODE "ONE BUFFER, ONE SWEEP"
 
@@ -1264,8 +1275,10 @@ void fill_tx_buffer() {
 
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
-			wait_to_send = 1; //now we wait until this message is sent!
+			// wait for this to be sent.
+			return 1;
 		}
+		return 0;
 	}
 }
 
