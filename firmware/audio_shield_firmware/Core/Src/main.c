@@ -62,7 +62,7 @@
 //the "f" is super important! otherwise it is a double, and division by double takes too long
 #define MAX_INT16 32767.0f // max for int16 (2**15-1).
 
-#define FLOAT_PRECISION 4 // float = 4 bytes
+#define FLOAT_PRECISION 4 // float32_t = 4 bytes
 #define INT16_PRECISION 2 // int16 = 2 bytes
 #define N_COMPLEX 2 // [real imag]
 
@@ -98,6 +98,14 @@
 		HAL_TIM_Base_Init(&htim2);\
 		HAL_TIM_Base_Start(&htim2);\
 })
+
+
+ #define min(a,b) ({\
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b);\
+   _a < _b ? _a : _b;\
+})
+
 // @formatter:on
 /* USER CODE END PM */
 
@@ -122,21 +130,21 @@ TIM_HandleTypeDef htim5;
 int16_t dma_1[FULL_BUFFER_SIZE];
 int16_t dma_3[FULL_BUFFER_SIZE];
 
-float mic0[N_ACTUAL_SAMPLES];
-float mic2[N_ACTUAL_SAMPLES];
-float mic1[N_ACTUAL_SAMPLES];
-float mic3[N_ACTUAL_SAMPLES];
+float32_t mic0[N_ACTUAL_SAMPLES];
+float32_t mic2[N_ACTUAL_SAMPLES];
+float32_t mic1[N_ACTUAL_SAMPLES];
+float32_t mic3[N_ACTUAL_SAMPLES];
 
 #include "hann_window.h"
 #include "tukey_window.h"
 #include "flattop_window.h"
 
-float mic0_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
-float mic2_f[N_ACTUAL_SAMPLES];
-float mic1_f[N_ACTUAL_SAMPLES];
-float mic3_f[N_ACTUAL_SAMPLES];
+float32_t mic0_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
+float32_t mic2_f[N_ACTUAL_SAMPLES];
+float32_t mic1_f[N_ACTUAL_SAMPLES];
+float32_t mic3_f[N_ACTUAL_SAMPLES];
 
-float mics_f_sum[N_MICS * N_COMPLEX * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
+float32_t mics_f_all[N_MICS * N_COMPLEX * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
 
 uint16_t current_frequency = 0;
 
@@ -147,13 +155,14 @@ uint32_t note_tickstart;
 int8_t melody_index = 0;
 uint8_t note_index = 0;
 uint16_t buffer_index;
+uint16_t i_array;
 
 state_note_t state_note_sm = BUZZER_IDLE;
 
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
-float amplitude_avg[N_ACTUAL_SAMPLES / 2];
+float32_t avg_magnitude_mic0[N_ACTUAL_SAMPLES / 2];
 uint16_t selected_indices[FFTSIZE_SENT];
 
 // parameters
@@ -174,7 +183,7 @@ uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
 uint8_t init_stage_iir = 1;
 uint16_t n_added = 0; // counter of how many samples were averaged.
-float prop_freq = 0;
+float32_t prop_freq = 0;
 arm_rfft_fast_instance_f32 rfft_instance;
 int16_t *tapering_window;
 uint16_t buzzer_idx_old = 0;
@@ -204,17 +213,16 @@ static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 struct index_amplitude {
-	float amplitude;
+	float32_t amplitude;
 	int index;
 };
 
-void process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size);
+void process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t size);
 void frequency_bin_selection(uint16_t *selected_indices);
 uint8_t fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
-float abs_value_squared(float real_imag[]);
-void fill_avg_buffer(float *input, float *output);
+float32_t abs_value_squared(float32_t real_imag[]);
 
 /* USER CODE END PFP */
 
@@ -312,7 +320,7 @@ int main(void) {
 
 	// Reset memory
 	memset(selected_indices, 0x00, sizeof(selected_indices));
-	memset(amplitude_avg, 0x00, sizeof(amplitude_avg));
+	memset(avg_magnitude_mic0, 0x00, sizeof(avg_magnitude_mic0));
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
@@ -413,7 +421,7 @@ int main(void) {
 
 			piezoSetPSC(next_note.PSC);
 
-			memset(mics_f_sum, 0x00, sizeof(mics_f_sum));
+			memset(mics_f_all, 0x00, sizeof(mics_f_all));
 
 			note_tickstart = HAL_GetTick();
 			state_note_sm = BUZZER_WAIT_REC;
@@ -450,6 +458,11 @@ int main(void) {
 				arm_rfft_fast_f32(&rfft_instance, mic2, mic2_f, ifft_flag);
 				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 				arm_rfft_fast_f32(&rfft_instance, mic3, mic3_f, ifft_flag);
+
+
+				/* process the data through the Complex Magnitude Module for
+				 calculating the magnitude at each bin */
+				arm_cmplx_mag_f32(mic0, avg_magnitude_mic0, FFTSIZE);
 
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
@@ -952,8 +965,8 @@ static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
 }
 #endif
 
-void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
-	float window_value;
+void inline process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t size) {
+	float32_t window_value;
 
 	// size is N_ACTUAL_SAMPLES.
 	// pIn is of size 2 * N_ACTUAL_SAMPLES, because we have left and right mic.
@@ -964,55 +977,57 @@ void inline process(int16_t *pIn, float *pOut1, float *pOut2, uint16_t size) {
 
 		for (uint16_t i = 0; i < size; i += 1) {
 			if (window_type > 0) {
-				window_value = (float) tapering_window[i] / MAX_INT16;
+				window_value = (float32_t) tapering_window[i] / MAX_INT16;
 			} else {
 				window_value = 1.0;
 			}
 
 #ifdef DCNotchActivated
 			if (pIn == dma_1) {
-				*pOut1++ = (float) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
+				*pOut1++ = (float32_t) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
+				*pOut2++ = (float32_t) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
 			} else { // pIn == dma_3
-				*pOut1++ = (float) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
-				*pOut2++ = (float) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
+				*pOut1++ = (float32_t) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
+				*pOut2++ = (float32_t) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
 			};
 #else // not DCNotchActivated
-			*pOut1++ = (float) *pIn++ /  MAX_INT16 * window_value;
-			*pOut2++ = (float) *pIn++ /  MAX_INT16 * window_value;
+			*pOut1++ = (float32_t) *pIn++ /  MAX_INT16 * window_value;
+			*pOut2++ = (float32_t) *pIn++ /  MAX_INT16 * window_value;
 #endif
 		}
 		new_sample_to_process = 1;
 	}
-
-#if 0
-	/* process the data through the CFFT/CIFFT module */
-	arm_cfft_f32(&arm_cfft_sR_f32_len1024, mic0, ifft_flag, do_bit_reverse);
-
-	/* process the data through the Complex Magnitude Module for
-	 calculating the magnitude at each bin */
-	arm_cmplx_mag_f32(mic0, test_output, FFTSIZE);
-
-	/* Calculates max_value and returns corresponding BIN value */
-	arm_max_f32(test_output, FFTSIZE, &max_value, &test_index);
-#endif
 }
 
-void frequency_bin_selection(uint16_t *selected_indices) {
-	uint16_t freq_idx;
+uint16_t num_to_fill;
+uint16_t num_zeros;
+uint16_t start_idx;
+uint32_t freq_index; // 32 to be compatible with arm
 
-	freq_idx = (uint16_t) round(current_frequency / DF);
+uint16_t min_freq_index;
+uint16_t max_freq_index;
+
+// For propeller noise filtering:
+uint16_t potential_indices[FFTSIZE]; // will only be partially filled.
+uint16_t potential_count;
+uint8_t min_fac;
+float32_t const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+		18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 };
+int counter;
+float32_t average_thrust;
+
+void frequency_bin_selection(uint16_t *selected_indices) {
+
+	freq_index = (uint32_t) round(current_frequency / DF);
 
 	// return fixed frequency bins
 	if (filter_snr_enable == 3) {
-		int start_i = 0;
-
-		if (freq_idx >= FFTSIZE_HALF) {
-
-			start_i = freq_idx - FFTSIZE_HALF;
+		start_idx = 0;
+		if (freq_index >= FFTSIZE_HALF) {
+			start_idx = freq_index - FFTSIZE_HALF;
 		}
-		for (int i = start_i; i < start_i + FFTSIZE_SENT + 1; i++) {
-			selected_indices[i - start_i] = i;
+		for (int i = start_idx; i < start_idx + FFTSIZE_SENT + 1; i++) {
+			selected_indices[i - start_idx] = i;
 		}
 		return;
 	}
@@ -1023,29 +1038,28 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		return;
 	}
 
-	float const prop_factors[N_PROP_FACTORS] = { 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-			18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 };
-
 	// TODO(FD): for the moment we just use the average thrust here. We could
 	// also loop through all propeller frequencies and not use any of them,
 	// that would be more appropriate if the thrust values vary a lot between motors.
 	if (filter_prop_enable) {
-		float average_thrust = 0;
-		int counter = 0; // used to average only non-zero motors (e.g. for 1-motor experiments)
+		average_thrust = 0;
+		counter = 0; // used to average only non-zero motors (e.g. for 1-motor experiments)
 
 		// make sure to reset, otherwise we keep filtering out propellers noise
 		// even when they are not turning anymore.
 		prop_freq = 0;
 		for (int i = 0; i < N_MOTORS; i++) {
 			if (param_array[i] > 0) {
-				average_thrust += (float) param_array[i];
+				average_thrust += (float32_t) param_array[i];
 				counter++;
 			}
 		}
-		// this was the old and potentially more average formula in general,
+		// This was the old and potentially more general formula in general,
 		// however it can be simplified for the range of thrust values of interest,
-		// which is between 45000 and 55000.
+		// which is between 45000 and 55000:
 		// prop_freq = 3.27258551 * sqrt(average_thrust) - 26.41814899;
+		//
+		// New formula:
 		// f(45000) = 671, f(55000) = 750
 		// prop_freq = (750 - 671) / (55000 - 45000) * (thrust - 45000) + 671
 		// 0.0079 = (750 - 671) / (55000 - 45000), 315.5 = 671 - 0.0079 * 45000
@@ -1056,24 +1070,20 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		}
 	}
 
-	int min_freq_idx = (int) round(min_freq / DF);
-	int max_freq_idx = (int) round(max_freq / DF);
-
-	// Will only be partially filled. Could implement this with
-	// a dynamic list if it is necessary in terms of memory.
-	uint16_t potential_indices[FFTSIZE];
-	uint16_t potential_count = 0;
+	min_freq_index = (uint16_t) round(min_freq / DF);
+	max_freq_index = (uint16_t) round(max_freq / DF);
 
 	// Fill bin candidates with the available ones, after removing propeller frequencies.
-	uint8_t min_fac = 0;
+	min_fac = 0;
+	potential_count = 0;
 
-	// ideally, below should be i <= max_freq_idx, but we leave it like this for consistency with previous measurements.
-	for (uint16_t i = min_freq_idx; i < max_freq_idx; i++) {
-		uint8_t use_this = 1;
+	// TODO(FD): ideally, below should be i <= max_freq_index, but we leave it like this for consistency with previous measurements.
+	for (int i = min_freq_index; i < max_freq_index; i++) {
+		bool use_this = 1;
 		if (filter_prop_enable) {
 			for (uint8_t j = min_fac; j < N_PROP_FACTORS; j++) {
 				if (fabs(((i * DF) - (prop_factors[j] * prop_freq))) < delta_freq) {
-					use_this = 0;
+					use_this = false;
 
 					// For the next potential bins we only need
 					// to check starting from here, because they are increasing.
@@ -1088,121 +1098,83 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 		}
 	}
 
-	// if we have less candidates than required, we simply send all candidates
-	if (potential_count <= FFTSIZE_SENT) {
-		if (filter_snr_enable == 0) {
-			memcpy(selected_indices, potential_indices, potential_count * INT16_PRECISION);
-		}
-		// we still do the sorting for consistency (for instance, if down the line
-		// we rely on the first index to be the strongest)
-		else {
-			struct index_amplitude sort_this[potential_count];
-			for (int i = 0; i < potential_count; i++) {
-				sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
-				sort_this[i].index = potential_indices[i];
-			}
-			qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
-			for (int i = 0; i < potential_count; i++) {
-				selected_indices[i] = sort_this[i].index;
-			}
-		}
-
-		// fill the remaining indices with zeroes
-		memset(&selected_indices[potential_count], 0x00,
-		INT16_PRECISION * (FFTSIZE_SENT - potential_count));
-		return;
-	}
+	num_to_fill = min(potential_count, FFTSIZE_SENT);
+	num_zeros = FFTSIZE_SENT - num_to_fill;
+	start_idx = 0;
 
 	if (filter_snr_enable == 0) {
-		// sample uniformly among remaining candidates
-		float decimation = (float) potential_count / FFTSIZE_SENT;
-		for (int i = 0; i < FFTSIZE_SENT; i++) {
+		float32_t decimation = (float32_t) potential_count / num_to_fill;
+		for (int i = 0; i < num_to_fill; i++) {
 			selected_indices[i] = potential_indices[(int) round(i * decimation)];
 		}
-		return;
+		// what above corresponds to if potential_count <= FFTSIZE_SENT:
+		//memcpy(selected_indices, potential_indices, num_to_fill * INT16_PRECISION);
 	}
 
-	int start_idx = 0;
-
-	// put the buzzer frequency in the first bin, if requested
-	if (filter_snr_enable == 2) {
-		selected_indices[0] = freq_idx;
-		start_idx = 1;
-	}
-	// put the sorted frequencies in the next bins
-	if (filter_snr_enable >= 1) {
-		struct index_amplitude sort_this[potential_count];
-
-		for (int i = 0; i < potential_count; i++) {
-			sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
-			sort_this[i].index = potential_indices[i];
+	else {
+		start_idx = 0;
+		// Put the buzzer frequency in the first bin, if requested
+		if (filter_snr_enable == 2) {
+			selected_indices[0] = freq_index;
+			start_idx = 1;
 		}
+		// Put the sorted frequencies in the next bins
+		if (filter_snr_enable >= 1) {
+			struct index_amplitude sort_this[potential_count];
 
-		qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
-		for (int i = start_idx; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] = sort_this[i - start_idx].index;
+			for (int i = 0; i < potential_count; i++) {
+				sort_this[i].amplitude = avg_magnitude_mic0[potential_indices[i]];
+				sort_this[i].index = potential_indices[i];
+			}
+
+			qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
+			for (int i = start_idx; i < num_to_fill; i++) {
+				selected_indices[i] = sort_this[i - start_idx].index;
+			}
 		}
 	}
 
+	// Fill remaining bins with zeros
+	memset(&selected_indices[num_to_fill], 0x00, INT16_PRECISION * num_zeros);
 }
 
-uint16_t i_array;
-uint16_t freq_idx;
-
 uint8_t fill_tx_buffer() {
+	// The buffer will be filled like
+	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
+	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
+	//  ...
+	//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
+	//  where N is FFTSIZE_SENT-1
+
+
 	if (filter_snr_enable < 5) {
 		// MODE "32 Bins, with selection schemes"
-
-		// Averaging between SPI communications
-		// The buffer will be filled like
-		// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
-		//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
-		//  ...
-		//  m1_real[N], m2_real[N], m3_real[N], m4_real[N], m1_imag[N], m2_imag[N], m3_imag[N], m4_imag[N]]
-		//  where N is FFTSIZE_SENT-1
-		i_array = 0;
 
 		// TODO(FD) the plan here was to do an averaging, but we need to
 		// decompose in magnitude and phase to do this, which is currently
 		// out of the scope of this application. So instead we use the latest
 		// value.
+		i_array = 0;
 		for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
-			mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]];
-			mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]];
-			mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]];
-			mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]];
-			mics_f_sum[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-			mics_f_sum[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-			mics_f_sum[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
-			mics_f_sum[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_all[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_all[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_all[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_all[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin]];
+			mics_f_all[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_all[i_array++] = mic1_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_all[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
+			mics_f_all[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
 		}
-		//fill_avg_buffer(&mics_f_sum[0], &amplitude_avg[0]);
 
 		frequency_bin_selection(selected_indices);
 
-		// set the CHECKSUM to 0 so that if we communicate during filling,
-		// the package is not valid.
+		// Set the CHECKSUM to 0 so that if we communicate during filling,
+		// the package is not valid
 		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
 		// Fill buffer with audio data
-		memcpy(spi_tx_buffer, mics_f_sum, sizeof(mics_f_sum));
-		i_array = sizeof(mics_f_sum);
-
-		/* can be used when magnitude averaging is implemented.
-		 i_array = 0;
-		 float averaged_value;
-		 for (int i = 0; i < N_MICS * 2 * FFTSIZE_SENT; i++) {
-
-		 if (sum_counter > 1)
-		 averaged_value = mics_f_sum[i]/sum_counter;
-		 else
-		 averaged_value = mics_f_sum[i];
-
-		 memcpy(&spi_tx_buffer[i_array], &averaged_value, sizeof(averaged_value));
-		 i_array += sizeof(averaged_value);
-		 }
-		 assert(i_array == sizeof(mics_f_sum));
-		 */
+		memcpy(spi_tx_buffer, mics_f_all, sizeof(mics_f_all));
+		i_array = sizeof(mics_f_all);
 
 		// Fill with bins indices
 		memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
@@ -1221,59 +1193,38 @@ uint8_t fill_tx_buffer() {
 		// set the CHECKSUM to 0 so that if we communicate during filling, the package is not valid.
 		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
-		// Calculate current "step" on the sweep
+		// Calculate current frequency of interest
 		if (filter_snr_enable == 5) {
-			freq_idx = (uint16_t) round(current_frequency / DF);
+			freq_index = (uint32_t) round(current_frequency / DF);
 		}
 		else if (filter_snr_enable == 6) {
-			// fills selected_indices according to magnitude
-			frequency_bin_selection(selected_indices);
-
-			// zero-th element corresponds to maximum
-			freq_idx = selected_indices[0];
+			float32_t max_value;
+			arm_max_f32(avg_magnitude_mic0, FFTSIZE, &max_value, &freq_index);
 		}
-
-#if 0
-		// Todo: chose frequency with max amplitude:
-
-		// put the sorted frequencies in the next bins
-		struct index_amplitude sort_this[potential_count];
-
-		for (int i = 0; i < potential_count; i++) {
-			// TODO: amplitude_avg never properly set
-			sort_this[i].amplitude = amplitude_avg[potential_indices[i]];
-			sort_this[i].index = potential_indices[i];
-		}
-
-		qsort(sort_this, potential_count, sizeof(sort_this[0]), compare_amplitudes);
-		for (int i = start_idx; i < FFTSIZE_SENT; i++) {
-			selected_indices[i] = sort_this[i - start_idx].index;
-		}
-#endif
 
 		// Variable for memory indexing
 		i_array = buffer_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
 
 		// Fill buffer with audio data
-		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_index], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_index], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_index], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_index], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic0_f[N_COMPLEX * freq_index + 1], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic1_f[N_COMPLEX * freq_index + 1], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic2_f[N_COMPLEX * freq_index + 1], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
-		memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_idx + 1], FLOAT_PRECISION);
+		memcpy(&spi_tx_buffer[i_array], &mic3_f[N_COMPLEX * freq_index + 1], FLOAT_PRECISION);
 		i_array += FLOAT_PRECISION;
 
 		// Fill with bins indices
-		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + buffer_index * sizeof(freq_idx)], &freq_idx, sizeof(freq_idx));
+		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + buffer_index * sizeof(freq_index)], &freq_index, sizeof(freq_index));
 
 		// Fill with timestamp
 		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
@@ -1291,19 +1242,6 @@ uint8_t fill_tx_buffer() {
 
 	return 0;
 }
-
-void fill_avg_buffer(float* input, float * output) {
-	i_array = 0;
-	float sum_;
-	for (int i = 0; i < N_ACTUAL_SAMPLES / 2; i++) {
-		sum_ = 0;
-		for (int j = 0; j < N_MICS * N_COMPLEX; j++) {
-			sum_ += input[i*N_MICS*N_COMPLEX + j] * input[i*N_MICS*N_COMPLEX + j];
-		}
-		output[i] = sum_;
-	}
-}
-
 
 void read_rx_buffer() {
 	memcpy(param_array, spi_rx_buffer, sizeof(param_array));
@@ -1351,11 +1289,6 @@ int compare_amplitudes(const void *a, const void *b) {
 		return 1;
 	else
 		return 0;
-}
-
-// Wrong absolute value but should work faster without sqrt.
-float abs_value_squared(float real_imag[]) {
-	return (real_imag[0] * real_imag[0] + real_imag[1] * real_imag[1]);
 }
 
 /* USER CODE END 4 */
