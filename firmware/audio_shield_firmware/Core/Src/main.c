@@ -157,7 +157,7 @@ uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
 
-uint8_t flag_package_sent = 0;
+uint8_t wait_to_send = 1;
 uint32_t note_tickstart;
 int8_t melody_index = 0;
 uint8_t note_index = 0;
@@ -169,7 +169,7 @@ state_note_t state_note_sm = BUZZER_IDLE;
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
-float32_t avg_magnitude_mic0[FFTSIZE / 2];
+float32_t magnitude_mic0[FFTSIZE / 2];
 uint16_t selected_indices[FFTSIZE_SENT];
 
 // parameters
@@ -226,7 +226,7 @@ struct index_amplitude {
 
 void process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t size);
 void frequency_bin_selection(uint16_t *selected_indices);
-uint8_t fill_tx_buffer();
+void fill_tx_buffer();
 void read_rx_buffer();
 int compare_amplitudes(const void *a, const void *b);
 float32_t abs_value_squared(float32_t real_imag[]);
@@ -269,7 +269,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 	} else {
 		last_update_spi = HAL_GetTick();
 
-		flag_package_sent = 1;
+		wait_to_send = 0;
 
 		//STOPCHRONO;
 		//time_spi_ok = time_us;
@@ -324,7 +324,7 @@ int main(void) {
 
 	// Reset memory
 	memset(selected_indices, 0x00, sizeof(selected_indices));
-	memset(avg_magnitude_mic0, 0x00, sizeof(avg_magnitude_mic0));
+	memset(magnitude_mic0, 0x00, sizeof(magnitude_mic0));
 	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 	spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
@@ -338,14 +338,23 @@ int main(void) {
 
 	// Piezo buzzer initialization
 	piezoInit();
+
+#ifdef FIXED_PERIOD
 	piezoSetMaxCount(BUZZER_ARR);
 	piezoSetRatio(BUZZER_ARR / BUZZER_RATIO - 1);
+#endif
 
 	// Led initialization and wake-up sequence
 	ledInit(); // uses htim1
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
 		piezoSetPSC(freq_list_tim[melodies[0].notes[i - 1]].PSC); // Buzzer follows led sequence
+
+#ifndef FIXED_PERIOD
+		piezoSetMaxCount(freq_list_tim[melodies[0].notes[i - 1]].ARR); // Buzzer follows led sequence
+		piezoSetRatio(freq_list_tim[melodies[0].notes[i - 1]].ARR / BUZZER_RATIO - 1); // Buzzer follows led sequence
+		piezoStart();
+#endif
 
 		for (uint8_t j = 0; j < 100; j++) {
 			ledSetRatio(j, i);
@@ -419,8 +428,13 @@ int main(void) {
 			freq_list_t next_note = freq_list_tim[melodies[melody_index].notes[note_index]];
 			current_frequency = next_note.f;
 
+			//piezoInit();
 			piezoSetPSC(next_note.PSC);
-
+#ifndef FIXED_PERIOD
+			piezoSetMaxCount(next_note.ARR); // Buzzer follows led sequence
+			piezoSetRatio(next_note.ARR / BUZZER_RATIO - 1); // Buzzer follows led sequence
+			piezoStart();
+#endif
 			memset(mics_f_all, 0x00, sizeof(mics_f_all));
 
 			note_tickstart = HAL_GetTick();
@@ -434,7 +448,6 @@ int main(void) {
 				// make sure we don't use the sample from the
 				// frequency that played before.
 				new_sample_to_process = 0;
-				flag_package_sent = 0;
 				state_note_sm = BUZZER_RECORD;
 
 				// Start acquisition process
@@ -462,7 +475,7 @@ int main(void) {
 
 				/* process the data through the Complex Magnitude Module for
 				 calculating the magnitude at each bin */
-				arm_cmplx_mag_f32(mic0_f, avg_magnitude_mic0, FFTSIZE / 2);
+				arm_cmplx_mag_f32(mic0_f, magnitude_mic0, FFTSIZE / 2);
 
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
@@ -471,14 +484,12 @@ int main(void) {
 				state_note_sm = BUZZER_CHOOSE_NEXT;
 			}
 
-			// Reset after successful communication
-			//if (flag_package_sent) {
-			//	flag_package_sent = 0;
-			//	memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
-			//}
-
 			break;
 		case BUZZER_CHOOSE_NEXT:
+
+			if (wait_to_send)
+				break;
+
 			note_index++;
 			buffer_index++;
 
@@ -504,7 +515,7 @@ int main(void) {
 			piezoSetPSC(0);
 
 			// wait until we sent also the last package
-			if (flag_package_sent) {
+			if (wait_to_send) {
 				memset(spi_tx_buffer, 0x00, sizeof(spi_tx_buffer));
 				spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 				state_note_sm = BUZZER_IDLE;
@@ -1125,7 +1136,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 			struct index_amplitude sort_this[potential_count];
 
 			for (int i = 0; i < potential_count; i++) {
-				sort_this[i].amplitude = avg_magnitude_mic0[potential_indices[i]];
+				sort_this[i].amplitude = magnitude_mic0[potential_indices[i]];
 				sort_this[i].index = potential_indices[i];
 			}
 
@@ -1140,7 +1151,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	memset(&selected_indices[num_to_fill], 0x00, INT16_PRECISION * num_zeros);
 }
 
-uint8_t fill_tx_buffer() {
+void fill_tx_buffer() {
 	// The buffer will be filled like
 	// [m1_real[0], m2_real[0], m3_real[0], m4_real[0], m1_imag[0], m2_imag[0], m3_imag[0], m4_imag[0],
 	//  m1_real[1], m2_real[1], m3_real[1], m4_real[1], m1_imag[1], m2_imag[1], m3_imag[1], m4_imag[1],
@@ -1152,10 +1163,13 @@ uint8_t fill_tx_buffer() {
 	if (filter_snr_enable < 5) {
 		// MODE "32 Bins, with selection schemes"
 
+		frequency_bin_selection(selected_indices);
+
 		// TODO(FD) the plan here was to do an averaging, but we need to
 		// decompose in magnitude and phase to do this, which is currently
 		// out of the scope of this application. So instead we use the latest
 		// value.
+
 		i_array = 0;
 		for (int i_fbin = 0; i_fbin < FFTSIZE_SENT; i_fbin++) {
 			mics_f_all[i_array++] = mic0_f[N_COMPLEX * selected_indices[i_fbin]];
@@ -1167,8 +1181,6 @@ uint8_t fill_tx_buffer() {
 			mics_f_all[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
 			mics_f_all[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
 		}
-
-		frequency_bin_selection(selected_indices);
 
 		// Set the CHECKSUM to 0 so that if we communicate during filling,
 		// the package is not valid
@@ -1189,6 +1201,10 @@ uint8_t fill_tx_buffer() {
 		assert(i_array == SPI_N_BYTES - 1);
 		spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
+
+		// now we wait until this package is sent to play next note.
+		wait_to_send = 1;
+
 	} else {
 		// MODE "ONE BUFFER, ONE SWEEP"
 
@@ -1206,7 +1222,7 @@ uint8_t fill_tx_buffer() {
 			max_freq_index = min(freq_index + WINDOW_FREQS, FFTSIZE/2);
 
 			arm_max_f32(
-					&avg_magnitude_mic0[min_freq_index],
+					&magnitude_mic0[min_freq_index],
 					max_freq_index - min_freq_index - 1,
 					&max_value,
 					&freq_index_uint32
@@ -1245,15 +1261,12 @@ uint8_t fill_tx_buffer() {
 		// Activate Checksum only if sweep is completed
 		if (buffer_index == melodies[melody_index].length - 1) {
 			buffer_index = -1;
-			flag_package_sent = 0;
 
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-			return 1;
+
+			wait_to_send = 1; //now we wait until this message is sent!
 		}
-
 	}
-
-	return 0;
 }
 
 void read_rx_buffer() {

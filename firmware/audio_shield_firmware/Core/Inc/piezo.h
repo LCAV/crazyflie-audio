@@ -51,6 +51,11 @@ extern TIM_HandleTypeDef htim3;
  */
 void piezoInit();
 
+/**
+ * Piezo Start.
+ */
+void piezoStart();
+
 
 /**
  * Test of the motor modules. The test will spin each motor very short in

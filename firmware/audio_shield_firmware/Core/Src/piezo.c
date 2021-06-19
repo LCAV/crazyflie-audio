@@ -76,8 +76,8 @@ static bool isInit = false;
 
 void piezoInit()
 {
-  if (isInit)
-    return;
+	if (isInit)
+		return;
 
 	// PWM default configuration
 	TIM_OC_InitTypeDef sConfigOC = {0};
@@ -93,9 +93,14 @@ void piezoInit()
 	}
 
 	// Restart the PWM since it is automatically disabled when modified
-	HAL_TIM_PWM_Start(&PIEZO_hTIM, PIEZO_CHANNEL);
+	piezoStart();
 
-  isInit = true;
+	isInit = true;
+}
+
+void piezoStart()
+{
+	HAL_TIM_PWM_Start(&PIEZO_hTIM, PIEZO_CHANNEL);
 }
 
 bool piezoTest(void)
@@ -106,6 +111,7 @@ bool piezoTest(void)
 void piezoSetMaxCount(uint16_t max)
 {
 	PIEZO_TIM_SETARR(max);
+	isInit = false;
 }
 
 void piezoSetRatio(uint16_t ratio)
@@ -115,5 +121,5 @@ void piezoSetRatio(uint16_t ratio)
 
 void piezoSetPSC(uint16_t psc)
 {
-	PIEZO_TIM->PSC = psc;
+	PIEZO_TIM_SETPSC(psc);
 }
