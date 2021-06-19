@@ -74,6 +74,7 @@
 #define N_PROP_FACTORS 30
 #define FS 64000.0f
 #define DF (FS/FFTSIZE)
+#define WINDOW_FREQS 10 // number of frequencies to consider above and below current frequency, to find max
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
 
 // communication
@@ -104,6 +105,12 @@
 	__typeof__ (a) _a = (a); \
 	__typeof__ (b) _b = (b);\
    _a < _b ? _a : _b;\
+})
+
+ #define max(a,b) ({\
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b);\
+   _a > _b ? _a : _b;\
 })
 
 // @formatter:on
@@ -312,9 +319,6 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	// Start audio capture
-//	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
-//	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
-
 	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
@@ -334,13 +338,11 @@ int main(void) {
 
 	// Piezo buzzer initialization
 	piezoInit();
-
 	piezoSetMaxCount(BUZZER_ARR);
 	piezoSetRatio(BUZZER_ARR / BUZZER_RATIO - 1);
 
 	// Led initialization and wake-up sequence
 	ledInit(); // uses htim1
-
 	ledSetMaxCount(100);
 	for (uint8_t i = 1; i <= 4; i++) {
 		piezoSetPSC(freq_list_tim[melodies[0].notes[i - 1]].PSC); // Buzzer follows led sequence
@@ -355,13 +357,11 @@ int main(void) {
 		}
 		ledSetRatio(100, i);
 	}
-
 	piezoSetPSC(0);
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {
-	};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -1200,9 +1200,19 @@ uint8_t fill_tx_buffer() {
 			freq_index = (uint16_t) round(current_frequency / DF);
 		}
 		else if (filter_snr_enable == 6) {
-			arm_max_f32(avg_magnitude_mic0, FFTSIZE / 2, &max_value, &freq_index_uint32);
-			// no need to check for maximum value because freq_index is smaller than FFTSIZE /2.
-			freq_index = freq_index_uint32;
+
+			freq_index = (uint16_t) round(current_frequency / DF);
+			min_freq_index = max(freq_index - WINDOW_FREQS, 0);
+			max_freq_index = min(freq_index + WINDOW_FREQS, FFTSIZE/2);
+
+			arm_max_f32(
+					&avg_magnitude_mic0[min_freq_index],
+					max_freq_index - min_freq_index - 1,
+					&max_value,
+					&freq_index_uint32
+			);
+			// no need to check for overflow because freq_index is smaller than FFTSIZE /2.
+			freq_index = freq_index_uint32 + min_freq_index;
 		}
 
 		// Variable for memory indexing
