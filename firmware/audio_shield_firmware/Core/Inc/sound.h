@@ -105,8 +105,8 @@ freq_list_t freq_list_tim[] = {
 		{3000, 0, 0}, //
 		{4000, 0, 0},//
 		{5000, 0, 0}, //
-		{1000, 1714, 48},// error: 0.0
-		{2000, 856, 48},// error: 0.0
+		{1000, 1714, 48},// 21 error: 0.0
+		{2000, 856, 48},// 22 error: 0.0
 };
 #endif
 
@@ -119,8 +119,8 @@ int16_t sweep_three[] = {
 		STOP
 };
 
-int16_t mono1000[] = {19, REPEAT};
-int16_t mono2000[] = {20, REPEAT};
+int16_t mono1000[] = {21, REPEAT};
+int16_t mono2000[] = {22, REPEAT};
 int16_t mono3000[] = {3, REPEAT};
 int16_t mono4000[] = {6, REPEAT};
 int16_t mono5000[] = {9, REPEAT};
