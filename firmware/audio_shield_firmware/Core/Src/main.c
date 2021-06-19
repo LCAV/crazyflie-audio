@@ -162,7 +162,7 @@ state_note_t state_note_sm = BUZZER_IDLE;
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
-float32_t avg_magnitude_mic0[N_ACTUAL_SAMPLES / 2];
+float32_t avg_magnitude_mic0[FFTSIZE / 2];
 uint16_t selected_indices[FFTSIZE_SENT];
 
 // parameters
@@ -248,9 +248,9 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 */
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(&dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
+		process(dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
 	} else {
-		process(&dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
+		process(dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
 	}
 }
 
@@ -437,7 +437,7 @@ int main(void) {
 				flag_package_sent = 0;
 				state_note_sm = BUZZER_RECORD;
 
-				// Start aquisition process
+				// Start acquisition process
 				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
 				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 
@@ -462,7 +462,7 @@ int main(void) {
 
 				/* process the data through the Complex Magnitude Module for
 				 calculating the magnitude at each bin */
-				arm_cmplx_mag_f32(mic0, avg_magnitude_mic0, FFTSIZE);
+				arm_cmplx_mag_f32(mic0_f, avg_magnitude_mic0, FFTSIZE / 2);
 
 				flag_fft_processing = 0;
 				new_sample_to_process = 0;
@@ -1002,7 +1002,9 @@ void inline process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t s
 uint16_t num_to_fill;
 uint16_t num_zeros;
 uint16_t start_idx;
-uint32_t freq_index; // 32 to be compatible with arm
+uint16_t freq_index;
+uint32_t freq_index_uint32; // 32 to be compatible with arm
+float32_t max_value;
 
 uint16_t min_freq_index;
 uint16_t max_freq_index;
@@ -1018,7 +1020,7 @@ float32_t average_thrust;
 
 void frequency_bin_selection(uint16_t *selected_indices) {
 
-	freq_index = (uint32_t) round(current_frequency / DF);
+	freq_index = (uint16_t) round(current_frequency / DF);
 
 	// return fixed frequency bins
 	if (filter_snr_enable == 3) {
@@ -1195,11 +1197,12 @@ uint8_t fill_tx_buffer() {
 
 		// Calculate current frequency of interest
 		if (filter_snr_enable == 5) {
-			freq_index = (uint32_t) round(current_frequency / DF);
+			freq_index = (uint16_t) round(current_frequency / DF);
 		}
 		else if (filter_snr_enable == 6) {
-			float32_t max_value;
-			arm_max_f32(avg_magnitude_mic0, FFTSIZE, &max_value, &freq_index);
+			arm_max_f32(avg_magnitude_mic0, FFTSIZE / 2, &max_value, &freq_index_uint32);
+			// no need to check for maximum value because freq_index is smaller than FFTSIZE /2.
+			freq_index = freq_index_uint32;
 		}
 
 		// Variable for memory indexing
