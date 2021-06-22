@@ -1222,13 +1222,11 @@ uint8_t fill_tx_buffer() {
 		// set the CHECKSUM to 0 so that if we communicate during filling, the package is not valid.
 		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
-		// Calculate current frequency of interest
-		if (filter_snr_enable == 5) {
-			freq_index = (uint16_t) round(current_frequency / DF);
-		}
-		else if (filter_snr_enable == 6) {
 
-			freq_index = (uint16_t) round(current_frequency / DF);
+		freq_index = (uint16_t) round(current_frequency / DF);
+
+		// Calculate current frequency of interest
+		if (filter_snr_enable == 6) {
 			min_freq_index = max(freq_index - WINDOW_FREQS, 0);
 			max_freq_index = min(freq_index + WINDOW_FREQS, FFTSIZE/2);
 
