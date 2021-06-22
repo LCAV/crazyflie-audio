@@ -175,7 +175,7 @@ uint16_t selected_indices[FFTSIZE_SENT];
 // parameters
 uint16_t param_array[PARAMS_N_INT16];
 uint16_t filter_prop_enable = 1;
-uint16_t filter_snr_enable = 3;
+uint16_t bin_selection = 3;
 uint16_t window_type = 0; // windowing scheme, 0: none, 1: hann, 2: flattop, 3: tukey(0.2)
 uint16_t min_freq = 0;
 uint16_t max_freq = 0;
@@ -1046,7 +1046,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	freq_index = (uint16_t) round(current_frequency / DF);
 
 	// return fixed frequency bins
-	if (filter_snr_enable == 3) {
+	if (bin_selection == 3) {
 		start_idx = 0;
 		if (freq_index >= FFTSIZE_HALF) {
 			start_idx = freq_index - FFTSIZE_HALF;
@@ -1127,7 +1127,7 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	num_zeros = FFTSIZE_SENT - num_to_fill;
 	start_idx = 0;
 
-	if (filter_snr_enable == 0) {
+	if (bin_selection == 0) {
 		float32_t decimation = (float32_t) potential_count / num_to_fill;
 		for (int i = 0; i < num_to_fill; i++) {
 			selected_indices[i] = potential_indices[(int) round(i * decimation)];
@@ -1139,12 +1139,12 @@ void frequency_bin_selection(uint16_t *selected_indices) {
 	else {
 		start_idx = 0;
 		// Put the buzzer frequency in the first bin, if requested
-		if (filter_snr_enable == 2) {
+		if (bin_selection == 2) {
 			selected_indices[0] = freq_index;
 			start_idx = 1;
 		}
 		// Put the sorted frequencies in the next bins
-		if (filter_snr_enable >= 1) {
+		if (bin_selection >= 1) {
 			struct index_amplitude sort_this[potential_count];
 
 			for (int i = 0; i < potential_count; i++) {
@@ -1172,7 +1172,7 @@ uint8_t fill_tx_buffer() {
 	//  where N is FFTSIZE_SENT-1
 
 
-	if (filter_snr_enable < 5) {
+	if (bin_selection < 5) {
 		// MODE "32 Bins, with selection schemes"
 
 		frequency_bin_selection(selected_indices);
@@ -1226,7 +1226,7 @@ uint8_t fill_tx_buffer() {
 		freq_index = (uint16_t) round(current_frequency / DF);
 
 		// Calculate current frequency of interest
-		if (filter_snr_enable == 6) {
+		if (bin_selection == 6) {
 			min_freq_index = max(freq_index - WINDOW_FREQS, 0);
 			max_freq_index = min(freq_index + WINDOW_FREQS, FFTSIZE/2);
 
@@ -1294,7 +1294,7 @@ void read_rx_buffer() {
 	delta_freq = param_array[N_MOTORS + 3];
 	n_average = param_array[N_MOTORS + 4];
 	filter_prop_enable = param_array[N_MOTORS + 5];
-	filter_snr_enable = param_array[N_MOTORS + 6];
+	bin_selection = param_array[N_MOTORS + 6];
 
 	// initialize everything if we have changed window.
 	if (param_array[N_MOTORS + 7] != window_type) {
