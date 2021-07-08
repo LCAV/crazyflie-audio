@@ -371,7 +371,7 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
+	//while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -459,7 +459,7 @@ int main(void) {
 			break;
 		case BUZZER_RECORD:
 			// we have a new sample to process and want to add it to the buffer
-			if (new_sample_to_process) {
+			if (new_sample_to_process > 10) {
 				flag_fft_processing = 1;
 				timestamp = HAL_GetTick();
 
@@ -473,15 +473,16 @@ int main(void) {
 				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
 				arm_rfft_fast_f32(&rfft_instance, mic3, mic3_f, ifft_flag);
 
+				flag_fft_processing = 0;
 
 				/* process the data through the Complex Magnitude Module for
 				 calculating the magnitude at each bin */
 				arm_cmplx_mag_f32(mic0_f, magnitude_mic0, FFTSIZE / 2);
 
-				flag_fft_processing = 0;
-				new_sample_to_process = 0;
 
 				if (fill_tx_buffer()) {
+					new_sample_to_process = 0;
+
 					state_note_sm = BUZZER_WAIT_SEND;
 					wait_to_send = 1;
 					buzzer_wait_counter = 0;
@@ -489,6 +490,10 @@ int main(void) {
 				else {
 					state_note_sm = BUZZER_CHOOSE_NEXT;
 				}
+			}else{
+				// Start acquisition process
+				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
+				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
 			}
 
 			break;
@@ -1018,7 +1023,7 @@ void inline process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t s
 			*pOut2++ = (float32_t) *pIn++ /  MAX_INT16 * window_value;
 #endif
 		}
-		new_sample_to_process = 1;
+		new_sample_to_process++;
 	}
 }
 
