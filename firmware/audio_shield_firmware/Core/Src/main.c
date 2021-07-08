@@ -270,6 +270,10 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 	} else {
 		last_update_spi = HAL_GetTick();
 
+		// Set the CHECKSUM to 0 so that if we communicate during filling,
+		// the package is not valid
+		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
+
 		wait_to_send = 0;
 
 		//STOPCHRONO;
@@ -371,7 +375,7 @@ int main(void) {
 
 	// Super important! We need to wait until the bus is idle, otherwise
 	// there is a random shift in the spi_rx_buffer and spi_tx_buffer.
-	//while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
+	while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET) {};
 	retval = HAL_SPI_TransmitReceive_DMA(&hspi2, spi_tx_buffer, spi_rx_buffer,
 	SPI_N_BYTES);
 
@@ -459,7 +463,7 @@ int main(void) {
 			break;
 		case BUZZER_RECORD:
 			// we have a new sample to process and want to add it to the buffer
-			if (new_sample_to_process > 10) {
+			if (new_sample_to_process > 1) {
 				flag_fft_processing = 1;
 				timestamp = HAL_GetTick();
 
@@ -1198,10 +1202,6 @@ uint8_t fill_tx_buffer() {
 			mics_f_all[i_array++] = mic2_f[N_COMPLEX * selected_indices[i_fbin] + 1];
 			mics_f_all[i_array++] = mic3_f[N_COMPLEX * selected_indices[i_fbin] + 1];
 		}
-
-		// Set the CHECKSUM to 0 so that if we communicate during filling,
-		// the package is not valid
-		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
 		// Fill buffer with audio data
 		memcpy(spi_tx_buffer, mics_f_all, sizeof(mics_f_all));
