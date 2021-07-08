@@ -12,6 +12,9 @@ def get_frequencies():
 
 def generate_sweep(key):
     from crazyflie_description_py.parameters import SOUND_EFFECTS
+    from epuck_description_py.parameters import (
+        SOUND_EFFECTS as EPUCK_SOUND_EFFECTS,
+    )
 
     freqs = get_frequencies()
 
@@ -244,6 +247,36 @@ def generate_sweep(key):
         bins = select_frequencies(
             min_freq=min_freq, max_freq=max_freq, n_freqs=int(FFTSIZE // 2)
         )
+    elif key == "sweep_new":
+        freqs = np.array(
+            [
+                2999,
+                3113,
+                3236,
+                3370,
+                3514,
+                3632,
+                3757,
+                3891,
+                3986,
+                4137,
+                4245,
+                4358,
+                4477,
+                4603,
+                4737,
+                4878,
+            ]
+        )
+        freqs_all = get_frequencies()
+        bins = np.argmin(np.abs(freqs_all[:, None] - freqs[None, :]), axis=0)
+        t_sec = 1e-2
+    elif key == "sweep_epuck":
+        t_sec = 0.1  # duration of each note in seconds
+        min_freq, max_freq = EPUCK_SOUND_EFFECTS[key][1]
+        bins = select_frequencies(
+            min_freq=min_freq, max_freq=max_freq, n_freqs=16
+        )
     else:
         t_sec = 1.0  # duration of each note in seconds
         min_freq, max_freq = SOUND_EFFECTS[key][1]
@@ -273,8 +306,18 @@ def select_frequencies(
     max_index = int(round(max_freq * n_buffer / fs))
     min_idx = np.argmin(np.abs(freq - min_freq))
     max_idx = np.argmin(np.abs(freq - max_freq))
-    assert min_index == min_idx, (min_idx, min_index, min_index * df, freq[min_idx])
-    assert max_index == max_idx, (max_idx, max_index, max_index * df, freq[max_idx])
+    assert min_index == min_idx, (
+        min_idx,
+        min_index,
+        min_index * df,
+        freq[min_idx],
+    )
+    assert max_index == max_idx, (
+        max_idx,
+        max_index,
+        max_index * df,
+        freq[max_idx],
+    )
     assert freq[min_idx] == df * min_index
     assert freq[max_idx] == df * max_index
 
@@ -324,7 +367,9 @@ def select_frequencies(
         signals_amp_list = []
         for i in potential_indices:
             sum_ = 0
-            for j in range(buffer_f.shape[0]):  # buffer_f is of shape n_mics x n_bins_
+            for j in range(
+                buffer_f.shape[0]
+            ):  # buffer_f is of shape n_mics x n_bins_
                 sum_ += np.abs(buffer_f[j, i])
             struct = {"amplitude": sum_, "index": i}
             signals_amp_list.append(struct)
@@ -341,7 +386,9 @@ def select_frequencies(
 
     if len(selected_indices) < n_freqs:
         if verbose:
-            print("Warning: found less indices than asked for. Filling with zeros")
+            print(
+                "Warning: found less indices than asked for. Filling with zeros"
+            )
         selected_indices = np.r_[
             selected_indices, [0] * (n_freqs - len(selected_indices))
         ]

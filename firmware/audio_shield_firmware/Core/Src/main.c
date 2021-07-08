@@ -416,6 +416,7 @@ int main(void) {
 				for (int i = 0; i < MELODIES_COUNT; i++) {
 					if (melodies[i].index == buzzer_idx) {
 						melody_index = i;
+						break;
 					}
 				}
 
