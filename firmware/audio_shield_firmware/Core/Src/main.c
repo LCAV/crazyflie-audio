@@ -464,6 +464,7 @@ int main(void) {
 			break;
 		case BUZZER_RECORD:
 			// we have a new sample to process and want to add it to the buffer
+			// need > 1 because we need the two I2S data streams.
 			if (new_sample_to_process > 1) {
 				flag_fft_processing = 1;
 				timestamp = HAL_GetTick();
