@@ -71,7 +71,8 @@ freq_list_t freq_list_tim[] = {
 		{3000, 0, 0}, // means we play no sound but measure at 3000
 };
 #else
-freq_list_t freq_list_tim[] = { { 2499, 685, 48 }, // error: -1.0
+freq_list_t freq_list_tim[] = {
+		{ 2499, 685, 48 }, // error: -1.0
 		{ 2562, 668, 48 }, // error: -0.5
 		{ 2625, 652, 48 }, // error: 0.0
 		{ 2687, 637, 48 }, // error: -0.5
@@ -125,20 +126,27 @@ int16_t sweep_three[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 
 
 // TODO: change indices
 int16_t mono1000[] = { SWEEP_SIZE + 6, REPEAT };
-int16_t mono2000[] = { SWEEP_SIZE + 1, REPEAT };
-int16_t mono3000[] = { 4, REPEAT };
-int16_t mono4000[] = { 12, REPEAT };
-int16_t mono5000[] = { 16, REPEAT };
+int16_t mono2000[] = { SWEEP_SIZE + 7, REPEAT };
+int16_t mono3000[] = { 8, REPEAT };
+int16_t mono4000[] = { 23, REPEAT };
 int16_t monoBLANK1000[] = { SWEEP_SIZE + 1, REPEAT };
 int16_t monoBLANK2000[] = { SWEEP_SIZE + 2, REPEAT };
 int16_t monoBLANK3000[] = { SWEEP_SIZE + 3, REPEAT };
 int16_t monoBLANK4000[] = { SWEEP_SIZE + 4, REPEAT };
-int16_t monoBLANK5000[] = { SWEEP_SIZE + 5, REPEAT };
 
 #define MELODIES_COUNT 6
-
-melody melodies[] = { { 1, sweep, SWEEP_SIZE }, { 3, sweep_three, SWEEP_SIZE }, { 1000, mono1000, 1 }, { 2000, mono2000,
-		1 }, { 3000, mono3000, 1 }, { 4000, mono4000, 1 }, { 5000, mono5000, 1 }, { 11000, monoBLANK1000, 1 }, { 12000,
-		monoBLANK2000, 1 }, { 13000, monoBLANK3000, 1 }, { 14000, monoBLANK4000, 1 }, { 15000, monoBLANK5000, 1 } };
-
+// @formatter:off
+melody melodies[] = {
+		{ 1, sweep, SWEEP_SIZE },
+		{ 3, sweep_three, SWEEP_SIZE },
+		{ 1000, mono1000, 1 },
+		{ 2000, mono2000, 1 },
+		{ 3000, mono3000, 1 },
+		{ 4000, mono4000, 1 },
+		{ 11000, monoBLANK1000, 1 },
+		{ 12000, monoBLANK2000, 1 },
+		{ 13000, monoBLANK3000, 1 },
+		{ 14000, monoBLANK4000, 1 },
+};
+// @formatter:on
 #endif /* __SOUND_H */
