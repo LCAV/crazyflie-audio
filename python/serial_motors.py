@@ -32,8 +32,8 @@ move = {
     ],
 }
 turn = {
-    "forward": [(27, b"p", 3), (90, b"o", 8), (360, b"i", DURATION_360)],
-    "backward": [(27, b"l", 3), (90, b"k", 8), (360, b"j", DURATION_360)],
+    "forward": [(5, b"u", 2), (27, b"p", 3), (90, b"o", 8), (360, b"i", DURATION_360)],
+    "backward": [(5, b"h", 2), (27, b"l", 3), (90, b"k", 8), (360, b"j", DURATION_360)],
 }
 
 
