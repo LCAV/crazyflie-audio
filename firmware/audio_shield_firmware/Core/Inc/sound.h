@@ -16,7 +16,7 @@
 #define NOTE_LENGTH 300
 #define N_SPI_PER_NOTE 1
 #define SWEEP_SIZE 20
-#define MELODIES_COUNT 6
+#define MELODIES_COUNT 10
 
 
 typedef const struct {
