@@ -120,7 +120,7 @@ def generate_signal(
 
     elif signal_type == "sweep":
         signal = generate_signal_sweep(Fs, duration_sec, **kwargs)
-        signal = amplify_signal(signal, target_dB=max_dB, verbose=True)
+        signal = amplify_signal(signal, target_dB=max_dB)
 
     elif signal_type == "random_linear":
         signal = generate_signal_random(Fs, duration_sec, **kwargs)
