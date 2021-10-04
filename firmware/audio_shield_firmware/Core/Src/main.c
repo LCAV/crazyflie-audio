@@ -50,10 +50,9 @@
 
 #define DCNotchActivated 1
 
-#define N_ACTUAL_SAMPLES 1024
-#define HALF_BUFFER_SIZE (N_ACTUAL_SAMPLES * 2) // left + right microphones
-//#define FULL_BUFFER_SIZE (2 * HALF_BUFFER_SIZE)
-#define FULL_BUFFER_SIZE (HALF_BUFFER_SIZE)
+#define FFTSIZE 1024 //
+#define ONE_MIC_BUFFER (FFTSIZE * 2) // 2 for complex
+#define TWO_MIC_BUFFER (ONE_MIC_BUFFER * 2) // 2 for left + right microphones
 
 // constants
 #define N_MOTORS 4 // number of motors
@@ -66,7 +65,6 @@
 #define INT16_PRECISION 2 // int16 = 2 bytes
 #define N_COMPLEX 2 // [real imag]
 
-#define FFTSIZE N_ACTUAL_SAMPLES // size of FFT (effectively we will have half samples because of symmetry)
 #define FFTSIZE_SENT 32 // number of frequency bins to select
 #define FFTSIZE_HALF 16 // for filter_snr = 3, number of bins to send before buzzer bin
 
@@ -134,29 +132,29 @@ TIM_HandleTypeDef htim5;
 /* USER CODE BEGIN PV */
 
 // data vectors
-int16_t dma_1[FULL_BUFFER_SIZE];
-int16_t dma_3[FULL_BUFFER_SIZE];
+int16_t dma_1[TWO_MIC_BUFFER];
+int16_t dma_3[TWO_MIC_BUFFER];
 
-float32_t mic0[N_ACTUAL_SAMPLES];
-float32_t mic2[N_ACTUAL_SAMPLES];
-float32_t mic1[N_ACTUAL_SAMPLES];
-float32_t mic3[N_ACTUAL_SAMPLES];
+float32_t mic0[FFTSIZE];
+float32_t mic2[FFTSIZE];
+float32_t mic1[FFTSIZE];
+float32_t mic3[FFTSIZE];
 
 #include "hann_window.h"
 #include "tukey_window.h"
 #include "flattop_window.h"
 
-float32_t mic0_f[N_ACTUAL_SAMPLES]; // Complex type to feed rfft [real1,imag1, real2, imag2]
-float32_t mic2_f[N_ACTUAL_SAMPLES];
-float32_t mic1_f[N_ACTUAL_SAMPLES];
-float32_t mic3_f[N_ACTUAL_SAMPLES];
+float32_t mic0_f[FFTSIZE]; // Complex type to feed rfft [real1, imag1, real2, imag2, ...]
+float32_t mic2_f[FFTSIZE];
+float32_t mic1_f[FFTSIZE];
+float32_t mic3_f[FFTSIZE];
 
-float32_t mics_f_all[N_MICS * N_COMPLEX * FFTSIZE_SENT]; // Complex type to feed rfft [real1, real2, imag1, imag2]
+float32_t mics_f_all[N_MICS * N_COMPLEX * FFTSIZE_SENT];
 
-uint16_t current_frequency = 0;
 
 //#define BUZZER_CHANGE_BY_TIMER
 
+uint16_t current_frequency = 0;
 uint8_t wait_to_send = 1;
 uint32_t note_tickstart;
 int8_t melody_index = 0;
@@ -225,7 +223,7 @@ struct index_amplitude {
 	int index;
 };
 
-void process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t size);
+void process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2);
 void frequency_bin_selection(uint16_t *selected_indices);
 uint8_t fill_tx_buffer();
 void read_rx_buffer();
@@ -240,25 +238,25 @@ float32_t abs_value_squared(float32_t real_imag[]);
 /*
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
+		process(dma_1, mic3, mic2);
 	} else {
-		process(dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
+		process(dma_3, mic1, mic0);
 	}
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(&dma_1[HALF_BUFFER_SIZE], mic3, mic2, N_ACTUAL_SAMPLES);
+		process(&dma_1[ONE_MIC_BUFFER], mic3, mic2);
 	} else {
-		process(&dma_3[HALF_BUFFER_SIZE], mic1, mic0, N_ACTUAL_SAMPLES);
+		process(&dma_3[ONE_MIC_BUFFER], mic1, mic0);
 	}
 }
 */
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(dma_1, mic3, mic2, N_ACTUAL_SAMPLES);
+		process(dma_1, mic3, mic2);
 	} else {
-		process(dma_3, mic1, mic0, N_ACTUAL_SAMPLES);
+		process(dma_3, mic1, mic0);
 	}
 }
 
@@ -324,8 +322,8 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	// Start audio capture
-	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
-	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
+	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_MIC_BUFFER);
+	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_MIC_BUFFER);
 
 	// Reset memory
 	memset(selected_indices, 0x00, sizeof(selected_indices));
@@ -457,8 +455,8 @@ int main(void) {
 				state_note_sm = BUZZER_RECORD;
 
 				// Start acquisition process
-				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
-				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
+				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_MIC_BUFFER);
+				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_MIC_BUFFER);
 
 			}
 			break;
@@ -496,10 +494,10 @@ int main(void) {
 				else {
 					state_note_sm = BUZZER_CHOOSE_NEXT;
 				}
-			}else{
+			} else {
 				// Start acquisition process
-				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, FULL_BUFFER_SIZE);
-				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, FULL_BUFFER_SIZE);
+				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_MIC_BUFFER);
+				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_MIC_BUFFER);
 			}
 
 			break;
@@ -999,17 +997,16 @@ static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
 }
 #endif
 
-void inline process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2, uint16_t size) {
+void inline process(int16_t *pIn, float32_t *, float32_t *pOut2) {
 	float32_t window_value;
 
-	// size is N_ACTUAL_SAMPLES.
-	// pIn is of size 2 * N_ACTUAL_SAMPLES, because we have left and right mic.
-	// each pOut is of size N_ACTUAL_SAMPLES.
+	// pIn is of size TWO_MIC_BUFFER, because we have left and right mic.
+	// each pOut is of size ONE_MIC_BUFFER.
 
 	// Do not interrupt FFT processing.
 	if (flag_fft_processing == 0) {
 
-		for (uint16_t i = 0; i < size; i += 1) {
+		for (uint16_t i = 0; i < ONE_MIC_BUFFER; i += 1) {
 			if (window_type > 0) {
 				window_value = (float32_t) tapering_window[i] / MAX_INT16;
 			} else {
@@ -1207,7 +1204,7 @@ uint8_t fill_tx_buffer() {
 
 		// Fill buffer with audio data
 		memcpy(spi_tx_buffer, mics_f_all, sizeof(mics_f_all));
-		i_array = sizeof(mics_f_all);
+		//i_array = sizeof(mics_f_all);
 
 		// Fill with bins indices
 		memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
