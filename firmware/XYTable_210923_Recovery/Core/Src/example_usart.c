@@ -1020,7 +1020,7 @@ void USART_CheckAppCmd(void) {
 				/*
 				 * 50*128
 				 */
-				UsartTextString[0] = 'M'; // 27deg
+				UsartTextString[0] = 'M'; // 30deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1032,12 +1032,12 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[9] = 'W';
 				UsartTextString[10] = 'D';
 				UsartTextString[11] = '.';
-				UsartTextString[12] = '9';
-				UsartTextString[13] = '6';
-				UsartTextString[14] = '0';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '\0';
+				UsartTextString[12] = '1';
+				UsartTextString[13] = '0';
+				UsartTextString[14] = '6';
+				UsartTextString[15] = '6';
+				UsartTextString[16] = '6';
+				UsartTextString[17] = '6';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
@@ -1048,7 +1048,7 @@ void USART_CheckAppCmd(void) {
 				/*
 				 * 50*128
 				 */
-				UsartTextString[0] = 'M';
+				UsartTextString[0] = 'M'; // 30deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1060,12 +1060,12 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[9] = 'E';
 				UsartTextString[10] = 'V';
 				UsartTextString[11] = '.';
-				UsartTextString[12] = '9';
-				UsartTextString[13] = '6';
-				UsartTextString[14] = '0';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '\0';
+				UsartTextString[12] = '1';
+				UsartTextString[13] = '0';
+				UsartTextString[14] = '6';
+				UsartTextString[15] = '6';
+				UsartTextString[16] = '6';
+				UsartTextString[17] = '6';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
@@ -1076,7 +1076,7 @@ void USART_CheckAppCmd(void) {
 				/*
 				 * 10*50*128
 				 */
-				UsartTextString[0] = 'M';
+				UsartTextString[0] = 'M'; // 90deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1104,7 +1104,7 @@ void USART_CheckAppCmd(void) {
 				/*
 				 * 10*50*128
 				 */
-				UsartTextString[0] = 'M';
+				UsartTextString[0] = 'M'; // 90deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1132,7 +1132,7 @@ void USART_CheckAppCmd(void) {
 					/*
 					 * 100*50*128 modified
 					 */
-					UsartTextString[0] = 'M';
+					UsartTextString[0] = 'M'; // 5deg
 					UsartTextString[1] = '0';
 					UsartTextString[2] = '.';
 					UsartTextString[3] = 'M';
@@ -1160,7 +1160,7 @@ void USART_CheckAppCmd(void) {
 					/*
 					 * 100*50*128
 					 */
-					UsartTextString[0] = 'M';
+					UsartTextString[0] = 'M'; // 5deg
 					UsartTextString[1] = '0';
 					UsartTextString[2] = '.';
 					UsartTextString[3] = 'M';
@@ -1188,7 +1188,7 @@ void USART_CheckAppCmd(void) {
 				/*
 				 * 100*50*128 modified
 				 */
-				UsartTextString[0] = 'M';
+				UsartTextString[0] = 'M'; // 360deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1216,7 +1216,7 @@ void USART_CheckAppCmd(void) {
 				/*
 				 * 100*50*128
 				 */
-				UsartTextString[0] = 'M';
+				UsartTextString[0] = 'M'; // 360deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
