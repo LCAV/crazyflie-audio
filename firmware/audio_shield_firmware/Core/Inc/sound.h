@@ -16,7 +16,7 @@
 #define NOTE_LENGTH 300
 #define N_SPI_PER_NOTE 1
 #define SWEEP_SIZE 20
-#define MELODIES_COUNT 6
+#define MELODIES_COUNT 11
 
 
 typedef const struct {
@@ -86,7 +86,7 @@ freq_list_t freq_list_tim[] = {
 		{ 3624, 472, 48 }, // error: -1.0 (9)
 		{ 3878, 441, 48 }, // error: 3.0
 		{ 3941, 434, 48 }, // error: 3.5
-		{ 3996, 428, 48 }, // error: -4.0
+		{ 3996, 428, 48 }, // error: -4.0 (12)
 		{ 4062, 421, 48 }, // error: -0.5
 		{ 4121, 415, 48 }, // error: -4.0
 		{ 4191, 408, 48 }, // error: 3.5
@@ -115,15 +115,15 @@ int16_t sweep_three[] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, STOP
 };
 
-// TODO: change indices
-int16_t mono1000[] = { SWEEP_SIZE + 6, REPEAT };
-int16_t mono2000[] = { SWEEP_SIZE + 7, REPEAT };
+int16_t mono1000[] = { SWEEP_SIZE + 5, REPEAT };
+int16_t mono2000[] = { SWEEP_SIZE + 6, REPEAT };
 int16_t mono3000[] = { 0, REPEAT };
 int16_t mono4000[] = { 12, REPEAT };
-int16_t monoBLANK1000[] = { SWEEP_SIZE + 1, REPEAT };
-int16_t monoBLANK2000[] = { SWEEP_SIZE + 2, REPEAT };
-int16_t monoBLANK3000[] = { SWEEP_SIZE + 3, REPEAT };
-int16_t monoBLANK4000[] = { SWEEP_SIZE + 4, REPEAT };
+int16_t monoBLANK1000[] = { SWEEP_SIZE + 0, REPEAT };
+int16_t monoBLANK2000[] = { SWEEP_SIZE + 1, REPEAT };
+int16_t monoBLANK3000[] = { SWEEP_SIZE + 2, REPEAT };
+int16_t monoBLANK4000[] = { SWEEP_SIZE + 3, REPEAT };
+int16_t monoBLANK5000[] = { SWEEP_SIZE + 4, REPEAT };
 
 melody melodies[] = {
 		{ 1, sweep, SWEEP_SIZE },
@@ -136,6 +136,7 @@ melody melodies[] = {
 		{ 12000, monoBLANK2000, 1 },
 		{ 13000, monoBLANK3000, 1 },
 		{ 14000, monoBLANK4000, 1 },
+		{ 15000, monoBLANK5000, 1 },
 };
 // @formatter:on
 #endif /* __SOUND_H */

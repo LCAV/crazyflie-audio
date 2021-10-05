@@ -50,9 +50,9 @@
 
 #define DCNotchActivated 1
 
-#define FFTSIZE 1024 //
-#define ONE_MIC_BUFFER (FFTSIZE * 2) // 2 for complex
-#define TWO_MIC_BUFFER (ONE_MIC_BUFFER * 2) // 2 for left + right microphones
+#define FFTSIZE 512 // number of complex-valued FFT coefficients
+#define N_BUFFER (FFTSIZE * 2) // 2 for complex
+#define TWO_N_BUFFER (N_BUFFER * 2) // 2 for left + right microphones
 
 // constants
 #define N_MOTORS 4 // number of motors
@@ -60,6 +60,7 @@
 
 //the "f" is super important! otherwise it is a double, and division by double takes too long
 #define MAX_INT16 32767.0f // max for int16 (2**15-1).
+#define MAX_UINT16 65535.0f // max for uint16 (2**15-1).
 
 #define FLOAT_PRECISION 4 // float32_t = 4 bytes
 #define INT16_PRECISION 2 // int16 = 2 bytes
@@ -71,7 +72,7 @@
 // processing
 #define N_PROP_FACTORS 30
 #define FS 64000.0f
-#define DF (FS/FFTSIZE)
+#define DF (FS/N_BUFFER)
 #define WINDOW_FREQS 10 // number of frequencies to consider above and below current frequency, to find max
 #define IIR_ALPHA 0.5 // set to 1 for no effect (equivalent to removing IIR_FILTERING flag)
 
@@ -132,25 +133,26 @@ TIM_HandleTypeDef htim5;
 /* USER CODE BEGIN PV */
 
 // data vectors
-int16_t dma_1[TWO_MIC_BUFFER];
-int16_t dma_3[TWO_MIC_BUFFER];
+uint16_t dma_1[TWO_N_BUFFER];
+uint16_t dma_3[TWO_N_BUFFER];
 
-float32_t mic0[FFTSIZE];
-float32_t mic2[FFTSIZE];
-float32_t mic1[FFTSIZE];
-float32_t mic3[FFTSIZE];
+float32_t mic0[N_BUFFER];
+float32_t mic1[N_BUFFER];
+float32_t mic2[N_BUFFER];
+float32_t mic3[N_BUFFER];
 
 #include "hann_window.h"
 #include "tukey_window.h"
 #include "flattop_window.h"
 
-float32_t mic0_f[FFTSIZE]; // Complex type to feed rfft [real1, imag1, real2, imag2, ...]
-float32_t mic2_f[FFTSIZE];
-float32_t mic1_f[FFTSIZE];
-float32_t mic3_f[FFTSIZE];
+float32_t mic0_f[N_BUFFER]; // Complex type to feed rfft [real1, imag1, real2, imag2, ...]
+float32_t mic2_f[N_BUFFER];
+float32_t mic1_f[N_BUFFER];
+float32_t mic3_f[N_BUFFER];
 
 float32_t mics_f_all[N_MICS * N_COMPLEX * FFTSIZE_SENT];
 
+float32_t magnitude;
 
 //#define BUZZER_CHANGE_BY_TIMER
 
@@ -167,7 +169,7 @@ state_note_t state_note_sm = BUZZER_IDLE;
 uint8_t spi_tx_buffer[SPI_N_BYTES];
 uint8_t spi_rx_buffer[SPI_N_BYTES];
 
-float32_t magnitude_mic0[FFTSIZE / 2];
+float32_t magnitude_mic0[FFTSIZE];
 uint16_t selected_indices[FFTSIZE_SENT];
 
 // parameters
@@ -183,7 +185,7 @@ uint16_t n_average = 1; // number of frequency bins to average.
 
 // audio processing
 uint32_t timestamp;
-uint32_t ifft_flag = 0;
+uint32_t ifft_flag = 0; // do rFFT not irFFT
 uint8_t flag_fft_processing = 0;
 uint8_t new_sample_to_process = 0;
 uint8_t init_stage_iir = 1;
@@ -223,7 +225,7 @@ struct index_amplitude {
 	int index;
 };
 
-void process(int16_t *pIn, float32_t *pOut1, float32_t *pOut2);
+void process(uint16_t *pIn, float32_t *pOut1, float32_t *pOut2);
 void frequency_bin_selection(uint16_t *selected_indices);
 uint8_t fill_tx_buffer();
 void read_rx_buffer();
@@ -246,9 +248,9 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(&dma_1[ONE_MIC_BUFFER], mic3, mic2);
+		process(&dma_1[N_BUFFER], mic3, mic2);
 	} else {
-		process(&dma_3[ONE_MIC_BUFFER], mic1, mic0);
+		process(&dma_3[N_BUFFER], mic1, mic0);
 	}
 }
 */
@@ -322,8 +324,8 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	// Start audio capture
-	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_MIC_BUFFER);
-	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_MIC_BUFFER);
+	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_N_BUFFER);
+	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_N_BUFFER);
 
 	// Reset memory
 	memset(selected_indices, 0x00, sizeof(selected_indices));
@@ -394,7 +396,6 @@ int main(void) {
 
 		// Monitoring
 		// TODO: Upgrade led reactions
-
 		ledSetMaxCount(2000);
 		if (last_update_spi > (HAL_GetTick() - 3000)) {
 			ledSetRatio((uint16_t) abs(dma_1[0]), 1);
@@ -455,8 +456,8 @@ int main(void) {
 				state_note_sm = BUZZER_RECORD;
 
 				// Start acquisition process
-				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_MIC_BUFFER);
-				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_MIC_BUFFER);
+				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_N_BUFFER);
+				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_N_BUFFER);
 
 			}
 			break;
@@ -468,20 +469,25 @@ int main(void) {
 				timestamp = HAL_GetTick();
 
 				// Compute FFT
-				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+				// TODO(FD) arm_rfft_fast_f32 may modify mic0, mic1, ...; is this a problem?
+				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
 				arm_rfft_fast_f32(&rfft_instance, mic0, mic0_f, ifft_flag);
-				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
 				arm_rfft_fast_f32(&rfft_instance, mic1, mic1_f, ifft_flag);
-				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
 				arm_rfft_fast_f32(&rfft_instance, mic2, mic2_f, ifft_flag);
-				arm_rfft_fast_init_f32(&rfft_instance, FFTSIZE);
+				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
 				arm_rfft_fast_f32(&rfft_instance, mic3, mic3_f, ifft_flag);
+
+				// for monitoring
+				magnitude = mic0_f[47*2] * mic0_f[47*2];
+				magnitude = mic0_f[47*2 + 1] * mic0_f[47*2 + 1];
 
 				flag_fft_processing = 0;
 
 				/* process the data through the Complex Magnitude Module for
 				 calculating the magnitude at each bin */
-				arm_cmplx_mag_f32(mic0_f, magnitude_mic0, FFTSIZE / 2);
+				arm_cmplx_mag_f32(mic0_f, magnitude_mic0, FFTSIZE);
 
 
 				if (fill_tx_buffer()) {
@@ -496,8 +502,8 @@ int main(void) {
 				}
 			} else {
 				// Start acquisition process
-				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_MIC_BUFFER);
-				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_MIC_BUFFER);
+				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_N_BUFFER);
+				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_N_BUFFER);
 			}
 
 			break;
@@ -983,7 +989,7 @@ static void MX_GPIO_Init(void) {
 
 /* USER CODE BEGIN 4 */
 #ifdef DCNotchActivated
-static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
+static inline int16_t DCNotch(uint16_t x, uint8_t filter_index) {
 	static int16_t x_prev[4] = { 0, 0, 0, 0 };
 	static int16_t y_prev[4] = { 0, 0, 0, 0 };
 	if (filter_index == 10) {
@@ -997,16 +1003,16 @@ static inline int16_t DCNotch(int16_t x, uint8_t filter_index) {
 }
 #endif
 
-void inline process(int16_t *pIn, float32_t *, float32_t *pOut2) {
+void inline process(uint16_t *pIn, float32_t *pOut1, float32_t *pOut2) {
 	float32_t window_value;
 
-	// pIn is of size TWO_MIC_BUFFER, because we have left and right mic.
-	// each pOut is of size ONE_MIC_BUFFER.
+	// pIn is of size TWO_N_BUFFER, because we have left and right mic.
+	// each pOut is of size N_BUFFER.
 
 	// Do not interrupt FFT processing.
 	if (flag_fft_processing == 0) {
 
-		for (uint16_t i = 0; i < ONE_MIC_BUFFER; i += 1) {
+		for (uint16_t i = 0; i < N_BUFFER; i += 1) {
 			if (window_type > 0) {
 				window_value = (float32_t) tapering_window[i] / MAX_INT16;
 			} else {
@@ -1015,15 +1021,15 @@ void inline process(int16_t *pIn, float32_t *, float32_t *pOut2) {
 
 #ifdef DCNotchActivated
 			if (pIn == dma_1) {
-				*pOut1++ = (float32_t) DCNotch(*pIn++, 1) / MAX_INT16 * window_value;
-				*pOut2++ = (float32_t) DCNotch(*pIn++, 2) / MAX_INT16 * window_value;
+				*pOut1++ = (float32_t) DCNotch(*pIn++, 0) / MAX_UINT16 * window_value;
+				*pOut2++ = (float32_t) DCNotch(*pIn++, 1) / MAX_UINT16 * window_value;
 			} else { // pIn == dma_3
-				*pOut1++ = (float32_t) DCNotch(*pIn++, 3) / MAX_INT16 * window_value;
-				*pOut2++ = (float32_t) DCNotch(*pIn++, 4) / MAX_INT16 * window_value;
+				*pOut1++ = (float32_t) DCNotch(*pIn++, 2) / MAX_UINT16 * window_value;
+				*pOut2++ = (float32_t) DCNotch(*pIn++, 3) / MAX_UINT16 * window_value;
 			};
 #else // not DCNotchActivated
-			*pOut1++ = (float32_t) *pIn++ /  MAX_INT16 * window_value;
-			*pOut2++ = (float32_t) *pIn++ /  MAX_INT16 * window_value;
+			*pOut1++ = (float32_t) *pIn++ /  MAX_UINT16 * window_value;
+			*pOut2++ = (float32_t) *pIn++ /  MAX_UINT16 * window_value;
 #endif
 		}
 		new_sample_to_process++;
@@ -1204,7 +1210,7 @@ uint8_t fill_tx_buffer() {
 
 		// Fill buffer with audio data
 		memcpy(spi_tx_buffer, mics_f_all, sizeof(mics_f_all));
-		//i_array = sizeof(mics_f_all);
+		i_array = sizeof(mics_f_all);
 
 		// Fill with bins indices
 		memcpy(&spi_tx_buffer[i_array], selected_indices, sizeof(selected_indices));
@@ -1226,13 +1232,12 @@ uint8_t fill_tx_buffer() {
 		// set the CHECKSUM to 0 so that if we communicate during filling, the package is not valid.
 		spi_tx_buffer[SPI_N_BYTES - 1] = 0;
 
-
 		freq_index = (uint16_t) round(current_frequency / DF);
 
 		// Calculate current frequency of interest
 		if (bin_selection == 6) {
 			min_freq_index = max(freq_index - WINDOW_FREQS, 0);
-			max_freq_index = min(freq_index + WINDOW_FREQS, FFTSIZE/2);
+			max_freq_index = min(freq_index + WINDOW_FREQS, FFTSIZE-1);
 
 			arm_max_f32(
 					&magnitude_mic0[min_freq_index],
@@ -1317,7 +1322,9 @@ void read_rx_buffer() {
 			break;
 		}
 		// reset the DC notch filter
+#ifdef DCNotchActivated
 		DCNotch(0, 10);
+#endif
 	}
 }
 
