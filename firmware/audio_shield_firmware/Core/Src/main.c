@@ -515,6 +515,7 @@ int main(void) {
 			}
 
 			state_note_sm = BUZZER_CHOOSE_NEXT;
+			break;
 
 		case BUZZER_CHOOSE_NEXT:
 
@@ -1222,7 +1223,6 @@ uint8_t fill_tx_buffer() {
 
 		assert(i_array == SPI_N_BYTES - 1);
 		spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
-
 
 		// now we wait until this package is sent to play next note.
 		return 1;
