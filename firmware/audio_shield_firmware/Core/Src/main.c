@@ -261,9 +261,9 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 
 	if (hi2s->Instance == hi2s1.Instance) {
-		process(dma_1, mk3, mk4);
+		process(dma_1, mk4, mk3);
 	} else {
-		process(dma_3, mk1, mk2);
+		process(dma_3, mk2, mk1);
 	}
 }
 
@@ -489,14 +489,14 @@ int main(void)
 				arm_rfft_fast_f32(&rfft_instance, mk4, mk4_f, ifft_flag);
 
 				// for monitoring
-				m1  = mk1_f[47*2] * mk1_f[47*2];
-				m1 += mk1_f[47*2 + 1] * mk1_f[47*2 + 1];
-				m2  = mk2_f[47*2] * mk2_f[47*2];
-				m2 += mk2_f[47*2 + 1] * mk2_f[47*2 + 1];
-				m3  = mk3_f[47*2] * mk3_f[47*2];
-				m3 += mk3_f[47*2 + 1] * mk3_f[47*2 + 1];
-				m4  = mk4_f[47*2] * mk4_f[47*2];
-				m4 += mk4_f[47*2 + 1] * mk4_f[47*2 + 1];
+				m1  = mk1_f[63*2] * mk1_f[63*2];
+				m1 += mk1_f[63*2 + 1] * mk1_f[63*2 + 1];
+				m2  = mk2_f[63*2] * mk2_f[63*2];
+				m2 += mk2_f[63*2 + 1] * mk2_f[63*2 + 1];
+				m3  = mk3_f[63*2] * mk3_f[63*2];
+				m3 += mk3_f[63*2 + 1] * mk3_f[63*2 + 1];
+				m4  = mk4_f[63*2] * mk4_f[63*2];
+				m4 += mk4_f[63*2 + 1] * mk4_f[63*2 + 1];
 
 				flag_fft_processing = 0;
 
