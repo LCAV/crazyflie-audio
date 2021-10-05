@@ -64,5 +64,4 @@ makefile
 
 # below files are changed on ubuntu for some reason
 subdir.mk
-
 audio_shield_firmware/.settings/language.settings.xml

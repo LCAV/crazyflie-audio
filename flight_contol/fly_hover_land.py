@@ -16,16 +16,15 @@ from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.crazyflie.syncLogger import SyncLogger
 
+PLOTTING = False
+
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
-PLOTTING = True
 
 z_ranger_logs = np.empty(1)
 z_filtered_logs = np.empty(1)
 vz_logs = np.empty(1)
 
-id = "radio://0/80/2M"
-is_deck_attached = False
 
 def initialization(scf):
     cf = scf.cf
@@ -36,15 +35,6 @@ def initialization(scf):
     time.sleep(2)
     return cf.high_level_commander
 
-def param_deck_flow(name, value):
-    global is_deck_attached
-    print(value)
-    if value:
-        is_deck_attached = True
-        print('Deck is attached!')
-    else:
-        is_deck_attached = False
-        print('Deck is NOT attached!')
 
 def low_pass(z, z_old, dt, fc):
     tau = 1 / (2 * np.pi * fc)
@@ -79,7 +69,7 @@ def log_func(scf):
             vz = (z - z_filtered_logs[-1]) / dt
             vz_logs = np.append(vz_logs, vz)
             z_filtered_logs = np.append(z_filtered_logs, z)
-            print(data["stabilizer.thrust"])
+            print("thrust", data["stabilizer.thrust"])
 
 
 def take_off(commander):
@@ -88,22 +78,18 @@ def take_off(commander):
     commander.takeoff(height, 0.5)
     time.sleep(1.0)
 
+
 def param_update_callback(name, value):
-    print('The crazyflie has parameter ' + name + ' set at number: ' + value)
-
-
-def simple_param_async(scf, groupstr, namestr, value):
-    cf = scf.cf
-    full_name = groupstr + '.' + namestr
-
-    cf.param.add_update_callback(group=groupstr, name=namestr,
-                                 cb=param_update_callback)
-    #time.sleep(1)
-    cf.param.set_value(full_name, value)
+    print("The crazyflie has parameter " + name + " set at number: " + value)
 
 
 if __name__ == "__main__":
-    id = "radio://0/70/2M"
+    # cf_id = "E7E7E7E7E8"
+    # id = f"radio://0/80/2M/{cf_id}"
+
+    cf_id = "E7E7E7E7E7"
+    id = f"radio://0/70/2M/{cf_id}"
+
     # Initialize the low-level drivers (don't list the debug drivers)
     cflib.crtp.init_drivers(enable_debug_driver=False)
 
@@ -112,7 +98,7 @@ if __name__ == "__main__":
         time_start = time.process_time()
 
         take_off(commander)
-        
+
         try:
             Thread(target=log_func, args=[scf]).start()
 
@@ -122,25 +108,17 @@ if __name__ == "__main__":
             commander.land(0.0, 1.0)
             time.sleep(2)
             commander.stop()
-        
 
-        simple_param_async(scf, 'sound', 'effect', 12)
-        simple_param_async(scf, 'sound', 'freq', 600)
-        simple_param_async(scf, 'sound', 'ratio', 0)
-        
-        print("Flying")
+        print("flying")
         time.sleep(2)
-        
-        print("Landing")
+
+        print("landing")
         commander.land(0.0, 1.0)
         commander.stop()
 
-        simple_param_async(scf, 'sound', 'effect', 0)
         time.sleep(2)
 
-
     if PLOTTING:
-
         fig, axs = plt.subplots(2)
         axs[0].plot(z_ranger_logs)
         axs[0].plot(z_filtered_logs)
@@ -150,6 +128,3 @@ if __name__ == "__main__":
         axs[0].set_xlabel("time index")
         axs[0].set_ylabel("z range, filtered")
         plt.show()
-        print(z_ranger_logs)
-
-        print(z_filtered_logs)
