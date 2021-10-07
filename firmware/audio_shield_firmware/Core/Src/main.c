@@ -152,11 +152,6 @@ float32_t mk3_f[N_BUFFER];
 
 float32_t mics_f_all[N_MICS * N_COMPLEX * FFTSIZE_SENT];
 
-float32_t m1;
-float32_t m2;
-float32_t m3;
-float32_t m4;
-
 //#define BUZZER_CHANGE_BY_TIMER
 
 uint16_t current_frequency = 0;
@@ -488,22 +483,11 @@ int main(void)
 				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
 				arm_rfft_fast_f32(&rfft_instance, mk4, mk4_f, ifft_flag);
 
-				// for monitoring
-				m1  = mk1_f[63*2] * mk1_f[63*2];
-				m1 += mk1_f[63*2 + 1] * mk1_f[63*2 + 1];
-				m2  = mk2_f[63*2] * mk2_f[63*2];
-				m2 += mk2_f[63*2 + 1] * mk2_f[63*2 + 1];
-				m3  = mk3_f[63*2] * mk3_f[63*2];
-				m3 += mk3_f[63*2 + 1] * mk3_f[63*2 + 1];
-				m4  = mk4_f[63*2] * mk4_f[63*2];
-				m4 += mk4_f[63*2 + 1] * mk4_f[63*2 + 1];
-
 				flag_fft_processing = 0;
 
 				/* process the data through the Complex Magnitude Module for
 				 calculating the magnitude at each bin */
 				arm_cmplx_mag_f32(mk2_f, magnitude_mk2, FFTSIZE);
-
 
 				if (fill_tx_buffer()) {
 					new_sample_to_process = 0;
