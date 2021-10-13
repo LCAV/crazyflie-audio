@@ -17,20 +17,23 @@ DURATION_50 = 165
 DURATION_360 = 27
 
 # (distance (cm), command, time (s))
+#TODO(FD) fix: moving by 50 does not work. 
 move = {
     "forward": [
         (0.1, b"q", 2.0),
         (1, b"w", 5.0),
-        (10, b"e", 34.0),
+        (5, b"e", 15.0),
         (50, b"r", DURATION_50),
     ],
     "backward": [
         (0.1, b"a", 2.0),
         (1, b"s", 5.0),
-        (10, b"d", 34.0),
+        (5, b"d", 15.0),
         (50, b"f", DURATION_50),
     ],
 }
+
+#TODO(FD) fix: back by 360 does not work
 turn = {
     "forward": [(5, b"u", 2), (30, b"p", 3), (90, b"o", 8), (360, b"i", DURATION_360)],
     "backward": [(5, b"h", 2), (30, b"l", 3), (90, b"k", 8), (360, b"j", DURATION_360)],
@@ -53,8 +56,6 @@ class SerialMotors(object):
         self.current_angle = current_angle
         self.current_distance = current_distance
 
-    # turn is by default non-blocking because when we do the 360 degrees we
-    # want to recording DURING, not after, as for the others.
     def turn(self, angle_deg, blocking=True):
         if angle_deg > 0:
             self.turn_forward(angle_deg, blocking)
@@ -122,9 +123,7 @@ class SerialMotors(object):
 
 if __name__ == "__main__":
     sm = SerialMotors(verbose=True)
-    # sm.turn(27)
-    # sm.turn_back(27)
-    # sm.turn(180)
-    # sm.move_back(50)
-    sm.turn_back(5)
-    # sm.move_back(10)
+    #sm.move(1.0)
+    #sm.move_back(1.0)
+    #sm.turn(10)
+    #sm.turn_back(10)
