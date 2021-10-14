@@ -131,6 +131,50 @@ FlagStatus str2num(uint8_t* str, uint32_t* pnum);
  * @{
  */
 
+void FillMoveForward(sL6470_TextCommandBundle *pL6470_TextCommandBundle, int count);
+void FillMoveReverse(sL6470_TextCommandBundle *pL6470_TextCommandBundle, int count);
+void FillTurnForward(sL6470_TextCommandBundle *pL6470_TextCommandBundle, int count);
+void FillTurnReverse(sL6470_TextCommandBundle *pL6470_TextCommandBundle, int count);
+void FillStop(sL6470_TextCommandBundle *pL6470_TextCommandBundle);
+
+
+void FillMoveForward(sL6470_TextCommandBundle *L6470_TextCommandBundle, int count) {
+	sprintf((char *) L6470_TextCommandBundle[1].MotorName, "%s%c", "M1", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].CommandName, "%s%c", "MOVE", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].Param[0], "%s%c", "FWD", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].Param[1], "%d%c", count, '\0');
+}
+
+void FillMoveReverse(sL6470_TextCommandBundle *L6470_TextCommandBundle, int count) {
+	sprintf((char *) L6470_TextCommandBundle[1].MotorName, "%s%c", "M1", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].CommandName, "%s%c", "MOVE", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].Param[0], "%s%c", "REV", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].Param[1], "%d%c", count, '\0');
+}
+
+void FillTurnForward(sL6470_TextCommandBundle *L6470_TextCommandBundle, int count) {
+	sprintf((char *) L6470_TextCommandBundle[0].MotorName, "%s%c", "M0", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].CommandName, "%s%c", "MOVE", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].Param[0], "%s%c", "FWD", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].Param[1], "%d%c", count, '\0');
+}
+
+void FillTurnReverse(sL6470_TextCommandBundle *L6470_TextCommandBundle, int count) {
+	sprintf((char *) L6470_TextCommandBundle[0].MotorName, "%s%c", "M0", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].CommandName, "%s%c", "MOVE", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].Param[0], "%s%c", "REV", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].Param[1], "%d%c", count, '\0');
+}
+
+void FillStop(sL6470_TextCommandBundle *L6470_TextCommandBundle) {
+	sprintf((char *) L6470_TextCommandBundle[0].MotorName, "%s%c", "M0", '\0');
+	sprintf((char *) L6470_TextCommandBundle[0].CommandName, "%s%c", "SOFTSTOP", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].MotorName, "%s%c", "M1", '\0');
+	sprintf((char *) L6470_TextCommandBundle[1].CommandName, "%s%c", "SOFTSTOP", '\0');
+}
+
+
+
 /**
  * @brief Split the whole command string entered via USART into single text
  *        strings to be used
@@ -842,71 +886,81 @@ void USART_CheckAppCmd(void) {
 		if (UsartInput[0] != '\0') {
 			/* Decode the entered command string */
 
-			memset(L6470_TextCommandBundle, '\0', sizeof(L6470_TextCommandBundle));
-
 #if DECODE_KEYBOARD_REMOTE
 			switch (UsartInput[0]) {
 			case 'Q':
-			case 'q': // m1 move fwd 12800 0.1cm
+			case 'q': // 0.1cm
+				//sprintf(UsartOutput, "%s%d%c", "M1.MOVE.FWD", 12800, '\0');
+				FillMoveForward(L6470_TextCommandBundle, 12800);
 				break;
 			case 'A':
-			case 'a': // m1 move rev 12800 0.1cm
+			case 'a': // 0.1cm
+				FillMoveReverse(L6470_TextCommandBundle, 12800);
 				break;
 			case 'W':
-			case 'w': // m1 move fwd 128000 1cm
+			case 'w': // 1cm
+				FillMoveForward(L6470_TextCommandBundle, 128000);
 				break;
 			case 'S':
-			case 's': // m1 move rev 128000 1cm
+			case 's': // 1cm
+				FillMoveReverse(L6470_TextCommandBundle, 128000);
 				break;
 			case 'E':
-			case 'e': // m1 move fwd 640000 5cm
+			case 'e': // 5cm
+				FillMoveForward(L6470_TextCommandBundle, 640000);
 				break;
 			case 'D':
-			case 'd':  // m1 move rev 640000 5cm
+			case 'd':  // 5cm
+				FillMoveReverse(L6470_TextCommandBundle, 640000);
 				break;
 			case 'R':
-			case 'r':  // m1 move fwd 3840000 30cm
+			case 'r':  // 30cm
+				FillMoveForward(L6470_TextCommandBundle, 3840000);
 				break;
 			case 'F':
-			case 'f': // m1 move rev 3840000 30cm
+			case 'f': // 30cm
+				FillMoveReverse(L6470_TextCommandBundle, 3840000);
 				break;
 			case 'P':
 			case 'p': // m0 move fwd 106666 30deg
+				FillTurnForward(L6470_TextCommandBundle, 106666);
 				break;
 			case 'L':
 			case 'l': // m0 move rev 106666 30deg
+				FillTurnForward(L6470_TextCommandBundle, 106666);
 				break;
 			case 'O':
 			case 'o': // m0 move fwd 320000 90deg
+				FillTurnForward(L6470_TextCommandBundle, 320000);
 				break;
 			case 'K':
 			case 'k': // m0 move rev 320000 90deg
+				FillTurnForward(L6470_TextCommandBundle, 320000);
 				break;
 			case 'U':
 			case 'u': // m0 Move fwd 17777 5deg
+				FillTurnForward(L6470_TextCommandBundle, 17777);
 				break;
 			case 'H':
 			case 'h': // m0 move rev 17777 -5deg
+				FillTurnForward(L6470_TextCommandBundle, 17777);
 				break;
 			case 'I':
 			case 'i': // m0 move fwd 1280000 360deg
+				FillTurnForward(L6470_TextCommandBundle, 1280000);
 				break;
-			case 'N':
-			case 'n': // m0 move rev 1280000 -360deg
+			case 'J':
+			case 'j': // m0 move rev 1280000 -360deg
+				FillTurnForward(L6470_TextCommandBundle, 1280000);
 				break;
 			case 'Z':
 			case 'z': // m0 softstop, m1 softstop
+				FillStop(L6470_TextCommandBundle);
 				break;
 			}
 #endif
 
 			UsartInput[0] = '\0';
-
-			sprintf(L6470_TextCommandBundle[0].MotorName, "%s", "M0");
-			sprintf(L6470_TextCommandBundle[0].CommandName, "%s", "MOVE");
-			sprintf(L6470_TextCommandBundle[0].Param[0], "%s", "FWD");
-			sprintf(L6470_TextCommandBundle[0].Param[1], "%d", 1777);
-
 			//memcpy(L6470_TextCommandBundle[0].Param[1], number, 4);
 			USART_DecodeTextString(L6470_TextCommandBundle, (uint8_t*) L6470_DaisyChainSpiTxStruct, (uint8_t*) L6470_DaisyChainSpiRxStruct);
 
