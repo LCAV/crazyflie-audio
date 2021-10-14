@@ -64,11 +64,12 @@
 
 #if DECODE_KEYBOARD_REMOTE
 
-#define USARTTEXTSTRINGSIZE  1 //!< Max number of characters can be entered from the PC.
+#define INPUTSIZE  1 //!< Max number of characters can be entered from the PC.
+#define OUTPUTSIZE 24 //!< Max number of characters to be sent to motors
 
 #else
 
-#define USARTTEXTSTRINGSIZE  64 //!< Max number of characters can be entered from the PC.
+#define INPUTSIZE  64 //!< Max number of characters can be entered from the PC.
 
 #endif
 

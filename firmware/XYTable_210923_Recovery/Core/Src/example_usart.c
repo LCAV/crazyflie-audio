@@ -33,6 +33,7 @@
  ******************************************************************************
  */
 
+#include "stdio.h"
 #include "example_usart.h"
 #include "xnucleoihm02a1.h"
 
@@ -99,8 +100,8 @@ typedef enum {
 
 UART_HandleTypeDef huart2; //!< The data structure for all further instances to USART2.
 sL6470_DaisyChainMnemonic L6470_DaisyChainMnemonic[L6470DAISYCHAINSIZE]; //!< The mnemonic names for the L6470 in the daisy chain configuration
-uint8_t UsartTextString[24]; //!< To store the USART input text string.
-uint8_t UsartTextString_1[USARTTEXTSTRINGSIZE]; //!< To store the USART input text string.
+uint8_t UsartOutput[OUTPUTSIZE]; //!< To store the USART input text string.
+uint8_t UsartInput[INPUTSIZE]; //!< To store the USART input text string.
 sL6470_TextCommandBundle L6470_TextCommandBundle[L6470DAISYCHAINSIZE]; //!< To store the splitted USART input text string into single fileds.
 
 extern int32_t counter_X;
@@ -117,7 +118,7 @@ extern int32_t counter_Y;
 
 FlagStatus USART_SplitTextString(uint8_t *pTextString, sL6470_TextCommandBundle *pL6470_TextCommandBundle);
 FlagStatus USART_CheckTextCommandBundle(sL6470_TextCommandBundle *pL6470_TextCommandBundle, uint8_t* pL6470_DaisyChainSpiTxStruct);
-uint32_t* USART_DecodeTextString(uint8_t *pTextString, sL6470_TextCommandBundle *pL6470_TextCommandBundle, uint8_t* pL6470_DaisyChainSpiTxStruct, uint8_t* pL6470_DaisyChainSpiRxStruct);
+uint32_t* USART_DecodeTextString(sL6470_TextCommandBundle *pL6470_TextCommandBundle, uint8_t* pL6470_DaisyChainSpiTxStruct, uint8_t* pL6470_DaisyChainSpiRxStruct);
 FlagStatus CompareTwoTextString(uint8_t* TextString1, uint8_t* TextString2);
 FlagStatus str2num(uint8_t* str, uint32_t* pnum);
 
@@ -640,14 +641,14 @@ FlagStatus USART_CheckTextCommandBundle(sL6470_TextCommandBundle *pL6470_TextCom
  * @note It use two function, one to split the whole entered command string and
  *       another one to check for the application command
  */
-uint32_t* USART_DecodeTextString(uint8_t *pTextString, sL6470_TextCommandBundle *pL6470_TextCommandBundle, uint8_t* pL6470_DaisyChainSpiTxStruct, uint8_t* pL6470_DaisyChainSpiRxStruct) {
+uint32_t* USART_DecodeTextString(sL6470_TextCommandBundle *pL6470_TextCommandBundle, uint8_t* pL6470_DaisyChainSpiTxStruct, uint8_t* pL6470_DaisyChainSpiRxStruct) {
 	static uint32_t ReceivedValue[L6470DAISYCHAINSIZE];
 	uint8_t L6470_Id;
 	eL6470_RegId_t L6470_RegId;
 	uint8_t PARAMLengthBytes; /* The number of bytes related to the numeric value for the addressed register */
 	eHexFormat HexFormat;
 
-	if (USART_SplitTextString(pTextString, pL6470_TextCommandBundle) && USART_CheckTextCommandBundle(pL6470_TextCommandBundle, pL6470_DaisyChainSpiTxStruct)) {
+	if (USART_CheckTextCommandBundle(pL6470_TextCommandBundle, pL6470_DaisyChainSpiTxStruct)) {
 #ifdef NUCLEO_USE_USART
 		char string[60] = "";
 		/* counter_X /(40*128) ; counter_Y / (100*128) */
@@ -718,7 +719,6 @@ uint32_t* USART_DecodeTextString(uint8_t *pTextString, sL6470_TextCommandBundle 
 		USART_Transmit(&huart2, "Please, enter a new command string!\n\r\n\r");
 #endif
 	}
-
 	return ReceivedValue;
 }
 
@@ -839,501 +839,81 @@ void USART_CheckAppCmd(void) {
 	/* Checks the UART2 is in idle state */
 	if (huart2.gState == HAL_UART_STATE_READY) {
 		/* Checks one character has been at least entered */
-		if (UsartTextString_1[0] != '\0') {
+		if (UsartInput[0] != '\0') {
 			/* Decode the entered command string */
 
+			memset(L6470_TextCommandBundle, '\0', sizeof(L6470_TextCommandBundle));
+
 #if DECODE_KEYBOARD_REMOTE
-			switch (UsartTextString_1[0]) {
+			switch (UsartInput[0]) {
 			case 'Q':
-			case 'q':
-				/*
-				 20*128
-				 * */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '\0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X += 6400;
+			case 'q': // m1 move fwd 12800 0.1cm
 				break;
 			case 'A':
-			case 'a':
-				/*
-				 * -20*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '\0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X -= 6400;
-
+			case 'a': // m1 move rev 12800 0.1cm
 				break;
 			case 'W':
-			case 'w':
-				/*
-				 * 200*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X += 64000;
-
+			case 'w': // m1 move fwd 128000 1cm
 				break;
 			case 'S':
-			case 's':
-				/*
-				 * -200*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X -= 64000;
-
+			case 's': // m1 move rev 128000 1cm
 				break;
 			case 'E':
-			case 'e':
-				/*
-				 * 2000*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '6';
-				UsartTextString[13] = '4';
-				UsartTextString[14] = '0';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X += 640000;
+			case 'e': // m1 move fwd 640000 5cm
 				break;
 			case 'D':
-			case 'd':
-				/*
-				 * -200*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '6';
-				UsartTextString[13] = '4';
-				UsartTextString[14] = '0';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X -= 640000;
-
+			case 'd':  // m1 move rev 640000 5cm
 				break;
 			case 'R':
-			case 'r':
-				/*
-				 * 2000*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '3';
-				UsartTextString[13] = '8';
-				UsartTextString[14] = '4';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X += 6400000;
+			case 'r':  // m1 move fwd 3840000 30cm
 				break;
 			case 'F':
-			case 'f':
-				/*
-				 * -2000*128
-				 */
-				UsartTextString[0] = 'M';
-				UsartTextString[1] = '1';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '3';
-				UsartTextString[13] = '8';
-				UsartTextString[14] = '4';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_X -= 640000;
+			case 'f': // m1 move rev 3840000 30cm
 				break;
 			case 'P':
-			case 'p':
-				/*
-				 * 50*128
-				 */
-				UsartTextString[0] = 'M'; // 30deg
-				UsartTextString[1] = '0';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '0';
-				UsartTextString[14] = '6';
-				UsartTextString[15] = '6';
-				UsartTextString[16] = '6';
-				UsartTextString[17] = '6';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_Y += 6400;
+			case 'p': // m0 move fwd 106666 30deg
 				break;
 			case 'L':
-			case 'l':
-				/*
-				 * 50*128
-				 */
-				UsartTextString[0] = 'M'; // 30deg
-				UsartTextString[1] = '0';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '0';
-				UsartTextString[14] = '6';
-				UsartTextString[15] = '6';
-				UsartTextString[16] = '6';
-				UsartTextString[17] = '6';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_Y -= 6400;
+			case 'l': // m0 move rev 106666 30deg
 				break;
 			case 'O':
-			case 'o':
-				/*
-				 * 10*50*128
-				 */
-				UsartTextString[0] = 'M'; // 90deg
-				UsartTextString[1] = '0';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '3';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '0';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_Y += 2*64000;
+			case 'o': // m0 move fwd 320000 90deg
 				break;
 			case 'K':
-			case 'k':
-				/*
-				 * 10*50*128
-				 */
-				UsartTextString[0] = 'M'; // 90deg
-				UsartTextString[1] = '0';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '3';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '0';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '\0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_Y -= 2*64000;
+			case 'k': // m0 move rev 320000 90deg
 				break;
-				case 'U':
-				case 'u':
-					/*
-					 * 100*50*128 modified
-					 */
-					UsartTextString[0] = 'M'; // 5deg
-					UsartTextString[1] = '0';
-					UsartTextString[2] = '.';
-					UsartTextString[3] = 'M';
-					UsartTextString[4] = 'O';
-					UsartTextString[5] = 'V';
-					UsartTextString[6] = 'E';
-					UsartTextString[7] = '.';
-					UsartTextString[8] = 'F';
-					UsartTextString[9] = 'W';
-					UsartTextString[10] = 'D';
-					UsartTextString[11] = '.';
-					UsartTextString[12] = '1';
-					UsartTextString[13] = '7';
-					UsartTextString[14] = '7';
-					UsartTextString[15] = '7';
-					UsartTextString[16] = '7';
-					UsartTextString[17] = '\0';
-					UsartTextString[18] = '\0';
-					UsartTextString[19] = '\0';
-					UsartTextString[20] = '\0';
-					//counter_Y += 640000;
-					break;
-				case 'H':
-				case 'h':
-					/*
-					 * 100*50*128
-					 */
-					UsartTextString[0] = 'M'; // 5deg
-					UsartTextString[1] = '0';
-					UsartTextString[2] = '.';
-					UsartTextString[3] = 'M';
-					UsartTextString[4] = 'O';
-					UsartTextString[5] = 'V';
-					UsartTextString[6] = 'E';
-					UsartTextString[7] = '.';
-					UsartTextString[8] = 'R';
-					UsartTextString[9] = 'E';
-					UsartTextString[10] = 'V';
-					UsartTextString[11] = '.';
-					UsartTextString[12] = '1';
-					UsartTextString[13] = '7';
-					UsartTextString[14] = '7';
-					UsartTextString[15] = '7';
-					UsartTextString[16] = '7';
-					UsartTextString[17] = '\0';
-					UsartTextString[18] = '\0';
-					UsartTextString[19] = '\0';
-					UsartTextString[20] = '\0';
-					//counter_Y -= 640000;
-					break;
+			case 'U':
+			case 'u': // m0 Move fwd 17777 5deg
+				break;
+			case 'H':
+			case 'h': // m0 move rev 17777 -5deg
+				break;
 			case 'I':
-			case 'i':
-				/*
-				 * 100*50*128 modified
-				 */
-				UsartTextString[0] = 'M'; // 360deg
-				UsartTextString[1] = '0';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'F';
-				UsartTextString[9] = 'W';
-				UsartTextString[10] = 'D';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_Y += 640000;
+			case 'i': // m0 move fwd 1280000 360deg
 				break;
 			case 'N':
-			case 'n':
-				/*
-				 * 100*50*128
-				 */
-				UsartTextString[0] = 'M'; // -360deg
-				UsartTextString[1] = '0';
-				UsartTextString[2] = '.';
-				UsartTextString[3] = 'M';
-				UsartTextString[4] = 'O';
-				UsartTextString[5] = 'V';
-				UsartTextString[6] = 'E';
-				UsartTextString[7] = '.';
-				UsartTextString[8] = 'R';
-				UsartTextString[9] = 'E';
-				UsartTextString[10] = 'V';
-				UsartTextString[11] = '.';
-				UsartTextString[12] = '1';
-				UsartTextString[13] = '2';
-				UsartTextString[14] = '8';
-				UsartTextString[15] = '0';
-				UsartTextString[16] = '0';
-				UsartTextString[17] = '0';
-				UsartTextString[18] = '0';
-				UsartTextString[19] = '\0';
-				UsartTextString[20] = '\0';
-				//counter_Y -= 640000;
+			case 'n': // m0 move rev 1280000 -360deg
 				break;
 			case 'Z':
-			case 'z':
-				UsartTextString[0]  = 'M';
-				UsartTextString[1]  = '0';
-				UsartTextString[2]  = '.';
-				UsartTextString[3]  = 'S';
-				UsartTextString[4]  = 'O';
-				UsartTextString[5]  = 'F';
-				UsartTextString[6]  = 'T';
-				UsartTextString[7]  = 'S';
-				UsartTextString[8]  = 'T';
-				UsartTextString[9]  = 'O';
-				UsartTextString[10] = 'P';
-				UsartTextString[11] = ',';
-				UsartTextString[12] = 'M';
-				UsartTextString[13] = '1';
-				UsartTextString[14] = '.';
-				UsartTextString[15]  = 'S';
-				UsartTextString[16]  = 'O';
-				UsartTextString[17]  = 'F';
-				UsartTextString[18]  = 'T';
-				UsartTextString[19]  = 'S';
-				UsartTextString[20]  = 'T';
-				UsartTextString[21]  = 'O';
-				UsartTextString[22] = 'P';
-				UsartTextString[23] = '\0';
-
-				//counter_X = 0;
-				//counter_Y = 0;
+			case 'z': // m0 softstop, m1 softstop
 				break;
 			}
 #endif
-			USART_DecodeTextString(UsartTextString, L6470_TextCommandBundle, (uint8_t*) L6470_DaisyChainSpiTxStruct, (uint8_t*) L6470_DaisyChainSpiRxStruct);
-			UsartTextString_1[0] = '\0';
+
+			UsartInput[0] = '\0';
+
+			sprintf(L6470_TextCommandBundle[0].MotorName, "%s", "M0");
+			sprintf(L6470_TextCommandBundle[0].CommandName, "%s", "MOVE");
+			sprintf(L6470_TextCommandBundle[0].Param[0], "%s", "FWD");
+			sprintf(L6470_TextCommandBundle[0].Param[1], "%d", 1777);
+
+			//memcpy(L6470_TextCommandBundle[0].Param[1], number, 4);
+			USART_DecodeTextString(L6470_TextCommandBundle, (uint8_t*) L6470_DaisyChainSpiTxStruct, (uint8_t*) L6470_DaisyChainSpiRxStruct);
+
 		}
 
 		/* Prepare to receive a text string via USART with UART_IT_RXNE */
-		NucleoUsartReceiveIT(&huart2, UsartTextString_1, USARTTEXTSTRINGSIZE);
+		NucleoUsartReceiveIT(&huart2, UsartInput, INPUTSIZE);
 	}
 }
 
