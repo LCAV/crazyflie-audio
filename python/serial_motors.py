@@ -17,23 +17,21 @@ DURATION_50 = 165
 DURATION_360 = 27
 
 # (distance (cm), command, time (s))
-#TODO(FD) fix: moving by 50 does not work. 
 move = {
     "forward": [
         (0.1, b"q", 2.0),
         (1, b"w", 5.0),
         (5, b"e", 15.0),
-        (50, b"r", DURATION_50),
+        (30, b"r", DURATION_50),
     ],
     "backward": [
         (0.1, b"a", 2.0),
         (1, b"s", 5.0),
         (5, b"d", 15.0),
-        (50, b"f", DURATION_50),
+        (30, b"f", DURATION_50),
     ],
 }
 
-#TODO(FD) fix: back by 360 does not work
 turn = {
     "forward": [(5, b"u", 2), (30, b"p", 3), (90, b"o", 8), (360, b"i", DURATION_360)],
     "backward": [(5, b"h", 2), (30, b"l", 3), (90, b"k", 8), (360, b"j", DURATION_360)],
