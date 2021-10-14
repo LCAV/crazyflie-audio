@@ -806,7 +806,7 @@ void USART_TxWelcomeMessage(void) {
 	USART_Transmit(&huart2, " \n\r");
 	USART_Transmit(&huart2, " X-CUBE-SPN2 v1.0.0\n\r");
 	USART_Transmit(&huart2, " STMicroelectronics, 2015, Edited by Adrien Hoffet, 12.2017\n\r");
-	USART_Transmit(&huart2, " Xmotor: Q,W,E/A,S,D (FORWARD/BACKWARD), (50mm, 10mm, 0.5mm)\n\r");
+	USART_Transmit(&huart2, " Xmotor: R,E,W,Q/F,D,S,A (FORWARD/BACKWARD), (300mm, 50mm, 10mm, 1mm)\n\r");
 	USART_Transmit(&huart2, " Ymotor: P,O,I/L,K,J (FORWARD/BACKWARD), (360, 90, 27deg)\n\r");
 	USART_Transmit(&huart2, " ZERO: Z (SOFTSTOP, ZERO COUNTER)\n\r\n\r");
 }
@@ -861,11 +861,11 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[9] = 'W';
 				UsartTextString[10] = 'D';
 				UsartTextString[11] = '.';
-				UsartTextString[12] = '6';
-				UsartTextString[13] = '4';
-				UsartTextString[14] = '0';
+				UsartTextString[12] = '1';
+				UsartTextString[13] = '2';
+				UsartTextString[14] = '8';
 				UsartTextString[15] = '0';
-				UsartTextString[16] = '\0';
+				UsartTextString[16] = '0';
 				UsartTextString[17] = '\0';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
@@ -889,11 +889,11 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[9] = 'E';
 				UsartTextString[10] = 'V';
 				UsartTextString[11] = '.';
-				UsartTextString[12] = '6';
-				UsartTextString[13] = '4';
-				UsartTextString[14] = '0';
+				UsartTextString[12] = '1';
+				UsartTextString[13] = '2';
+				UsartTextString[14] = '8';
 				UsartTextString[15] = '0';
-				UsartTextString[16] = '\0';
+				UsartTextString[16] = '0';
 				UsartTextString[17] = '\0';
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
@@ -990,7 +990,7 @@ void USART_CheckAppCmd(void) {
 			case 'D':
 			case 'd':
 				/*
-				 * -2000*128
+				 * -200*128
 				 */
 				UsartTextString[0] = 'M';
 				UsartTextString[1] = '1';
@@ -1011,6 +1011,63 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[16] = '0';
 				UsartTextString[17] = '0';
 				UsartTextString[18] = '\0';
+				UsartTextString[19] = '\0';
+				UsartTextString[20] = '\0';
+				counter_X -= 640000;
+
+				break;
+			case 'R':
+			case 'r':
+				/*
+				 * 2000*128
+				 */
+				UsartTextString[0] = 'M';
+				UsartTextString[1] = '1';
+				UsartTextString[2] = '.';
+				UsartTextString[3] = 'M';
+				UsartTextString[4] = 'O';
+				UsartTextString[5] = 'V';
+				UsartTextString[6] = 'E';
+				UsartTextString[7] = '.';
+				UsartTextString[8] = 'F';
+				UsartTextString[9] = 'W';
+				UsartTextString[10] = 'D';
+				UsartTextString[11] = '.';
+				UsartTextString[12] = '3';
+				UsartTextString[13] = '8';
+				UsartTextString[14] = '4';
+				UsartTextString[15] = '0';
+				UsartTextString[16] = '0';
+				UsartTextString[17] = '0';
+				UsartTextString[18] = '0';
+				UsartTextString[19] = '\0';
+				UsartTextString[20] = '\0';
+				counter_X += 6400000;
+				break;
+			case 'F':
+			case 'f':
+				/*
+				 * -2000*128
+				 */
+				UsartTextString[0] = 'M';
+				UsartTextString[1] = '1';
+				UsartTextString[2] = '.';
+				UsartTextString[3] = 'M';
+				UsartTextString[4] = 'O';
+				UsartTextString[5] = 'V';
+				UsartTextString[6] = 'E';
+				UsartTextString[7] = '.';
+				UsartTextString[8] = 'R';
+				UsartTextString[9] = 'E';
+				UsartTextString[10] = 'V';
+				UsartTextString[11] = '.';
+				UsartTextString[12] = '3';
+				UsartTextString[13] = '8';
+				UsartTextString[14] = '4';
+				UsartTextString[15] = '0';
+				UsartTextString[16] = '0';
+				UsartTextString[17] = '0';
+				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
 				counter_X -= 640000;
