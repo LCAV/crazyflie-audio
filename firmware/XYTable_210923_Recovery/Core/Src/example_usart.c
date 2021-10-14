@@ -99,7 +99,7 @@ typedef enum {
 
 UART_HandleTypeDef huart2; //!< The data structure for all further instances to USART2.
 sL6470_DaisyChainMnemonic L6470_DaisyChainMnemonic[L6470DAISYCHAINSIZE]; //!< The mnemonic names for the L6470 in the daisy chain configuration
-uint8_t UsartTextString[USARTTEXTSTRINGSIZE]; //!< To store the USART input text string.
+uint8_t UsartTextString[24]; //!< To store the USART input text string.
 uint8_t UsartTextString_1[USARTTEXTSTRINGSIZE]; //!< To store the USART input text string.
 sL6470_TextCommandBundle L6470_TextCommandBundle[L6470DAISYCHAINSIZE]; //!< To store the splitted USART input text string into single fileds.
 
@@ -807,7 +807,7 @@ void USART_TxWelcomeMessage(void) {
 	USART_Transmit(&huart2, " X-CUBE-SPN2 v1.0.0\n\r");
 	USART_Transmit(&huart2, " STMicroelectronics, 2015, Edited by Adrien Hoffet, 12.2017\n\r");
 	USART_Transmit(&huart2, " Xmotor: R,E,W,Q/F,D,S,A (FORWARD/BACKWARD), (300mm, 50mm, 10mm, 1mm)\n\r");
-	USART_Transmit(&huart2, " Ymotor: P,O,I/L,K,J (FORWARD/BACKWARD), (360, 90, 27deg)\n\r");
+	USART_Transmit(&huart2, " Ymotor: P,O,I,U/L,K,N,H (FORWARD/BACKWARD), (30, 90, 360, 5deg)\n\r");
 	USART_Transmit(&huart2, " ZERO: Z (SOFTSTOP, ZERO COUNTER)\n\r\n\r");
 }
 
@@ -870,7 +870,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 6400;
+				//counter_X += 6400;
 				break;
 			case 'A':
 			case 'a':
@@ -898,7 +898,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 6400;
+				//counter_X -= 6400;
 
 				break;
 			case 'W':
@@ -927,7 +927,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 64000;
+				//counter_X += 64000;
 
 				break;
 			case 'S':
@@ -956,7 +956,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 64000;
+				//counter_X -= 64000;
 
 				break;
 			case 'E':
@@ -985,7 +985,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 640000;
+				//counter_X += 640000;
 				break;
 			case 'D':
 			case 'd':
@@ -1013,7 +1013,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 640000;
+				//counter_X -= 640000;
 
 				break;
 			case 'R':
@@ -1042,7 +1042,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X += 6400000;
+				//counter_X += 6400000;
 				break;
 			case 'F':
 			case 'f':
@@ -1070,7 +1070,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_X -= 640000;
+				//counter_X -= 640000;
 				break;
 			case 'P':
 			case 'p':
@@ -1098,7 +1098,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y += 6400;
+				//counter_Y += 6400;
 				break;
 			case 'L':
 			case 'l':
@@ -1126,7 +1126,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y -= 6400;
+				//counter_Y -= 6400;
 				break;
 			case 'O':
 			case 'o':
@@ -1154,7 +1154,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y += 2*64000;
+				//counter_Y += 2*64000;
 				break;
 			case 'K':
 			case 'k':
@@ -1182,7 +1182,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '\0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y -= 2*64000;
+				//counter_Y -= 2*64000;
 				break;
 				case 'U':
 				case 'u':
@@ -1210,7 +1210,7 @@ void USART_CheckAppCmd(void) {
 					UsartTextString[18] = '\0';
 					UsartTextString[19] = '\0';
 					UsartTextString[20] = '\0';
-					counter_Y += 640000;
+					//counter_Y += 640000;
 					break;
 				case 'H':
 				case 'h':
@@ -1238,7 +1238,7 @@ void USART_CheckAppCmd(void) {
 					UsartTextString[18] = '\0';
 					UsartTextString[19] = '\0';
 					UsartTextString[20] = '\0';
-					counter_Y -= 640000;
+					//counter_Y -= 640000;
 					break;
 			case 'I':
 			case 'i':
@@ -1266,14 +1266,14 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y += 640000;
+				//counter_Y += 640000;
 				break;
-			case 'J':
-			case 'j':
+			case 'N':
+			case 'n':
 				/*
 				 * 100*50*128
 				 */
-				UsartTextString[0] = 'M'; // 360deg
+				UsartTextString[0] = 'M'; // -360deg
 				UsartTextString[1] = '0';
 				UsartTextString[2] = '.';
 				UsartTextString[3] = 'M';
@@ -1294,7 +1294,7 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[18] = '0';
 				UsartTextString[19] = '\0';
 				UsartTextString[20] = '\0';
-				counter_Y -= 640000;
+				//counter_Y -= 640000;
 				break;
 			case 'Z':
 			case 'z':
@@ -1323,8 +1323,8 @@ void USART_CheckAppCmd(void) {
 				UsartTextString[22] = 'P';
 				UsartTextString[23] = '\0';
 
-				counter_X = 0;
-				counter_Y = 0;
+				//counter_X = 0;
+				//counter_Y = 0;
 				break;
 			}
 #endif

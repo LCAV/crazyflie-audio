@@ -13,7 +13,7 @@ import time
 SERIAL_PORT = "/dev/ttyACM0"
 
 # duration for longest movements (in seconds)
-DURATION_50 = 165
+DURATION_30 = 80
 DURATION_360 = 27
 
 # (distance (cm), command, time (s))
@@ -22,19 +22,19 @@ move = {
         (0.1, b"q", 2.0),
         (1, b"w", 5.0),
         (5, b"e", 15.0),
-        (30, b"r", DURATION_50),
+        (30, b"r", DURATION_30),
     ],
     "backward": [
         (0.1, b"a", 2.0),
         (1, b"s", 5.0),
         (5, b"d", 15.0),
-        (30, b"f", DURATION_50),
+        (30, b"f", DURATION_30),
     ],
 }
 
 turn = {
     "forward": [(5, b"u", 2), (30, b"p", 3), (90, b"o", 8), (360, b"i", DURATION_360)],
-    "backward": [(5, b"h", 2), (30, b"l", 3), (90, b"k", 8), (360, b"j", DURATION_360)],
+    "backward": [(5, b"h", 2), (30, b"l", 3), (90, b"k", 8), (360, b"n", DURATION_360)],
 }
 
 
@@ -62,6 +62,7 @@ class SerialMotors(object):
 
     def turn_to(self, angle_deg, blocking=True):
         delta = angle_deg - self.current_angle
+        print(f'turning from {self.current_angle} by {delta} to {angle_deg}.') 
         self.turn(delta, blocking)
 
     def turn_forward(self, angle_deg, blocking=True):
@@ -107,7 +108,7 @@ class SerialMotors(object):
 
             for i in range(num_commands):
                 if self.verbose:
-                    print(f"running command {i+1}/{num_commands}")
+                    print(f"running command {i+1}/{num_commands}: {command}")
                 self.serial.write(command)
 
                 if blocking:
@@ -121,7 +122,11 @@ class SerialMotors(object):
 
 if __name__ == "__main__":
     sm = SerialMotors(verbose=True)
-    #sm.move(1.0)
+    #sm.move(18.0)
+    #sm.move_back(15.0)
+    #sm.move(-30)
+    sm.turn(-360)
+    #sm.turn_back(360)
     #sm.move_back(1.0)
     #sm.turn(10)
     #sm.turn_back(10)
