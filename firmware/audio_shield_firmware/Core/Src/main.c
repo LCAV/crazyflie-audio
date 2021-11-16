@@ -159,7 +159,6 @@ uint8_t wait_to_send = 1;
 uint32_t note_tickstart;
 int8_t melody_index = 0;
 uint8_t note_index = 0;
-uint16_t buffer_index;
 uint16_t i_array;
 
 state_note_t state_note_sm = BUZZER_IDLE;
@@ -425,7 +424,6 @@ int main(void)
 
 				if (melody_index >= 0) {
 					note_index = 0;
-					buffer_index = 0;
 					state_note_sm = BUZZER_PLAY_NEXT;
 				}
 			}
@@ -440,8 +438,8 @@ int main(void)
 			//piezoInit();
 			piezoSetPSC(next_note.PSC);
 #ifndef FIXED_PERIOD
-			piezoSetMaxCount(next_note.ARR); // Buzzer follows led sequence
-			piezoSetRatio(next_note.ARR / BUZZER_RATIO - 1); // Buzzer follows led sequence
+			piezoSetMaxCount(next_note.ARR);
+			piezoSetRatio(next_note.ARR / BUZZER_RATIO - 1);
 			piezoStart();
 #endif
 			memset(mics_f_all, 0x00, sizeof(mics_f_all));
@@ -457,12 +455,10 @@ int main(void)
 				// make sure we don't use the sample from the
 				// frequency that played before.
 				new_sample_to_process = 0;
-				state_note_sm = BUZZER_RECORD;
-
-				// Start acquisition process
 				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_N_BUFFER);
 				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_N_BUFFER);
 
+				state_note_sm = BUZZER_RECORD;
 			}
 			break;
 		case BUZZER_RECORD:
@@ -473,7 +469,7 @@ int main(void)
 				timestamp = HAL_GetTick();
 
 				// Compute FFT
-				// TODO(FD) arm_rfft_fast_f32 may modify mic0, mic1, ...; is this a problem?
+				// Note that arm_rfft_fast_f32 may modify mk1, mk2
 				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
 				arm_rfft_fast_f32(&rfft_instance, mk1, mk1_f, ifft_flag);
 				arm_rfft_fast_init_f32(&rfft_instance, N_BUFFER);
@@ -490,8 +486,6 @@ int main(void)
 				arm_cmplx_mag_f32(mk2_f, magnitude_mk2, FFTSIZE);
 
 				if (fill_tx_buffer()) {
-					new_sample_to_process = 0;
-
 					state_note_sm = BUZZER_WAIT_SEND;
 					wait_to_send = 1;
 					buzzer_wait_counter = 0;
@@ -500,11 +494,11 @@ int main(void)
 					state_note_sm = BUZZER_CHOOSE_NEXT;
 				}
 			} else {
-				// Start acquisition process
+				// Restart acquisition process
+				new_sample_to_process = 0;
 				HAL_I2S_Receive_DMA(&hi2s1, (uint16_t*) dma_1, TWO_N_BUFFER);
 				HAL_I2S_Receive_DMA(&hi2s3, (uint16_t*) dma_3, TWO_N_BUFFER);
 			}
-
 			break;
 		case BUZZER_WAIT_SEND:
 
@@ -521,7 +515,6 @@ int main(void)
 			// wait until we sent also the last package
 
 			note_index++;
-			buffer_index++;
 
 			// point to next element and get its value.
 			int16_t frequency_index = melodies[melody_index].notes[note_index];
@@ -533,7 +526,6 @@ int main(void)
 			} else if (frequency_index == REPEAT) {
 				// go back to beginning of melody
 				note_index = 0;
-				buffer_index = 0;
 
 				state_note_sm = BUZZER_PLAY_NEXT;
 			} else {
@@ -1300,7 +1292,7 @@ uint8_t fill_tx_buffer() {
 		}
 
 		// Variable for memory indexing
-		i_array = buffer_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
+		i_array = note_index * N_MICS * N_COMPLEX * FLOAT_PRECISION;
 
 		// Fill buffer with audio data
 		memcpy(&spi_tx_buffer[i_array], &mk1_f[N_COMPLEX * freq_index], FLOAT_PRECISION);
@@ -1321,14 +1313,12 @@ uint8_t fill_tx_buffer() {
 		i_array += FLOAT_PRECISION;
 
 		// Fill with bins indices
-		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + buffer_index * sizeof(freq_index)], &freq_index, sizeof(freq_index));
-
-		// Fill with timestamp
-		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
+		memcpy(&spi_tx_buffer[AUDIO_N_BYTES + note_index * sizeof(freq_index)], &freq_index, sizeof(freq_index));
 
 		// Activate Checksum only if sweep is completed
-		if (buffer_index == melodies[melody_index].length - 1) {
-			buffer_index = -1;
+		if (note_index == melodies[melody_index].length - 1) {
+			// Fill with timestamp
+			memcpy(&spi_tx_buffer[AUDIO_N_BYTES + FBINS_N_BYTES], &timestamp, sizeof(timestamp));
 
 			spi_tx_buffer[SPI_N_BYTES - 1] = CHECKSUM_VALUE;
 
