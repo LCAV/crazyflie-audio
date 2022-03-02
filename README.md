@@ -2,14 +2,12 @@
 
 This repository contains the hardware files, firmware and other documentation for the audio deck of the Crazyflie drone. 
 
-*Created on July 27, 2020.*
-
 ## Overview
 
-- `firmware/`: firmware to run on the audio shield, which processes the microphone signals and streams the result to the Crazyflie PCB. 
+- `firmware/`: Firmware to run on the audio shield, which extracts and transmits microphone data to the Crazyflie PCB. 
 - `hardware/`: *KiCad* PCB design files for audio shield.
-- `python/`: helper functions to generate hard-coded sweeps etc. 
-- `flight_control/`: simple scripts to fly the Crazyflie drone for testing.
+- `python/`: Helper functions to generate hard-coded sweeps etc. 
+- `flight_control/`: Simple scripts to fly the Crazyflie drone for testing.
 - `doc/`: Some documentation and helpers.
 
 ## Audio deck driver
