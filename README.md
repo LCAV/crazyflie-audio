@@ -12,7 +12,7 @@ This repository contains the hardware files, firmware and other documentation fo
 
 ## Audio deck driver
 
-The driver of the audio deck, running on the Crazyflie, is available in [this fork](https://github.com/duembgen/private-crazyflie-firmware) of the official firmware.
+The driver of the audio deck, running on the Crazyflie, is available in [this fork](https://github.com/lcav/crazyflie-firmware) of the official firmware.
 
 ## Contributors 
 
