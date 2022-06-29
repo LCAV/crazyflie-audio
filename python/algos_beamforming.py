@@ -11,15 +11,14 @@ from constants import SPEED_OF_SOUND
 INVERSE = "pinv"
 # INVERSE = 'low-rank'
 
-
 def get_lcmv_beamformer(
-    Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None
+    Rx, frequencies, mic_positions, constraints, rcond=0, lamda=1e-3, elevation=None, 
+    inverse=INVERSE,
 ):
     """
-
     Solves the problem
     h = min E(|y(t)|**2)
-    s.t. 
+    s.t. h.conj()C=c
 
     :param Rx: n_frequencies x n_mics x n_mics covariance matrix.
     :param frequencies: frequencies in Hz. 
@@ -31,7 +30,6 @@ def get_lcmv_beamformer(
     """
 
     print("Deprecation warning: use get_lcmv_beamformer_fast for better performance.")
-
     assert mic_positions.ndim == 2, "watch out, changed argument order!!"
 
     n_mics = Rx.shape[1]
@@ -42,10 +40,9 @@ def get_lcmv_beamformer(
         (len(frequencies), n_mics), dtype=np.complex128
     )  # n_frequencies x n_mics
 
-    condition_numbers = []
-    condition_numbers_big = []
-    for j, freq in enumerate(frequencies):
+    constraints = trim_constraints(constraints)
 
+    for j, freq in enumerate(frequencies):
         # generate constraints
         C = np.zeros((n_mics, 0), dtype=np.complex128)
         c = np.zeros((0,), dtype=np.complex128)
@@ -61,15 +58,19 @@ def get_lcmv_beamformer(
         assert c.shape[0] == len(constraints)
 
         # solve the optimization problem
-        Rx_inv = np.linalg.pinv(Rx[j, :, :] + lamda * np.eye(Rx.shape[1]), rcond=rcond)
+        if inverse == "pinv":
+            Rx_inv = np.linalg.pinv(Rx[j, :, :] + lamda * np.eye(Rx.shape[1]), rcond=rcond)
+        elif inverse == "low-rank":
+            Rx_inv = np.empty(Rx.shape, dtype=np.complex)
+            Rx_inv = low_rank_inverse(Rx[j, ...], rank=1)
+        else:
+            raise NotImplementedError(inverse)
         # (n_constraints x n_mics) (n_mics  x n_mics) (n_mics x n_constraints)
         # = n_constraints x n_constraints
-        big_mat = C.conj().T @ Rx_inv @ C
+        big_mat = C.conj().T @ Rx_inv @ C + 1e-5 * np.eye(C.shape[-1])
         big_inv = np.linalg.pinv(big_mat, rcond=rcond)
         H[j, :] = Rx_inv @ C @ big_inv @ c
-        condition_numbers.append(np.linalg.cond(Rx[j, :, :]))
-        condition_numbers_big.append(np.linalg.cond(big_mat))
-    return H, condition_numbers, condition_numbers_big
+    return H
 
 
 def get_lcmv_beamformer_fast(
@@ -81,9 +82,9 @@ def get_lcmv_beamformer_fast(
     lamda=1e-3,
     elevation=None,
     inverse=INVERSE,
+    cancel_centre=False
 ):
     """
-
     Solves the problem: h = min E(|y(t)|**2)
     under the given constraints
 
@@ -101,12 +102,21 @@ def get_lcmv_beamformer_fast(
 
     # generate constraints
     C = np.zeros((len(frequencies), n_mics, 0), dtype=np.complex128)
-    c = np.array([c[1] for c in constraints], dtype=np.complex128)
-    for theta, __ in constraints:
+    constraints = trim_constraints(constraints, eps=1e-3)
+
+    c = np.array([c[1] for c in constraints])
+    all_thetas = np.array([c[0] for c in constraints])
+       
+    for theta in all_thetas:
         delays = get_mic_delays(mic_positions, theta, elevation)
         exponent = 2 * np.pi * delays[None, :] * frequencies[:, None]  # n_freq x n_mics
         C_row = np.exp(-1j * exponent)
         C = np.concatenate([C, C_row[:, :, None]], axis=2)  # n_freq x n_mics x n_constr
+        
+    if cancel_centre:
+        C_row = np.ones((C.shape[0], C.shape[1], 1))
+        C = np.concatenate([C, C_row], axis=2)  # n_freq x n_mics x n_constr
+        c = np.r_[c, 0.0]
 
     # solve the optimization problem
     if inverse == "pinv":
@@ -121,11 +131,21 @@ def get_lcmv_beamformer_fast(
     # big_mat should have dimension n_freq x n_constr x n_constr
     # (n_freq x n_constr x n_mics) (n_freq x n_mics x n_mics) = n_freq x n_constr x n_mics
     # @ n_freq x n_mics x n_constr = n_freq x n_constr x n_constr
-    big_mat = np.transpose(C.conj(), (0, 2, 1)) @ Rx_inv @ C  #
-    big_inv = np.linalg.inv(big_mat)
+    big_mat = np.transpose(C.conj(), (0, 2, 1)) @ Rx_inv @ C  + 10 * np.eye(C.shape[-1])[None, :, :]
+    try:
+        big_inv = np.linalg.inv(big_mat)
+    except:
+        rconds = np.linalg.cond(big_mat)
+        singular_freqs = np.where(rconds > 0)[0]
+        print("LCMV warning: singular matrix at frequency index", singular_freqs, constraints)
+        for f in singular_freqs:
+            big_mat[f] += 1e-5 * np.eye(big_mat[f].shape[0])
+        big_inv = np.linalg.inv(big_mat)
     # n_freq x n_mics x n_mics @ # n_freq x n_mics x n_constr = n_freq x n_mics x n_constr
     H = Rx_inv @ C @ big_inv @ c
-    return H
+    #for j in range(H.shape[0]):
+        #print(H[j, :].conj() @  C[j, :, :] - c)
+    return H.conj()
 
 
 def get_das_beamformer(azimuth, frequencies, mic_positions, elevation=None):
@@ -252,3 +272,54 @@ def select_frequencies(
                 frequency_bins, size=num_frequencies, replace=False
             )
     return sorted(frequency_bins)
+
+def trim_constraints(constraints, eps=1e-3):
+    """ 
+    If we are scanning at an angle (c_i=1) where we want to 
+    place 0 (c_i=0) then we need to ignore that 1 constraint.
+    
+    In general: we keep always the minimum constraint if 
+    there are multiple for one angle.
+    """
+    these = range(len(constraints)-1)
+    keep_list = []
+    i = 0
+    all_thetas = np.array([c[0] for c in constraints])
+    c = np.array([c[1] for c in constraints], dtype=np.complex128)
+    found_duplicate = False
+    visited = []
+    while i < len(these)+1:
+        if i in visited:
+            i += 1
+            continue
+        # because thetas are angles, we need to take the  angle difference
+        angle_diff = np.abs(all_thetas[i:] - all_thetas[i])
+        angle_diff[angle_diff > np.pi] = 2*np.pi - angle_diff[angle_diff > np.pi]
+        angle_diff[angle_diff < 0] += 2*np.pi
+
+        # close_idx sees where the close-by angles are
+        close_idx = np.where(angle_diff < eps)[0]
+        close_idx += i
+        
+        constraints_double= c[close_idx]
+        keep = np.argmin(constraints_double)
+        # keep list sees which of the angles need to be kept.
+        keep_list.append(keep + i)
+        visited += list(close_idx)
+        i += 1
+        if len(close_idx) > 1:
+            found_duplicate = True
+    constraints = list(zip(all_thetas[keep_list], c[keep_list]))
+    return constraints
+    
+def test_trim_constraints():
+    all_thetas = np.array([1, 1, 1, 2, 3, 3, 4])
+    c = np.array([1, 0.1, 0, 1, 1, 0, 1])
+    constraints = list(zip(all_thetas, c))
+    constraints = trim_constraints(constraints)
+    assert len(constraints) == 4
+    assert np.all(constraints == [(1, 0), (2,1), (3,0), (4, 1)])
+
+if __name__ == "__main__":
+    test_trim_constraints()
+    print("tests ok")

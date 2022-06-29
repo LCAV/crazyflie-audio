@@ -21,11 +21,11 @@ def low_rank_inverse(low_rank_matrix, rank=1):
     return inverse
 
 
-def get_mic_delays(mic_positions, azimuth, elevation=None):
+def get_mic_delays(mic_positions, azimuth_rad, elevation_rad=None):
     r0 = mic_positions[0]
     return np.array(
         [
-            get_mic_delta(r0, r1, azimuth, elevation) / SPEED_OF_SOUND
+            get_mic_delta(r0, r1, azimuth_rad, elevation_rad) / SPEED_OF_SOUND
             for r1 in mic_positions
         ]
     )
@@ -42,7 +42,7 @@ def get_mic_delays_near(mic_positions, source):
     )
 
 
-def get_mic_delta(r0, r1, azimuth, elevation=None):
+def get_mic_delta(r0, r1, azimuth_rad, elevation_rad=None):
     """
     Get difference in travel distance for r1 w.r.t. r0 for source coming from specified angle.
     """
@@ -51,19 +51,19 @@ def get_mic_delta(r0, r1, azimuth, elevation=None):
     # 3d source
     if len(r0) == 3:
         assert len(r0) == 3
-        if elevation is None:
+        if elevation_rad is None:
             raise ValueError("need to specify elevation for 3D doa.")
         s = np.array(
             (
-                np.cos(azimuth) * np.cos(elevation),
-                np.sin(azimuth) * np.cos(elevation),
-                np.sin(elevation),
+                np.cos(azimuth_rad) * np.cos(elevation_rad),
+                np.sin(azimuth_rad) * np.cos(elevation_rad),
+                np.sin(elevation_rad),
             )
         )
     # 2d source
     elif len(r0) == 2:
         assert len(r0) == 2
-        s = np.array((np.cos(azimuth), np.sin(azimuth)))
+        s = np.array((np.cos(azimuth_rad), np.sin(azimuth_rad)))
     else:
         raise ValueError(f"r0 has to be of length 2 or 3, but is {len(r0)}")
     return np.inner(r0 - r1, s)
