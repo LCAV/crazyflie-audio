@@ -57,15 +57,17 @@ mems[0].elements[board_rev_id] = 'V2'
 
 ## References
 
-Please refer to the below publications for more information.
+Please refer to the below publications for more information. 
 
+[1] [RA-L paper](https://doi.org/10.1109/LRA.2022.3194669) (main reference)
 ```
-F. Dümbgen, A. Hoffet, A. Scholefield, and M. Vetterli, "Blind as a bat: audible 
-echolocation on tiny robots", submitted to IEEE/RSJ International Conference on 
-Intelligent Robotis and Systems, 2022.
+F. Dümbgen, A. Hoffet, M. Kolundžija, A. Scholefield, and M. Vetterli, "Blind as a bat: audible 
+echolocation on small robots", IEEE Robotics and Automation Letters (Early Access), 2022. 
 ```
 
+[2] [Ph.D. dissertation](https://infoscience.epfl.ch/record/290057) (including additional methods and experimental analysis):  
 ```
 F. Dümbgen, "Blind as a bat: spatial perception without sight", Ph.D. disseration, 
 École Polytechnique Fédérale de Lausanne, 2021.
 ```
+
